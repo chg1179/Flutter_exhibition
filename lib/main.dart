@@ -39,7 +39,7 @@ class _MyAppState extends State<MyApp> {
                 children: [
                   TabBar(
                     tabs: [
-                      Tab(text: 'Tab 1'),
+                      Tab(text: 'NOW'),
                       Tab(text: 'Tab 2'),
                     ],
                   ),
