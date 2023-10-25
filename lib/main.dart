@@ -36,6 +36,7 @@ class _MyAppState extends State<MyApp> {
                     tabs: [
                       Tab(text: 'NOW'),
                       Tab(text: 'EXHIBITION'),
+                      Tab(text: 'TEST'),
                     ],
                   ),
                 ],
