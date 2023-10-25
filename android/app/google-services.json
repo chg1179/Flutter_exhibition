@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348365247770",
+    "project_id": "exhibitionproject-fdba1",
+    "storage_bucket": "exhibitionproject-fdba1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348365247770:android:ad181a42cc3c0adb0ac8a3",
+        "android_client_info": {
+          "package_name": "com.example.exhibition_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1RlbpP-3bq3lklkeS0I_Ns9QDYBqYoBU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
