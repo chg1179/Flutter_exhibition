@@ -14,11 +14,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    FirstPage(),
-    SecondPage(),
-  ];
-
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -40,7 +35,7 @@ class _MyAppState extends State<MyApp> {
                   TabBar(
                     tabs: [
                       Tab(text: 'NOW'),
-                      Tab(text: 'Tab 2'),
+                      Tab(text: 'EXHIBITION'),
                     ],
                   ),
                 ],
