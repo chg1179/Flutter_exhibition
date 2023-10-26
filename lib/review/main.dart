@@ -49,8 +49,6 @@ class _ReviewListState extends State<ReviewList> {
     'ex5.jpg'
   ];
 
-
-
   String? _selectedList = '최신순';
 
   @override
@@ -78,6 +76,7 @@ class _ReviewListState extends State<ReviewList> {
                 left: 10,
                 right: 10,
                 child: Container(
+                  height: 50,
                   child: TextField(
                     controller: _searchCtr,
                     decoration: InputDecoration(
@@ -91,7 +90,7 @@ class _ReviewListState extends State<ReviewList> {
               
               // 셀렉바
               Positioned(
-                  top: 75,
+                  top: 60,
                   left: 20,
                   child: ElevatedButton(
                     onPressed: _selectBar,
@@ -111,7 +110,7 @@ class _ReviewListState extends State<ReviewList> {
 
               // 후기 리스트
               Positioned(
-                  top: 100,
+                  top: 105,
                   left: 10,
                   right: 10,
                   bottom: 1,
@@ -178,7 +177,7 @@ class _ReviewListState extends State<ReviewList> {
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
                   children: [
-                    Image.asset(_imgList[index], width: screenWidth, height: 250, fit: BoxFit.cover,),
+                    Image.asset('assets/${_imgList[index]}', width: screenWidth, height: 250, fit: BoxFit.cover,),
                     ListTile(
                       title: Text(data['title']),
                       subtitle: Column(
@@ -187,13 +186,15 @@ class _ReviewListState extends State<ReviewList> {
                           Text(data['content'], style: TextStyle(fontSize: 13),),
                           SizedBox(height: 10),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               CircleAvatar(
                                 radius: 10,
-                                backgroundImage: AssetImage(_imgList[index]),
+                                backgroundImage: AssetImage('assets/${_imgList[index]}'),
                               ),
                               SizedBox(width: 10,),
                               // Text(data['nickName']),
+                              Icon(Icons.favorite_border, color: Colors.red, size: 20,)
                             ],
                           )
                         ],
@@ -239,7 +240,7 @@ class _ReviewListState extends State<ReviewList> {
                   child: Text(_list[index],
                     style: TextStyle(
                         color: Colors.black,
-                        fontSize: 20
+                        fontSize: 15
                     ),
                   )
               );

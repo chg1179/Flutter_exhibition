@@ -19,13 +19,21 @@ class _ReviewDetailState extends State<ReviewDetail> {
     final document = widget.document;
 
     showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)
+      ),
       enableDrag : true,
       context: context,
       builder: (context) {
         return Container(
+          height: 200,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text(''),
+              ),
               ListTile(
                 leading: Icon(Icons.edit),
                 title: Text('수정하기'),
@@ -107,7 +115,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundImage: AssetImage('ex/ex1.png'),
+              backgroundImage: AssetImage('assets/ex1.png'),
             ),
             SizedBox(width: 10),
             Column(
@@ -120,7 +128,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
           ],
         ),
         SizedBox(height: 20,),
-        Image.asset('ex/ex4.jpg', width: MediaQuery.of(context).size.width, height: 400,),
+        Image.asset('assets/ex4.jpg', width: MediaQuery.of(context).size.width, height: 400,),
         SizedBox(height: 20,),
         Text(document['content']),
         SizedBox(height: 30,),
