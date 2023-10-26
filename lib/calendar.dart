@@ -38,15 +38,27 @@ class _CalendarState extends State<Calendar> {
       MaterialPageRoute(
         builder: (context) {
           return Scaffold(
-            appBar: AppBar(
-              title: Text("달력"),
+            appBar: AppBar( backgroundColor: Colors.white,
+              title: Text("마이 페이지"),
               actions: [
                 IconButton(
-                  icon: Icon(Icons.add_alert_outlined),
+                  icon: Icon(Icons.add_alert_outlined, color: Colors.black,),
                   onPressed: () {
                     print('안녕');
                   },
                 ),
+                IconButton(
+                  icon: Icon(Icons.shopping_cart_outlined, color: Colors.black,),
+                  onPressed: () {
+                    print('안녕');
+                  },
+                ),
+                IconButton(
+                  icon: Icon(Icons.settings_outlined, color: Colors.black,),
+                  onPressed: () {
+                    print('안녕');
+                  },
+                )
               ],
             ),
             body: Container(
@@ -81,7 +93,7 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("달력")),
+      appBar: AppBar(title: Text("마이페이지",) ),
       body: Column(
         children: [
           Center(
