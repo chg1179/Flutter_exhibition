@@ -17,3 +17,15 @@ String hashPassword(String password) {
   final hashFunction = HashFunction();
   return hashFunction.hashPassword(password, salt);
 }
+
+// 비밀번호 일치 여부 확인
+bool isPasswordValid(String inputPassword, String storedHashedPassword) {
+  // 사용자가 입력한 비밀번호를 해시화
+  // 비밀번호 해시화
+  final salt = 'salt';
+  final hashFunction = HashFunction(); // HashFunction 클래스의 인스턴스 생성
+  final hashedPassword = hashFunction.hashPassword(inputPassword, salt);
+  print(hashedPassword);
+  // 저장된 해시된 비밀번호와 사용자가 입력한 해시된 비밀번호를 비교
+  return hashedPassword == storedHashedPassword;
+}

@@ -8,19 +8,7 @@ import '../model/user_model.dart';
 import '../hash/hash_password.dart';
 import '../style/button_styles.dart';
 
-class SignInPage extends StatefulWidget {
-  const SignInPage({super.key});
-
-  @override
-  State<SignInPage> createState() => _SignInPageState();
-}
-
-class _SignInPageState extends State<SignInPage> {
-  final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _pwdController = TextEditingController();
-  bool pwdHide = true; //패스워드 감추기
-
+class SignInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,53 +18,72 @@ class _SignInPageState extends State<SignInPage> {
           cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
         ),
       ),
-      home: Scaffold(
-        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
-        body: Padding(
-          padding: const EdgeInsets.all(50.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                margin: EdgeInsets.fromLTRB(10, 20, 10, 30),
-                padding: EdgeInsets.all(10),
-                child: Center(
-                  child: Text('로그인', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold))
-                )
-              ),
-              _TextField(_emailController, '이메일', 'email'),
-              SizedBox(height: 20),
-              _TextField(_pwdController, '비밀번호', 'pwd'),
-              SizedBox(height: 80),
-              Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: _login,
-                          style: fullGreenButtonStyle(),
-                          child: boldGreyButtonContainer('로그인'),
-                        ),
-                        SizedBox(height: 18),
-                        ElevatedButton(
-                          onPressed: (){
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignUpPage(),
-                              ),
-                            );
-                          },
-                          style: fullLightGreenButtonStyle(),
-                          child: boldGreenButtonContainer('회원가입'),
-                        ),
-                      ]
-                  )
-              ),
-            ],
-          ),
-        ),
-      )
+      home: SignInCheck(),
+    );
+  }
+}
+
+class SignInCheck extends StatefulWidget {
+  const SignInCheck({super.key});
+
+  @override
+  State<SignInCheck> createState() => _SignInCheckState();
+}
+
+class _SignInCheckState extends State<SignInCheck> {
+  final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스 가져옴
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _pwdController = TextEditingController();
+  bool pwdHide = true; //패스워드 감추기
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+          backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
+          body: Padding(
+            padding: const EdgeInsets.all(50.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                    margin: EdgeInsets.fromLTRB(10, 20, 10, 50),
+                    padding: EdgeInsets.all(10),
+                    child: Center(
+                        child: Text('로그인', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold))
+                    )
+                ),
+                _TextField(_emailController, '이메일', 'email'),
+                SizedBox(height: 20),
+                _TextField(_pwdController, '비밀번호', 'pwd'),
+                SizedBox(height: 80),
+                Center(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: _login,
+                            style: fullGreenButtonStyle(),
+                            child: boldGreyButtonContainer('로그인'),
+                          ),
+                          SizedBox(height: 18),
+                          ElevatedButton(
+                            onPressed: (){
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SignUpPage(),
+                                ),
+                              );
+                            },
+                            style: fullLightGreenButtonStyle(),
+                            child: boldGreenButtonContainer('회원가입'),
+                          ),
+                        ]
+                    )
+                ),
+              ],
+            ),
+          )
     );
   }
 
@@ -118,35 +125,40 @@ class _SignInPageState extends State<SignInPage> {
   void _login() async {
     String email = _emailController.text;
     String password = _pwdController.text;
-    final salt = 'salt';
-
+    if (email!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이메일 주소를 입력해 주세요.'))
+      );
+      return null;
+    }
+    if (password!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('비밀 번호를 입력해 주세요.'))
+      );
+      return null;
+    }
     final userEmail = await _fs.collection('user')
         .where('email', isEqualTo: email)
         .get();
     if (userEmail.docs.isNotEmpty) {
-        final userDocument = userEmail.docs.first;
-        final userHashPassword = userDocument.get('password');
-        bool pwdCheck = isPasswordValid(password, salt, userHashPassword);
-        print(pwdCheck);
-        if (pwdCheck) {
-          Provider.of<UserModel>(context, listen: false).signIn(userDocument.id);
-          showMoveDialog(context, '로그인 되었습니다.', () => HomePage());
-        } else {
-          showMessageDialog(context, '비밀번호를 확인해 주세요.');
-        }
+      final userDocument = userEmail.docs.first;
+      final userHashPassword = userDocument.get('password');
+      bool pwdCheck = isPasswordValid(password, userHashPassword);
+      print(pwdCheck);
+      if (pwdCheck) {
+        Provider.of<UserModel>(context, listen: false).signIn(userDocument.id); //세션 값 부여
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('로그인 되었습니다.'))
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } else {
+        showMessageDialog(context, '비밀번호를 확인해 주세요.');
+      }
     } else {
       showMessageDialog(context, '일치하는 아이디가 없습니다.');
     }
-  }
-
-  // 비밀번호 일치 여부 확인 함수
-  bool isPasswordValid(String inputPassword, String salt, String storedHashedPassword) {
-    // 사용자가 입력한 비밀번호를 해시화
-    // 비밀번호 해시화
-    final hashFunction = HashFunction(); // HashFunction 클래스의 인스턴스 생성
-    final hashedPassword = hashFunction.hashPassword(inputPassword, salt);
-    print(hashedPassword);
-    // 저장된 해시된 비밀번호와 사용자가 입력한 해시된 비밀번호를 비교
-    return hashedPassword == storedHashedPassword;
   }
 }

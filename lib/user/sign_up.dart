@@ -77,13 +77,13 @@ class _SignUpPageState extends State<SignUpPage> {
                           SizedBox(height: 30),
                           textFieldLabel('닉네임'),
                           textFieldInput(_nickNameController,"한글이나 영어로 구성된 닉네임을 입력해 주세요.","nickName"),
-                          if (duplicateEmail) SizedBox(height: 10),
-                          if (duplicateEmail) duplicateText('중복된 닉네임입니다.'),
+                          if (duplicateNickName) SizedBox(height: 10),
+                          if (duplicateNickName) duplicateText('중복된 닉네임입니다.'),
                           SizedBox(height: 30),
                           textFieldLabel('핸드폰 번호'),
                           textFieldInput(_phoneController,"'-'을 제외한 핸드폰 번호를 입력해 주세요.","phone"),
-                          if (duplicateEmail) SizedBox(height: 10),
-                          if (duplicateEmail) duplicateText('중복된 핸드폰 번호입니다.'),
+                          if (duplicatePhone) SizedBox(height: 10),
+                          if (duplicatePhone) duplicateText('중복된 핸드폰 번호입니다.'),
                           SizedBox(height: 30),
                         ],
                       )
@@ -131,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
           : (kind == 'pwdCheck' ? pwdCheckHide : false),
       validator: (val) { // 인풋창에 입력된 값 필터
         RegExp regExp = new RegExp(r'\s'); //공백 정규식
-        if (val!.isEmpty) { // 비었을때 뜨는 Error
+        if (val!.isEmpty) { // 입력 값이 없을 때
           return '필수 입력 값입니다.';
         } else if(regExp.hasMatch(val)){
           return '공백을 제외하고 입력해 주세요.';
@@ -260,8 +260,16 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   ElevatedButton submitButton() {
+
     return ElevatedButton(
       onPressed: () async {
+        // 중복 메세지가 뜬 뒤 값을 수정하여 추가 메세지가 나올 때 중복으로 메세지가 출력되지 않도록 false으로 설정
+        setState(() {
+          duplicateEmail = false;
+          duplicatePhone = false;
+          duplicateNickName = false;
+        });
+
         if (_key.currentState!.validate()) {
           // 중복 체크
           await checkAndSetDuplicates();

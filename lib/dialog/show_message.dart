@@ -5,13 +5,15 @@ showMessageDialog(BuildContext context, String message) {
     context: context,
     builder: (context) {
       return AlertDialog(
-        content: Text(message),
+        contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 20),
+        buttonPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
+        content: Text(message, style: TextStyle(fontSize: 18)),
         actions: <Widget>[
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
-            child: Text('확인'),
+            child: Text('확인', style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)))
           ),
         ],
       );
@@ -24,7 +26,9 @@ showMoveDialog(BuildContext context, String message, Widget Function() pageBuild
     context: context,
     builder: (context) {
       return AlertDialog(
-        content: Text('회원가입이 성공적으로 완료되었습니다.'),
+        contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 40),
+        actionsPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
+        content: Text(message, style: TextStyle(fontSize: 18)),
         actions: [
           TextButton(
             onPressed: () {
@@ -34,7 +38,7 @@ showMoveDialog(BuildContext context, String message, Widget Function() pageBuild
                 MaterialPageRoute(builder: (context) => pageBuilder()),
               );
             },
-            child: Text("확인"),
+            child: Text('확인', style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)))
           ),
         ],
       );
