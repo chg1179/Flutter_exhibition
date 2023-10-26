@@ -1,8 +1,12 @@
 import 'package:exhibition_project/MainaddView.dart';
 import 'package:exhibition_project/exhibition/search.dart';
+import 'package:exhibition_project/review/main.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       home: MyApp()
@@ -126,7 +130,13 @@ class _MyAppState extends State<MyApp> {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.library_books,color: Colors.black),
+                icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                  },
+                  icon : Icon(Icons.library_books),
+                  color: Colors.black
+                ),
                 label: '',
               ),
               BottomNavigationBarItem(
