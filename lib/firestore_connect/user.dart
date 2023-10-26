@@ -14,11 +14,12 @@ Future<void> addUserFirestore(String collectionStr, String email, String hashedP
     'eventYn': eventChecked ? 'Y' : 'N',
     'joinDate': FieldValue.serverTimestamp(),
     'heat': '36.5',
+    'status': 'U',
   });
 }
 
 // Firebase 예외 처리 함수
-void handleFirebaseException(FirebaseAuthException e) {
+void firebaseException(FirebaseAuthException e) {
   if (e.code == 'weak-password') {
     print('The password provided is too weak.');
   } else if (e.code == 'email-already-in-use') {

@@ -295,7 +295,7 @@ class _SignUpPageState extends State<SignUpPage> {
             );
             showMoveDialog(context, '회원가입이 성공적으로 완료되었습니다.', () => SignInPage());
           } on FirebaseAuthException catch (e) {
-            handleFirebaseException(e);
+            firebaseException(e);
           } catch (e) {
             print(e.toString());
           }
