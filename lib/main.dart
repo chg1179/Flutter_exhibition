@@ -3,7 +3,11 @@ import 'package:exhibition_project/exhibition/search.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MyApp()
+    )
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -31,9 +35,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: DefaultTabController(
+    return DefaultTabController(
         length: 2, // 탭 수
         child: Scaffold(
           appBar: AppBar(
@@ -43,7 +45,7 @@ class _MyAppState extends State<MyApp> {
             actions: [
               IconButton(
                 onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => exhibition.Search()));
+                  Navigator.push(context,MaterialPageRoute(builder: (context) => Search()));
                 },
                 icon: Icon(Icons.search, color: Colors.black),
               )
@@ -134,7 +136,7 @@ class _MyAppState extends State<MyApp> {
             ],
           ),
         ),
-      ),
+
     );
   }
 }
@@ -174,7 +176,7 @@ class FirstPage extends StatelessWidget {
             ImageList(),
           ],
         ),
-      ),
+      )
     );
   }
 }
