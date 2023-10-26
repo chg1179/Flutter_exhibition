@@ -30,7 +30,11 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.logout),
                   onPressed: () async {
                     user.signOut(); // 사용자 로그아웃
-                    Navigator.of(context).pop();
+                    setState(() {
+                      // UI 업데이트 중이 아닐 때 Navigator.pop()
+                      if (!mounted) return;
+                      else Navigator.of(context).pop();
+                    });
                     Navigator.of(context).pushReplacement(MaterialPageRoute(
                       builder: (context) => SignPage(),
                     ));

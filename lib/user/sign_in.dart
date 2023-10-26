@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import 'hash_password.dart';
+import '../dialog/show_message.dart';
 import 'home.dart';
 import 'sign_up.dart';
 import '../model/user_model.dart';
+import '../hash/hash_password.dart';
+import '../style/button_styles.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -19,57 +19,99 @@ class _SignInPageState extends State<SignInPage> {
   final FirebaseFirestore _fs = FirebaseFirestore.instance; // Firestore 인스턴스를 가져옵니다.
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pwdController = TextEditingController();
+  bool pwdHide = true; //패스워드 감추기
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('로그인'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            _TextField(_emailController, '이메일', 'email'),
-            SizedBox(height: 8),
-            _TextField(_pwdController, '비밀번호', 'pwd'),
-            SizedBox(height: 16),
-            Center(
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _login,
-                        child: Text('로그인'),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: (){
-                          Navigator.of(context).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SignUpPage(),
-                            ),
-                          );
-                        },
-                        child: Text('회원 가입'),
-                      ),
-                    ]
-                )
-            ),
-          ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
         ),
       ),
+      home: Scaffold(
+        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
+        body: Padding(
+          padding: const EdgeInsets.all(50.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.fromLTRB(10, 20, 10, 30),
+                padding: EdgeInsets.all(10),
+                child: Center(
+                  child: Text('로그인', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold))
+                )
+              ),
+              _TextField(_emailController, '이메일', 'email'),
+              SizedBox(height: 20),
+              _TextField(_pwdController, '비밀번호', 'pwd'),
+              SizedBox(height: 80),
+              Center(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: _login,
+                          style: fullGreenButtonStyle(),
+                          child: boldGreyButtonContainer('로그인'),
+                        ),
+                        SizedBox(height: 18),
+                        ElevatedButton(
+                          onPressed: (){
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SignUpPage(),
+                              ),
+                            );
+                          },
+                          style: fullLightGreenButtonStyle(),
+                          child: boldGreenButtonContainer('회원가입'),
+                        ),
+                      ]
+                  )
+              ),
+            ],
+          ),
+        ),
+      )
     );
   }
 
-  _TextField(final ctr, String txt, String kind){
+  Widget _TextField(TextEditingController ctr, String txt, String kind) {
     return TextField(
       controller: ctr,
-      obscureText: kind == 'pwd' ? true : false,
-      decoration: InputDecoration(labelText: txt),
+      obscureText: kind == 'pwd' ? pwdHide : false,
+      decoration: InputDecoration(
+        labelText: txt,
+        suffixIcon: kind == 'pwd' || kind == 'pwdCheck'
+            ? IconButton(
+          icon: Icon(pwdHide ? Icons.visibility_off : Icons.visibility),
+          color: Color.fromRGBO(70, 77, 64, 1.0),
+          onPressed: () {
+            setState(() {
+              pwdHide = !pwdHide;
+            });
+          },
+        )
+            : null,
+        focusedBorder: UnderlineInputBorder(
+            borderSide: BorderSide(
+              color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 필드 비활성화 상태
+              width: 1.8,
+            )
+        ),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 필드 비활성화 상태
+          ),
+        ),
+        labelStyle: TextStyle(
+          color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 텍스트 색상
+        ),
+      ),
     );
   }
 
@@ -82,19 +124,18 @@ class _SignInPageState extends State<SignInPage> {
         .where('email', isEqualTo: email)
         .get();
     if (userEmail.docs.isNotEmpty) {
-
         final userDocument = userEmail.docs.first;
         final userHashPassword = userDocument.get('password');
         bool pwdCheck = isPasswordValid(password, salt, userHashPassword);
         print(pwdCheck);
         if (pwdCheck) {
           Provider.of<UserModel>(context, listen: false).signIn(userDocument.id);
-          _showMessageDialog('성공적으로 로그인 되었습니다!', true);
+          showMoveDialog(context, '로그인 되었습니다.', () => HomePage());
         } else {
-          _showMessageDialog('비밀번호를 확인해 주세요.', false);
+          showMessageDialog(context, '비밀번호를 확인해 주세요.');
         }
     } else {
-      _showMessageDialog('일치하는 아이디가 없습니다.', false);
+      showMessageDialog(context, '일치하는 아이디가 없습니다.');
     }
   }
 
@@ -108,32 +149,4 @@ class _SignInPageState extends State<SignInPage> {
     // 저장된 해시된 비밀번호와 사용자가 입력한 해시된 비밀번호를 비교
     return hashedPassword == storedHashedPassword;
   }
-
-  void _showMessageDialog(String message, bool flg) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('로그인 메세지'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                if(flg) {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => HomePage()),
-                  );
-                }
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
 }

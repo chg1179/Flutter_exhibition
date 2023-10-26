@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'sign_in.dart';
 import 'sign_up.dart';
-import 'home.dart';
-import '../model/user_model.dart';
+import '../style/button_styles.dart';
 
 class SignPage extends StatefulWidget {
   const SignPage({super.key});
@@ -15,30 +13,49 @@ class SignPage extends StatefulWidget {
 class _SignPageState extends State<SignPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("로그인할래? 회원가입할래?"),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignInPage()),
-                );
-              },
-              child: Text("로그인"),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Stack(
+          children: <Widget>[
+            Image.asset(
+              'assets/sign/img.png', // 배경 이미지
+              fit: BoxFit.cover, // 이미지를 화면에 맞게 늘리기
+              width: double.infinity,
+              height: double.infinity,
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignUpPage()),
-                );
-              },
-              child: Text("회원가입"),
+            Container(
+              child: Container(
+                margin: EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignInPage()),
+                        );
+                      },
+                      style: fullGreenButtonStyle(),
+                      child: boldGreyButtonContainer('로그인'),
+                    ),
+                    SizedBox(height: 18),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => SignUpPage()),
+                        );
+                      },
+                      style: fullLightGreenButtonStyle(),
+                      child: boldGreenButtonContainer('회원가입'),
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
