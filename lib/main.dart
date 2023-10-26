@@ -1,4 +1,5 @@
 import 'package:exhibition_project/MainaddView.dart';
+import 'package:exhibition_project/exhibition/search.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -41,7 +42,9 @@ class _MyAppState extends State<MyApp> {
             title: null, // title 숨기기
             actions: [
               IconButton(
-                onPressed: _toggleSearch,
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => exhibition.Search()));
+                },
                 icon: Icon(Icons.search, color: Colors.black),
               )
             ],
