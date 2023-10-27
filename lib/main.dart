@@ -1,5 +1,6 @@
-import 'package:exhibition_project/main/MainaddView.dart';
+import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
+import 'package:exhibition_project/myPage/myPage.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -118,7 +119,13 @@ class _MyAppState extends State<MyApp> {
             onTap: _onTabTapped,
             items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.home,color: Colors.black),
+                icon: IconButton(
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                    },
+                    icon : Icon(Icons.home),
+                    color: Colors.black
+                ),
                 label: '',
               ),
               BottomNavigationBarItem(
@@ -126,7 +133,13 @@ class _MyAppState extends State<MyApp> {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.comment,color: Colors.black),
+                icon: IconButton(
+                    onPressed: (){
+
+                    },
+                    icon : Icon(Icons.comment),
+                    color: Colors.black
+                ),
                 label: '',
               ),
               BottomNavigationBarItem(
@@ -140,7 +153,13 @@ class _MyAppState extends State<MyApp> {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_circle,color: Colors.black),
+                icon: IconButton(
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                    },
+                    icon : Icon(Icons.account_circle),
+                    color: Colors.black
+                ),
                 label: '',
               ),
             ],

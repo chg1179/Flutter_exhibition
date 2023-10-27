@@ -1,4 +1,4 @@
-import 'package:exhibition_project/main/MainaddViewDetail.dart';
+import 'package:exhibition_project/main/main_add_view_detail.dart';
 import 'package:flutter/material.dart';
 
 class AddView extends StatefulWidget {
@@ -61,7 +61,7 @@ class _AddViewState extends State<AddView> {
         child: Stack(
           children: [
             Image.asset(
-              'assets/${imagePath}',
+              'assets/main/${imagePath}',
               width: double.infinity,
               height: 200, // 이미지의 높이 조정
               fit: BoxFit.cover,
