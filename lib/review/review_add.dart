@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class ReviewEdit extends StatefulWidget {
-  const ReviewEdit({super.key});
+class ReviewAdd extends StatefulWidget {
+  const ReviewAdd({super.key});
 
   @override
-  State<ReviewEdit> createState() => _ReviewEditState();
+  State<ReviewAdd> createState() => _ReviewEditState();
 }
 
-class _ReviewEditState extends State<ReviewEdit> {
+class _ReviewEditState extends State<ReviewAdd> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
   bool _isPublic = false;

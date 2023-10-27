@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/review/edit_add.dart';
-import 'package:exhibition_project/review/detail.dart';
+import 'package:exhibition_project/review/review_add.dart';
+import 'package:exhibition_project/review/review_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../firebase_options.dart';
@@ -176,7 +176,7 @@ class _ReviewListState extends State<ReviewList> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ReviewEdit(),
+                builder: (context) => ReviewAdd(),
               ),
             );
           },
@@ -185,7 +185,7 @@ class _ReviewListState extends State<ReviewList> {
     );
   }
 
-  // 셀렉트바
+  // 하단시트
   _selectBar() {
     showModalBottomSheet(
       shape: RoundedRectangleBorder(
@@ -199,19 +199,23 @@ class _ReviewListState extends State<ReviewList> {
           child: ListView.builder(
             itemCount: _list.length,
             itemBuilder: (context, index){
-              return TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedList = _list[index];
-                  });
-                },
-                child: Text(
-                  _list[index],
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 15,
+              return Column(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedList = _list[index];
+                      });
+                    },
+                    child: Text(
+                      _list[index],
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               );
             },
           ),

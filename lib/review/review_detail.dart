@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/review/edit_add.dart';
-import 'package:exhibition_project/review/main.dart';
+import 'package:exhibition_project/review/review_add.dart';
 import 'package:flutter/material.dart';
+
 
 class ReviewDetail extends StatefulWidget {
   final DocumentSnapshot document;
@@ -25,13 +25,19 @@ class _ReviewDetailState extends State<ReviewDetail> {
       context: context,
       builder: (context) {
         return Container(
+          padding: EdgeInsets.only(top: 10),
           height: 200,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text(''),
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.maximize_rounded, color: Colors.black, size: 30,)
+                  ],
+                ),
               ),
               ListTile(
                 leading: Icon(Icons.edit),
@@ -41,7 +47,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReviewEdit(),
+                      builder: (context) => ReviewAdd(),
                     ),
                   );
                 },
@@ -80,12 +86,12 @@ class _ReviewDetailState extends State<ReviewDetail> {
                 _deleteReview(document);
                 Navigator.pop(context);
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReviewList(),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     // builder: (context) => ReviewList(),
+                //   ),
+                // );
               },
               child: Text('삭제'),
             ),
