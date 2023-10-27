@@ -22,7 +22,7 @@ class _MyCollection2State extends State<MyCollection2> {
   final List<Widget> _tabPages = [
     ArtPage(),
     ArtistPage(),
-    Center(child: Text('전시관 페이지')),
+    ExhibitionPage(),
   ];
 
 
@@ -83,7 +83,7 @@ class _ArtPageState extends State<ArtPage> {
       Artwork(
         image: 'assets/main/전시2.jpg',
         title: '아트워크 1',
-        subtitle: '작가: 작가 이름 1',
+        subtitle: '지역: 작가 이름 1',
       ),
       Artwork(
         image: 'assets/main/전시3.jpg',
@@ -159,11 +159,114 @@ class ArtistPage extends StatefulWidget {
 }
 
 class _ArtistPageState extends State<ArtistPage> {
+  // 예시 작가 목록 데이터. 실제 데이터로 대체해야 합니다.
+  final List<Artist> artists = [
+    Artist(
+      name: "김소월",
+      profileImage: "assets/main/전시2.jpg",
+      subtitle: "회화",
+    ),
+    Artist(
+      name: "김동률",
+      profileImage: "assets/main/전시2.jpg",
+      subtitle: "갓우",
+    ),
+    // 다른 작가들의 정보도 추가할 수 있습니다.
+  ];
+
   @override
   Widget build(BuildContext context) {
-    // 작가 페이지의 내용을 구성하는 코드를 작성합니다.
-    return Center(
-      child: Text('작가 페이지'),
+    return ListView.builder(
+      itemCount: artists.length,
+      itemBuilder: (context, index) {
+        final artist = artists[index];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage: AssetImage(artist.profileImage),
+            radius: 60,
+          ),
+          title: Text(artist.name,style: TextStyle(fontWeight: FontWeight.bold),),
+          subtitle: Text(artist.subtitle,style: TextStyle(fontWeight: FontWeight.bold),),
+          onTap: () {
+            // 작가를 클릭했을 때의 동작을 추가하세요.
+          },
+        );
+      },
     );
   }
+}
+
+class Artist {
+  final String name;
+  final String profileImage;
+  final String subtitle;
+
+  Artist({
+    required this.name,
+    required this.profileImage,
+    required this.subtitle,
+  });
+}
+
+class ExhibitionPage extends StatefulWidget {
+  @override
+  _ExhibitionPageState createState() => _ExhibitionPageState();
+}
+
+class _ExhibitionPageState extends State<ExhibitionPage> {
+  // 예시 전시관 목록 데이터. 실제 데이터로 대체해야 합니다.
+  final List<Exhibition> exhibitions = [
+    Exhibition(
+      name: "국립현대미술관 창동레지던시",
+      description: "서울",
+      imageUrl: "assets/main/가로1.jpg",
+    ),
+    Exhibition(
+      name: "국립현대미술관 서면레지던시",
+      description: "부산",
+      imageUrl: "assets/main/가로2.jpg",
+    ),
+    // 다른 전시관들의 정보도 추가할 수 있습니다.
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: exhibitions.length,
+      itemBuilder: (context, index) {
+        final exhibition = exhibitions[index];
+        return Padding(
+          padding: EdgeInsets.all(8.0), // 간격을 8로 조절
+          child: ListTile(
+            leading: CircleAvatar(
+              backgroundImage: AssetImage(exhibition.imageUrl),
+              radius: 60, // 원하는 크기로 조절
+            ),
+            title: Text(
+              '${exhibition.name}/${exhibition.description}',
+              style: TextStyle(
+                fontSize: 14, // 글씨 크기 조절
+                fontWeight: FontWeight.bold, // 글씨체를 볼드로 설정
+              ),
+            ),
+            onTap: () {
+              // 전시관을 클릭했을 때의 동작을 추가하세요.
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class Exhibition {
+  final String name;
+  final String description;
+  final String imageUrl;
+
+  Exhibition({
+    required this.name,
+    required this.description,
+    required this.imageUrl,
+  });
 }

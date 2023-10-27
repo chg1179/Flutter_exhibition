@@ -1,3 +1,4 @@
+import 'package:exhibition_project/myPage/be_back_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
@@ -144,7 +145,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               Column(
                                 children: [
                                   InkWell(
-                                    onTap: () {},
+                                    onTap: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => BeBackEx()));
+                                    },
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
                                       child: Image.asset(
