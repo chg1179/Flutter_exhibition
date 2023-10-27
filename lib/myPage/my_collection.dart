@@ -21,7 +21,7 @@ class MyCollection2 extends StatefulWidget {
 class _MyCollection2State extends State<MyCollection2> {
   final List<Widget> _tabPages = [
     ArtPage(),
-    Center(child: Text('작가 페이지')),
+    ArtistPage(),
     Center(child: Text('전시관 페이지')),
   ];
 
@@ -149,6 +149,21 @@ class ArtworkItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ArtistPage extends StatefulWidget {
+  @override
+  _ArtistPageState createState() => _ArtistPageState();
+}
+
+class _ArtistPageState extends State<ArtistPage> {
+  @override
+  Widget build(BuildContext context) {
+    // 작가 페이지의 내용을 구성하는 코드를 작성합니다.
+    return Center(
+      child: Text('작가 페이지'),
     );
   }
 }

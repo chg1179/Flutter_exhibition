@@ -89,7 +89,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: Image.asset(
-                        '../assets/icons/alram.png',
+                        'assets/icons/alram.png',
                         width: 20,
                         height: 20,
                       ),
@@ -105,7 +105,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                     child: Padding(
                       padding: const EdgeInsets.only(right: 20),
                       child: Image.asset(
-                        '../assets/icons/setting.gif',
+                        'assets/icons/setting.gif',
                         width: 20,
                         height: 20,
                       ),
@@ -120,7 +120,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundImage: AssetImage('assets/가로1.jpg'),
+                          backgroundImage: AssetImage('assets/main/가로1.jpg'),
                         ),
                         SizedBox(height: 20),
                         Row(
@@ -148,7 +148,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
                                       child: Image.asset(
-                                        '../assets/icons/ticket.png',
+                                        'assets/icons/ticket.png',
                                         width: 30,
                                         height: 30,
                                       ),
@@ -165,7 +165,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
                                       child: Image.asset(
-                                        '../assets/icons/heart.png',
+                                        'assets/icons/heart.png',
                                         width: 30,
                                         height: 30,
                                       ),
@@ -185,7 +185,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
                                       child: Image.asset(
-                                        '../assets/icons/calender.png',
+                                        'assets/icons/calender.png',
                                         width: 30,
                                         height: 30,
                                       ),
@@ -208,7 +208,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                           itemCount: 9,
                           itemBuilder: (context, index) {
                             if (index < 8) {
-                              return Image.asset('assets/전시2.jpg');
+                              return Image.asset('assets/main/전시2.jpg');
                               //마이후기 사진 리스트 8개 넘기기
                               //마이후기 사진 리스트 8개 넘기기
                             } else {
