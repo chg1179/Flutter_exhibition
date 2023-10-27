@@ -1,9 +1,10 @@
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
-import 'package:exhibition_project/myPage/myPage.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+
+import 'myPage/mypage.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/review/review_add.dart';
+import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
 
 
@@ -86,12 +87,12 @@ class _ReviewDetailState extends State<ReviewDetail> {
                 _deleteReview(document);
                 Navigator.pop(context);
                 Navigator.pop(context);
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     // builder: (context) => ReviewList(),
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReviewList(),
+                  ),
+                );
               },
               child: Text('삭제'),
             ),
