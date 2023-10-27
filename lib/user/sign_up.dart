@@ -23,6 +23,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _pwdCheckController = TextEditingController();
   final TextEditingController _nickNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  String emailText = "";//입력한 이메일 내용 저장하여 입력값이 바뀌었는지를 확인. 인풋 조건에 안맞는지 중복인지를 다시 출력하기 위해 사용
+  String nickNameText = "";
+  String phoneText = "";
   List<bool> _termsChecked = [false, false]; //약관 동의. 미동의로 초기값 설정
   bool eventChecked = false; //이벤트 수신 동의. 미동의로 초기값 설정
   bool pwdHide = true; //비밀번호 감추기
@@ -39,7 +42,7 @@ class _SignUpPageState extends State<SignUpPage> {
           textSelectionTheme: TextSelectionThemeData(
             cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
           ),
-        ),
+      ),
       home: Scaffold(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
         body: Container(
@@ -260,17 +263,15 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   ElevatedButton submitButton() {
-
     return ElevatedButton(
       onPressed: () async {
-        // 중복 메세지가 뜬 뒤 값을 수정하여 추가 메세지가 나올 때 중복으로 메세지가 출력되지 않도록 false으로 설정
-        setState(() {
-          duplicateEmail = false;
-          duplicatePhone = false;
-          duplicateNickName = false;
-        });
-
         if (_key.currentState!.validate()) {
+          //조건을 만족한 입력값 저장. 버튼을 누르고 입력 값이 바뀌었는지 확인하기 위해 사용
+          setState(() {
+            emailText = _emailController.text;
+            phoneText = _phoneController.text;
+            nickNameText = _nickNameController.text;
+          });
           // 중복 체크
           await checkAndSetDuplicates();
           if(duplicateEmail || duplicatePhone || duplicateNickName) return null;
@@ -298,6 +299,19 @@ class _SignUpPageState extends State<SignUpPage> {
             firebaseException(e);
           } catch (e) {
             print(e.toString());
+          }
+        } else {
+          // 중복 메세지가 뜬 뒤 값을 수정하여 추가 메세지가 나올 때 중복으로 메세지가 출력되지 않도록 false으로 설정
+          if(!(_key.currentState!.validate())) {
+            await checkAndSetDuplicates();
+            setState(() {
+              if ((_emailController.text != "" && emailText != _emailController.text)) //입력 값이 바뀌었을 때 이미 중복체크되어 true로 바뀌었다면 바꾸지 않음
+                duplicateEmail = false;
+              if ((_phoneController.text != "" && phoneText != _phoneController.text))
+                duplicatePhone = false;
+              if ((_nickNameController.text != "" && nickNameText != _nickNameController.text))
+                duplicateNickName = false;
+            });
           }
         }
       },
