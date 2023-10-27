@@ -1,3 +1,6 @@
+import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
+import 'package:exhibition_project/myPage/myPageSettings/individualTerms.dart';
+import 'package:exhibition_project/myPage/myPageSettings/useTerms.dart';
 import 'package:exhibition_project/myPage/myPageSettings/qna.dart';
 import 'package:flutter/material.dart';
 
@@ -44,10 +47,13 @@ class MyBoard extends StatelessWidget {
           ),
           Divider(),
           ListTile(
-            title: Text("취향분석 하기"),
+            title: Text("JBTI 취향분석 하기"),
             leading: Icon(Icons.add),
             onTap: () {
-              print("게시물 3을 선택했습니다.");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => JTBI()),
+              );
             },
           ),
           Divider(),
@@ -108,15 +114,21 @@ class MyBoard extends StatelessWidget {
           ),
           ListTile(
             title: Text("이용약관"),
-            onTap: () {
-              print("이용약관");
-            },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UseTerms()),
+                );
+              },
           ),
           Divider(),
           ListTile(
             title: Text("개인정보취급약관"),
             onTap: () {
-              print("개인정보취급약관");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => IndividualTerms()),
+              );
             },
           ),
           Divider(),

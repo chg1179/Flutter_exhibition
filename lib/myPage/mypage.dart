@@ -1,5 +1,5 @@
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
-import 'package:exhibition_project/myPage/myPageSettings/mypage.dart';
+import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
 
