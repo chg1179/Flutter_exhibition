@@ -93,7 +93,7 @@ class _ReviewListState extends State<ReviewList> {
             final screenWidth = MediaQuery.of(context).size.width;
 
             return Container(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.all(5.0),
               child: buildReviewItem(data, doc, index, screenWidth),
             );
           },
@@ -105,17 +105,6 @@ class _ReviewListState extends State<ReviewList> {
   // 후기 리스트 항목
   Widget buildReviewItem(Map<String, dynamic> data, DocumentSnapshot doc, int index, double screenWidth) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16.0), // 리스트 아이템 간의 간격 설정
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12, // 그림자 색상 설정
-            offset: Offset(0.0, 2.0), // 그림자 위치 조정 (수직, 수평)
-            blurRadius: 5.0, // 그림자의 흐림 정도
-          ),
-        ],
-        borderRadius: BorderRadius.circular(8.0), // 컨테이너 모서리를 둥글게 만듭니다
-      ),
       child: Column(
         children: [
           GestureDetector(
@@ -127,34 +116,50 @@ class _ReviewListState extends State<ReviewList> {
                 ),
               );
             },
-            child: Image.asset('assets/ex/${_imgList[index]}', width: screenWidth, height: 250, fit: BoxFit.cover,),
-          ),
-          Container(
-            width: screenWidth,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(5), bottomRight: Radius.circular(5))
-            ),
-            child: ListTile(
-              title: Text(data['title']),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text(data['content'], style: TextStyle(fontSize: 13),),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CircleAvatar(
-                        radius: 10,
-                        backgroundImage: AssetImage('assets/ex/${_imgList[index]}'),
-                      ),
-                      SizedBox(width: 10,),
-                      Icon(Icons.favorite_border, color: Colors.red, size: 20,)
-                    ],
-                  )
-                ],
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(5.0),
+              child: Image.asset(
+                'assets/ex/${_imgList[index]}',
+                width: screenWidth,
+                height: 200,
+                fit: BoxFit.cover,
               ),
+            )
+          ),
+          ListTile(
+            onTap: (){
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ReviewDetail(document: doc),
+                ),
+              );
+            },
+            title: Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold),),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('0명 스크랩 · 0명 조회', style: TextStyle(fontSize: 13)),
+                //Text(data['content'], style: TextStyle(fontSize: 13),),
+                SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 8,
+                          backgroundImage: AssetImage('assets/ex/${_imgList[index]}'),
+                        ),
+                        SizedBox(width: 5,),
+                        Text('hj', style: TextStyle(fontSize: 13, color: Colors.black)),
+                      ],
+                    ),
+                    SizedBox(width: 10,),
+                    Icon(Icons.favorite_border, color: Colors.red, size: 20,)
+                  ],
+                )
+              ],
             ),
           ),
         ],
@@ -228,6 +233,7 @@ class _ReviewListState extends State<ReviewList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         title: Center(
             child: Text('후기', style: TextStyle(color: Colors.black, fontSize: 20))),
         backgroundColor: Colors.white,

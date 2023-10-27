@@ -167,9 +167,13 @@ class _ReviewDetailState extends State<ReviewDetail> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        title: Container(
+          alignment: Alignment.center,
+          child: Text('후기 상세보기', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        ),
+        
         backgroundColor: Colors.white,
-        title: Center(
-            child: Text('후기 상세보기', style: TextStyle(color: Colors.black, fontSize: 20))),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

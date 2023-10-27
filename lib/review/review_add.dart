@@ -30,29 +30,36 @@ class _ReviewEditState extends State<ReviewAdd> {
   // 리뷰 폼
   Widget buildReviewForm() {
     return Container(
+      height: 400,
+      decoration: BoxDecoration(
+        color: Color(0xffD4D8C8),
+        borderRadius: BorderRadius.circular(5)
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10.0),
             child: TextField(
               controller: _titleCtr,
               decoration: InputDecoration(
-                hintText: '제목',
+                contentPadding: EdgeInsets.only(top: 20, right: 10, left: 20, bottom: 10),
+                hintText: '제목을 입력해주세요.',
                 hintStyle: TextStyle(
-                  color: Colors.black26, // 원하는 색상으로 변경
-                  fontSize: 25, // 원하는 크기로 변경
+                  color: Colors.black38,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold
                 ),
                 border: InputBorder.none,
               ),
             ),
           ),
           Container(
-              height:1.0,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.black12
+            margin: EdgeInsets.only(right: 20, left: 20),
+            height:2.0,
+            width: MediaQuery.of(context).size.width,
+            color: Colors.black12
           ),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           Container(
             width: 100,
             child: TextButton(
@@ -66,7 +73,7 @@ class _ReviewEditState extends State<ReviewAdd> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.only(left: 10, right: 10),
+            padding: const EdgeInsets.only(left: 20, right: 10),
             child: TextField(
               maxLines: 8,
               maxLength: 1000,
@@ -74,7 +81,7 @@ class _ReviewEditState extends State<ReviewAdd> {
               decoration: InputDecoration(
                 hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
                 hintStyle: TextStyle(
-                  color: Colors.black26, // 원하는 색상으로 변경
+                  color: Colors.black38, // 원하는 색상으로 변경
                   fontSize: 15, // 원하는 크기로 변경
                 ),
                 border: InputBorder.none,
@@ -187,6 +194,7 @@ class _ReviewEditState extends State<ReviewAdd> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        elevation: 0,
         title: Container(
           alignment: Alignment.center,
           child: buildSelectBar(),
