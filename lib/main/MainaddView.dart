@@ -1,4 +1,4 @@
-import 'package:exhibition_project/MainaddViewDetail.dart';
+import 'package:exhibition_project/main/MainaddViewDetail.dart';
 import 'package:flutter/material.dart';
 
 class AddView extends StatefulWidget {

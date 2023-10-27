@@ -1,4 +1,4 @@
-import 'package:exhibition_project/MainaddView.dart';
+import 'package:exhibition_project/main/MainaddView.dart';
 import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/review/main.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -304,7 +304,7 @@ class _MainListState extends State<MainList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Image.asset(
-                          'assets/${imageInfo['name']}',
+                          'assets/main/${imageInfo['name']}',
                           width: MediaQuery.of(context).size.width * 0.5,
                           height: 300,
                         ),
@@ -395,7 +395,7 @@ class _ImageListState extends State<ImageList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset('assets/${imageName['name']}'),
+                        Image.asset('assets/main/${imageName['name']}'),
                         Text(
                           imageName['title']!,
                           style: TextStyle(
@@ -621,7 +621,7 @@ class _SecondPageState extends State<SecondPage> {
                             ),
                             child: CircleAvatar(
                               radius: 30, // 프로필 사진 크기
-                              backgroundImage: AssetImage('assets/${widget.followingData[index]['profileImage']}'),
+                              backgroundImage: AssetImage('assets/main/${widget.followingData[index]['profileImage']}'),
                             ),
                           ),
                           SizedBox(height: 4), // 프로필 사진과 이름 간의 간격 조절
@@ -709,7 +709,7 @@ class _PhotoGridState extends State<PhotoGrid> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                'assets/${widget.photos[index]['image']}',
+                'assets/main/${widget.photos[index]['image']}',
                 width: 200, // 이미지의 폭
                 height: 200, // 이미지의 높이
                 fit: BoxFit.cover,
@@ -757,7 +757,7 @@ class _PhotoGridState extends State<PhotoGrid> {
               child: Stack(
                 children: [
                   Image.asset(
-                    'assets/${widget.photos[index]['image']}',
+                    'assets/main/${widget.photos[index]['image']}',
                     width: double.infinity,
                     height: double.infinity,
                     fit: BoxFit.fill,
