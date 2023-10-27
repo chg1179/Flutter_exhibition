@@ -1,7 +1,7 @@
-import 'package:exhibition_project/user/mypagefolder/qna.dart';
+import 'package:exhibition_project/myPage/myPageSettings/qna.dart';
 import 'package:flutter/material.dart';
 
-import 'notice.dart';
+import '../../myPage/myPageSettings/notice.dart';
 
 void main() {
   runApp(MyApp());
