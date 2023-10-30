@@ -72,13 +72,13 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         controller: _scrollController,
         child: Column(
           children:
-          List.generate(questions.length, (index) {
+            List.generate(questions.length, (index) {
             return Opacity(
-              opacity: selectedAnswerIndices[index] >= 0 ? 0.7 : 1.0,
+              opacity: selectedAnswerIndices[index] >= 0 ? 0.5 : 1.0,
               child: QuestionSection(
                 questionIndex: index,
                 question: questions[index],
-                options: ['1', '2','3','4','5'],
+                options: ['1', '2', '3', '4', '5'],
                 selectedAnswerIndex: selectedAnswerIndices[index],
                 onAnswerSelected: onAnswerSelected,
               ),
@@ -130,13 +130,11 @@ class QuestionSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
         color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
         children: [
-
-          SizedBox(height: 20),
           Text(
             '${questionIndex + 1}. $question',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -144,35 +142,18 @@ class QuestionSection extends StatelessWidget {
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '동의',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(width: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: options.asMap().entries.map((entry) {
-                  final int answerIndex = entry.key;
-                  final String text = entry.value;
-                  return AnswerOption(
-                    questionIndex: questionIndex,
-                    answerIndex: answerIndex,
-                    text: text,
-                    isSelected: selectedAnswerIndex == answerIndex,
-                    onSelected: onAnswerSelected,
-                  );
-                }).toList(),
-              )
-              ,
-              SizedBox(width: 15),
-              Text(
-                '비동의',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-              ),
-            ],
+            children: options.asMap().entries.map((entry) {
+              final int answerIndex = entry.key;
+              final String text = entry.value;
+              return AnswerOption(
+                questionIndex: questionIndex,
+                answerIndex: answerIndex,
+                text: text,
+                isSelected: selectedAnswerIndex == answerIndex,
+                onSelected: onAnswerSelected,
+              );
+            }).toList(),
           ),
-
           SizedBox(height: 20),
           Divider(),
         ],
@@ -211,55 +192,22 @@ class AnswerOption extends StatelessWidget {
         height: size,
         margin: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
+          color: Colors.transparent,
           border: Border.all(color: borderColor, width: 2),
           borderRadius: BorderRadius.circular(size / 2),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: TextStyle(color: borderColor),
+          ),
         ),
       ),
     );
   }
 
   Color _getBorderColor(int index) {
-    List<Color> borderColors = [
-      Color(0xFF2D69FF),
-      Color(0xFF1AB1B2),
-      Color(0xFF6F8588),
-      Color(0xFFEC5FA8),
-      Color(0xFFE11167),
-    ];
-
+    List<Color> borderColors = [Colors.red, Colors.orange, Colors.yellow, Colors.green, Colors.blue];
     return borderColors[index];
-  }
-
-  Color _getAnswerColor(int index) {
-    List<Color> answerColors =[
-      Color(0xFF2D69FF),
-      Color(0xFF1AB1B2),
-      Color(0xFF6F8588),
-      Color(0xFFEC5FA8),
-      Color(0xFFE11167),
-    ];
-
-    return answerColors[index];
-  }
-}
-
-class AnswerPainter extends CustomPainter {
-  final bool isSelected;
-
-  AnswerPainter({required this.isSelected});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = isSelected ? Colors.blue : Colors.grey
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 2, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
   }
 }
