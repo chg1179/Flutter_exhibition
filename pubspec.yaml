@@ -39,6 +39,7 @@ dependencies:
   intl:
   provider:
   crypto:
+  google_maps_flutter: ^2.0.3
 
 
 
