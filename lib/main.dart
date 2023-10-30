@@ -1,3 +1,4 @@
+import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/review/review_list.dart';
@@ -130,7 +131,12 @@ class _MyAppState extends State<MyApp> {
                 label: '',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.account_balance,color: Colors.black),
+                icon: IconButton(
+                    onPressed: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                    },
+                    icon : Icon(Icons.account_balance, color: Colors.black)
+                ),
                 label: '',
               ),
               BottomNavigationBarItem(
