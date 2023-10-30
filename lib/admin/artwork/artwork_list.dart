@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/admin/artwork/artwork_view.dart';
 import 'package:flutter/material.dart';
 
 class ArtworkListPage extends StatelessWidget {
@@ -19,10 +21,21 @@ class ArtworkList extends StatefulWidget {
 }
 
 class _ArtworkListState extends State<ArtworkList> {
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      body: Text("작품"),
+      body: Container(
+        child: Column(
+          children: [
+
+
+          ],
+        ),
+      ),
     );
   }
+
+
 }

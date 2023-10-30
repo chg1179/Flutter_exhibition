@@ -7,7 +7,7 @@ import '../firestore_connect/user.dart';
 import '../hash/hash_password.dart';
 import 'sign_in.dart';
 import '../style/button_styles.dart';
-import 'sign_widgets.dart';
+import '../widget/sign_widgets.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -282,14 +282,16 @@ class _SignUpPageState extends State<SignUpPage> {
           }
           try {
             // 입력한 비밀번호 해시화
+            final randomSalt = generateRandomSalt();
             final password = _pwdController.text;
-            final hashedPassword = hashPassword(password);
+            final hashedPassword = hashPassword(password, randomSalt);
 
             // Firestore에 사용자 정보 추가
             await addUserFirestore(
                 'user',
                 _emailController.text,
                 hashedPassword,
+                randomSalt,
                 _nickNameController.text,
                 _phoneController.text,
                 eventChecked
