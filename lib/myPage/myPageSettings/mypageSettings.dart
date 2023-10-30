@@ -1,10 +1,12 @@
 import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/myPageSettings/individualTerms.dart';
+import 'package:exhibition_project/myPage/myPageSettings/security.dart';
 import 'package:exhibition_project/myPage/myPageSettings/useTerms.dart';
 import 'package:exhibition_project/myPage/myPageSettings/qna.dart';
 import 'package:flutter/material.dart';
 
 import '../../myPage/myPageSettings/notice.dart';
+import 'alert.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,12 +16,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyBoard(),
+      home: myPageSettings(),
     );
   }
 }
 
-class MyBoard extends StatelessWidget {
+class myPageSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +63,10 @@ class MyBoard extends StatelessWidget {
             title: Text("개인/보안"),
             leading: Icon(Icons.lock_outline),
             onTap: () {
-              print("게시물 4을 선택했습니다.");
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Security()),
+              );
             },
           ),
           Divider(),
@@ -77,9 +82,12 @@ class MyBoard extends StatelessWidget {
           ListTile(
             title: Text("알림설정"),
             leading: Icon(Icons.add_alert_outlined),
-            onTap: () {
-              print("게시물 6을 선택했습니다.");
-            },
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Alert()),
+                );
+              },
           ),
           Divider(),
           ListTile(
@@ -140,15 +148,6 @@ class MyBoard extends StatelessWidget {
           ),
           Divider(),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // 새로운 게시물 추가
-          // 여기서는 간단하게 "새로운 게시물"로 고정
-          // 원하는 내용으로 수정 가능
-          print("새로운 게시물을 추가했습니다.");
-        },
-        child: Icon(Icons.add),
       ),
     );
   }

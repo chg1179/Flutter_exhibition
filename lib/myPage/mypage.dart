@@ -101,7 +101,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                   InkWell(
                     onTap: () {
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => MyBoard())
+                          MaterialPageRoute(builder: (context) => myPageSettings())
                       );
                     },
                     child: Padding(
