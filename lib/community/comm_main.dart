@@ -1,7 +1,7 @@
-import 'package:exhibition_project/community/comm_add.dart';
-import 'package:exhibition_project/exhibition/search.dart';
+import 'package:exhibition_project/community/comm_detail.dart';
 import 'package:flutter/material.dart';
-
+import '../exhibition/search.dart';
+import 'comm_add.dart';
 import 'comm_mypage.dart';
 
 void main() async {
@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CommMain()
+      home: CommMain(),
     );
   }
 }
@@ -25,36 +25,63 @@ class CommMain extends StatefulWidget {
 }
 
 class _CommMainState extends State<CommMain> {
-
   List<String> _tagList = [
-    '전체', '설치미술', '온라인전시', '유화',
-    '미디어', '사진', '조각', '특별전시',
+    '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
   ];
 
+  int selectedButtonIndex = 0;
+  String selectedTag = '전체';
 
-  ButtonStyle _pushBtnStyle(){
+  Map<String, List<String>> tagToItems = {
+    '전체': ['전체'],
+    '설치미술': ['설치미술'],
+    '온라인전시' : ['온라인전시 리스트'],
+    '유화' : ['유화 리스트'],
+    '미디어' : ['미디어']
+  };
+
+  ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
       minimumSize: MaterialStateProperty.all(Size(0, 30)),
-      backgroundColor: MaterialStateProperty.all(Colors.white), // 배경색
+      backgroundColor: MaterialStateProperty.all(Colors.white),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.black45;
+      }),
       shape: MaterialStateProperty.all(
         RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15), // BorderRadius 설정
-          side: BorderSide(color: Colors.black54), // border 색상 및 두께 설정
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
         ),
-      )
+      ),
     );
   }
 
-  ButtonStyle _unPushBtnStyle(){
+  ButtonStyle _pushBtnStyle() {
     return ButtonStyle(
-        minimumSize: MaterialStateProperty.all(Size(0, 30)),
-        backgroundColor: MaterialStateProperty.all(Color(0xff464D40)), // 배경색
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15), // BorderRadius 설정
-            side: BorderSide(color: Color(0xff464D40)), // border 색상 및 두께 설정
-          ),
-        )
+      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
     );
   }
 
@@ -67,27 +94,22 @@ class _CommMainState extends State<CommMain> {
           Container(
             child: Text('추천 태그✨', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
-          Container(
-            height: 50,
-            child: Wrap(
-              direction: Axis.horizontal,
-              spacing: 5,
-              children: _tagList.map((tag) {
-                if (tag == '전체') {
-                  return ElevatedButton(
-                    child: Text(tag, style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                    onPressed: () {},
-                    style: _unPushBtnStyle(),
-                  );
-                } else {
-                  return ElevatedButton(
-                    child: Text('#$tag', style: TextStyle(color: Colors.black45, fontSize: 13, fontWeight: FontWeight.bold)),
-                    onPressed: () {},
-                    style: _pushBtnStyle(),
-                  );
-                }
-              }).toList(),
-            ),
+          Wrap(
+            spacing: 5,
+            children: _tagList.asMap().entries.map((entry) {
+              final index = entry.key;
+              final tag = entry.value;
+              return ElevatedButton(
+                child: Text('#$tag'),
+                onPressed: () {
+                  setState(() {
+                    selectedButtonIndex = index;
+                    selectedTag = tag;
+                  });
+                },
+                style: selectedButtonIndex == index ? _pushBtnStyle() : _unPushBtnStyle(),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -97,8 +119,7 @@ class _CommMainState extends State<CommMain> {
   Widget _recommendTab() {
     return Container(
       padding: EdgeInsets.all(20),
-      alignment: Alignment.bottomRight,
-      height: 100,
+      height: 80,
       child: TabBar(
         indicatorColor: Color(0xff464D40),
         labelColor: Colors.black,
@@ -113,9 +134,35 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
+ /* Widget _commList() {
+    final selectedItems = tagToItems[selectedTag];
+    return ListView.builder(
+      itemCount: selectedItems?.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(selectedItems![index]),
+        );
+      },
+    );
+  }*/
+  
+  // 해시태그, 최신순, 인기순 연결
   Widget _commList(){
-    return Container(
-
+    return ListView(
+      padding: EdgeInsets.all(20),
+      children: [
+        Column(
+          children: [
+            ListTile(
+              title: Text('글 제목'),
+              subtitle: Text('글 내용'),
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail()));
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -125,16 +172,19 @@ class _CommMainState extends State<CommMain> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
+          leading: null,
           elevation: 0,
+          automaticallyImplyLeading: false, // 뒤로가기 버튼 자리 차지하지 않음
           title: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
           actions: [
             IconButton(
-                onPressed: (){
+                onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => Search()));
                 },
-                icon: Icon(Icons.search), color: Colors.black),
+                icon: Icon(Icons.search),
+                color: Colors.black),
             TextButton(
-              onPressed: (){
+              onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CommMyPage()));
               },
               child: Container(
@@ -173,9 +223,8 @@ class _CommMainState extends State<CommMain> {
           child: Icon(Icons.edit),
           backgroundColor: Color(0xff464D40),
           mini: true,
-
         ),
-      )
+      ),
     );
   }
 }

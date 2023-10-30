@@ -168,11 +168,9 @@ class _ReviewDetailState extends State<ReviewDetail> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: Container(
-          alignment: Alignment.center,
-          child: Text('후기 상세보기', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        ),
-        
+        centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
+        title: Text('후기 상세보기', style: TextStyle(color: Colors.black, fontSize: 15)),
+        leading: null, // 뒤로가기 버튼을 제거합니다.
         backgroundColor: Colors.white,
       ),
       body: Padding(

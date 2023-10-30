@@ -31,14 +31,26 @@ class ReviewList extends StatefulWidget {
 
 class _ReviewListState extends State<ReviewList> {
   final _searchCtr = TextEditingController();
-  List<String> _list = ['최신순', '인기순', '최근 인기순', '역대 인기순'];
-  List<String> _imgList = ['ex1.png', 'ex2.png', 'ex3.png', 'ex4.jpg', 'ex5.jpg'];
+  List<Map<String, dynamic>> _list = [
+    {'title': '최신순', 'value': 'latest'},
+    {'title': '인기순', 'value': 'popular'},
+    {'title': '최근 인기순', 'value': 'recent_popular'},
+    {'title': '역대 인기순', 'value': 'all_time_popular'},
+  ];
+
+  List<Map<String, String>> _imgList = [
+    {'name': 'ex1.png'},
+    {'name': 'ex2.png'},
+    {'name': 'ex3.png'},
+    {'name': 'ex4.jpg'},
+    {'name': 'ex5.jpg'},
+  ];
   String? _selectedList = '최신순';
 
   @override
   void initState() {
     super.initState();
-    _selectedList = _list[0];
+    _selectedList = _list[0]['title'] as String?;
   }
 
   // 검색바
@@ -108,23 +120,23 @@ class _ReviewListState extends State<ReviewList> {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ReviewDetail(document: doc),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReviewDetail(document: doc),
+                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(5.0),
+                child: Image.asset(
+                  'assets/ex/${_imgList[index]['name']}',
+                  width: screenWidth,
+                  height: 200,
+                  fit: BoxFit.cover,
                 ),
-              );
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(5.0),
-              child: Image.asset(
-                'assets/ex/${_imgList[index]}',
-                width: screenWidth,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-            )
+              )
           ),
           ListTile(
             onTap: (){
@@ -149,14 +161,24 @@ class _ReviewListState extends State<ReviewList> {
                       children: [
                         CircleAvatar(
                           radius: 8,
-                          backgroundImage: AssetImage('assets/ex/${_imgList[index]}'),
+                          backgroundImage: AssetImage('assets/ex/${_imgList[index]['name']}'),
                         ),
                         SizedBox(width: 5,),
                         Text('hj', style: TextStyle(fontSize: 13, color: Colors.black)),
                       ],
                     ),
                     SizedBox(width: 10,),
-                    Icon(Icons.favorite_border, color: Colors.red, size: 20,)
+                    IconButton(
+                      icon: Icon(Icons.favorite_border, // 여기서 상태에 따라 아이콘 변경
+                      color:Colors.red, // 여기서 색상 변경
+                      size: 20,
+                    ),
+                      onPressed: () {
+                        setState(() {
+
+                        });
+                      },
+                    )
                   ],
                 )
               ],
@@ -209,11 +231,11 @@ class _ReviewListState extends State<ReviewList> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        _selectedList = _list[index];
+                        _selectedList = _list[index]['title'] as String?;
                       });
                     },
                     child: Text(
-                      _list[index],
+                      _list[index]['title'] as String,
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 15,
@@ -234,8 +256,9 @@ class _ReviewListState extends State<ReviewList> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        title: Center(
-            child: Text('후기', style: TextStyle(color: Colors.black, fontSize: 20))),
+        centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
+        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 15)),
+        leading: null, // 뒤로가기 버튼을 제거합니다.
         backgroundColor: Colors.white,
       ),
       body: Stack(

@@ -1,3 +1,4 @@
+import 'package:exhibition_project/community/comm_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
@@ -142,7 +143,7 @@ class _MyAppState extends State<MyApp> {
               BottomNavigationBarItem(
                 icon: IconButton(
                     onPressed: (){
-
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
                     },
                     icon : Icon(Icons.comment),
                     color: Colors.black

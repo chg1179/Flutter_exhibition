@@ -8,10 +8,14 @@ class ReviewAdd extends StatefulWidget {
   State<ReviewAdd> createState() => _ReviewEditState();
 }
 
+
+
 class _ReviewEditState extends State<ReviewAdd> {
+
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
   bool _isPublic = false;
+  double _selectedDuration = 1.0;
 
   // 옵션 셀렉바
   Widget buildSelectBar() {
@@ -136,39 +140,79 @@ class _ReviewEditState extends State<ReviewAdd> {
 
   // 공개 설정
   Widget _buildPublishOptionRow() {
-    return Row(
-      children: [
-        Container(
-          padding: EdgeInsets.only(left: 20, right: 10),
-          child: Text(
-            '공개 설정',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-        Container(
-          child: Text(
-            _isPublic
-                ? '모든 사람이 이 글을 볼 수 있습니다.'
-                : '이 글은 나만 볼 수 있습니다.',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.black26,
-              fontWeight: FontWeight.bold,
+    return Center(
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.only(left: 30, right: 10),
+            child: Row(
+              children: [
+                Text(
+                  '공개 설정',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
-        ),
-        SizedBox(width: 20),
-        Container(
-          child: Switch(
+          Container(
+            child: Text(
+              _isPublic
+                  ? '모든 사람이 이 글을 볼 수 있습니다.'
+                  : '이 글은 나만 볼 수 있습니다.',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(width: 20),
+          Switch(
             value: _isPublic,
-            onChanged: (bool? value) {
+            onChanged: (value) {
               setState(() {
-                _isPublic = value!;
+                print(value);
+                _isPublic = value; // 스위치 상태 변경
               });
             },
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _ViewingTimePicker(){
+    return Container(
+      padding: EdgeInsets.all(30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '전시 관람 시간',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          Row(
+            children: [
+              Text('$_selectedDuration 시간', style: TextStyle(fontSize: 16)),
+              Expanded(
+                child: Slider(
+                  value: _selectedDuration,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDuration = value;
+                    });
+                  },
+                  min: 0.5, // 최소 관람 시간 (예: 30분)
+                  max: 4.0, // 최대 관람 시간 (예: 4시간)
+                  divisions: 14, // 분할 수
+                  label: _selectedDuration.toStringAsFixed(1),
+                    activeColor: Color(0xff464D40)
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -180,6 +224,7 @@ class _ReviewEditState extends State<ReviewAdd> {
       await review.add({
         'title': _titleCtr.text,
         'content': _contentCtr.text,
+        'isPublic': _isPublic
       });
 
       _titleCtr.clear();
@@ -224,3 +269,4 @@ class _ReviewEditState extends State<ReviewAdd> {
     );
   }
 }
+
