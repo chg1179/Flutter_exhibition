@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 
-class BeBackEx extends StatefulWidget {
-  BeBackEx({super.key});
+class LikeEx extends StatefulWidget {
+  LikeEx({super.key});
 
   @override
-  State<BeBackEx> createState() => _BeBackExState();
+  State<LikeEx> createState() => _LikeExState();
 }
 
-class _BeBackExState extends State<BeBackEx> {
+class _LikeExState extends State<LikeEx> {
   final _search = TextEditingController();
 
   final List<Map<String, dynamic>> _exList = [
@@ -92,7 +92,7 @@ class _BeBackExState extends State<BeBackEx> {
           Container(
               alignment: Alignment.centerLeft,
               padding: EdgeInsets.only(left: 24, top: 13, bottom: 8),
-              child: Text("다녀온 전시", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(
+              child: Text("좋아요한 전시", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(
                   0xff000000)))
           ),
           Expanded(

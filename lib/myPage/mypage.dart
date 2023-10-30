@@ -1,5 +1,6 @@
 import 'package:exhibition_project/myPage/be_back_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
+import 'package:exhibition_project/myPage/myPageSettings/like_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
@@ -164,7 +165,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               Column(
                                 children: [
                                   InkWell(
-                                    onTap: () {},
+                                    onTap: () {
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => LikeEx()));
+                                    },
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
                                       child: Image.asset(
