@@ -1,6 +1,6 @@
 import 'package:exhibition_project/myPage/be_back_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
-import 'package:exhibition_project/myPage/myPageSettings/like_ex.dart';
+import 'package:exhibition_project/myPage/like_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
