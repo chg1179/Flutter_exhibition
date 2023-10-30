@@ -1,3 +1,4 @@
+import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +34,7 @@ class _Ex_listState extends State<Ex_list> {
     {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex5.jpg'},
     {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex1.png'},
     {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex2.png'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex3.png'},
+    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.11.15', 'lastDate' : '2023.12.15', 'posterPath' : 'ex/ex3.png'},
   ];
 
   void _resetState() {
@@ -45,14 +46,17 @@ class _Ex_listState extends State<Ex_list> {
     });
   }
 
-  String getOngoing(String lastDate) {
+  String getOngoing(String lastDate, String startDate) {
     DateFormat dateFormat = DateFormat('yyyy.MM.dd'); // 입력된 'lastDate' 형식에 맞게 설정
 
     DateTime currentDate = DateTime.now();
-    DateTime exhibitionDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
+    DateTime exLastDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
+    DateTime exStartDate = dateFormat.parse(startDate);
 
     // 비교
-    if (currentDate.isBefore(exhibitionDate)) {
+    if(currentDate.isBefore(exStartDate)){
+      return "예정";
+    }else if(currentDate.isBefore(exLastDate)) {
       return "진행중";
     } else {
       return "종료";
@@ -276,7 +280,7 @@ class _Ex_listState extends State<Ex_list> {
                                       SizedBox(width: 10,),
                                       Reset(
                                         placeSelectedOptions: _placeSelectedOptions,
-                                        onReset: _resetState, // 초기화 버튼이 눌렸을 때 실행될 함수를 설정합니다.
+                                        onReset: _resetState,
                                       ),
                                       SizedBox(width: 20,),
                                       Expanded(
@@ -319,7 +323,7 @@ class _Ex_listState extends State<Ex_list> {
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 330, // 각 열의 최대 너비를 조절합니다.
+                  maxCrossAxisExtent: 330, // 각 열의 최대 너비
                   crossAxisSpacing: 15.0, // 열 간의 간격
                   mainAxisSpacing: 20.0, // 행 간의 간격
                   childAspectRatio: 2/5.1
@@ -346,7 +350,7 @@ class _Ex_listState extends State<Ex_list> {
                               padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
                               decoration: BoxDecoration(
                               ),
-                              child: Text(getOngoing(_exList[index]['lastDate']),
+                              child: Text(getOngoing(_exList[index]['lastDate'],_exList[index]['startDate']),
                                 style: TextStyle(
                                   decoration: TextDecoration.underline,
                                   decorationStyle: TextDecorationStyle.double,
@@ -422,7 +426,13 @@ class _Ex_listState extends State<Ex_list> {
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle,color: Colors.black),
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                },
+                icon : Icon(Icons.account_circle),
+                color: Colors.black
+            ),
             label: '',
           ),
         ],
