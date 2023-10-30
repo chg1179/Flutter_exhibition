@@ -2,13 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 // Firestore에 사용자 정보 추가
-Future<void> addUserFirestore(String collectionStr, String email, String hashedPassword, String nickName, String phone, bool eventChecked) async {
+Future<void> addUserFirestore(String collectionStr, String email, String hashedPassword, String randomSalt, String nickName, String phone, bool eventChecked) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final CollectionReference collectionName = _fs.collection(collectionStr);
 
   await collectionName.add({
     'email': email,
     'password': hashedPassword,
+    'randomSalt' : randomSalt,
     'nickName': nickName,
     'phone': phone,
     'eventYn': eventChecked ? 'Y' : 'N',

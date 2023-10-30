@@ -143,7 +143,8 @@ class _SignInCheckState extends State<SignInCheck> {
     if (userEmail.docs.isNotEmpty) {
       final userDocument = userEmail.docs.first;
       final userHashPassword = userDocument.get('password');
-      bool pwdCheck = isPasswordValid(password, userHashPassword);
+      final userRandomSalt = userDocument.get('randomSalt');
+      bool pwdCheck = isPasswordValid(password, userHashPassword, userRandomSalt);
       print(pwdCheck);
       if (pwdCheck) {
         Provider.of<UserModel>(context, listen: false).signIn(userDocument.id); //세션 값 부여
