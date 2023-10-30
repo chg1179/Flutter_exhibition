@@ -219,7 +219,7 @@ class _ReviewEditState extends State<ReviewAdd> {
   // 후기 등록
   void _addReview() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
-      CollectionReference review = FirebaseFirestore.instance.collection("review_tbl");
+      CollectionReference review = FirebaseFirestore.instance.collection("review");
 
       await review.add({
         'title': _titleCtr.text,

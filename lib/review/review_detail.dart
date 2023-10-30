@@ -17,7 +17,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
   // 메뉴 아이콘 클릭
   void _showMenu() {
     final document = widget.document;
-
     showModalBottomSheet(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -104,7 +103,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
 
   // 리뷰 삭제
   void _deleteReview(DocumentSnapshot document) async {
-    await FirebaseFirestore.instance.collection("review_tbl").doc(document.id).delete();
+    await FirebaseFirestore.instance.collection("review").doc(document.id).delete();
   }
 
   // 리뷰 상세 정보 위젯
@@ -169,7 +168,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
-        title: Text('후기 상세보기', style: TextStyle(color: Colors.black, fontSize: 15)),
+        title: Text('후기 상세보기', style: TextStyle(color: Colors.black, fontSize: 20)),
         leading: null, // 뒤로가기 버튼을 제거합니다.
         backgroundColor: Colors.white,
       ),

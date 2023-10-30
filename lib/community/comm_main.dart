@@ -1,10 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_detail.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../exhibition/search.dart';
+import '../firebase_options.dart';
 import 'comm_add.dart';
 import 'comm_mypage.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -29,16 +37,16 @@ class _CommMainState extends State<CommMain> {
     '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
   ];
 
+  List<Map<String, String>> _imgList = [
+    {'name': 'ex1.png'},
+    {'name': 'ex2.png'},
+    {'name': 'ex3.png'},
+    {'name': 'ex4.jpg'},
+    {'name': 'ex5.jpg'},
+  ];
+
   int selectedButtonIndex = 0;
   String selectedTag = '전체';
-
-  Map<String, List<String>> tagToItems = {
-    '전체': ['전체'],
-    '설치미술': ['설치미술'],
-    '온라인전시' : ['온라인전시 리스트'],
-    '유화' : ['유화 리스트'],
-    '미디어' : ['미디어']
-  };
 
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
@@ -99,8 +107,10 @@ class _CommMainState extends State<CommMain> {
             children: _tagList.asMap().entries.map((entry) {
               final index = entry.key;
               final tag = entry.value;
+              final isAllTag = tag == '전체';
+              final tagText = isAllTag ? tag : '#$tag'; // '전체' 태그일 때는 '#'를 붙이지 않음
               return ElevatedButton(
-                child: Text('#$tag'),
+                child: Text(tagText),
                 onPressed: () {
                   setState(() {
                     selectedButtonIndex = index;
@@ -134,35 +144,75 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
- /* Widget _commList() {
-    final selectedItems = tagToItems[selectedTag];
-    return ListView.builder(
-      itemCount: selectedItems?.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(selectedItems![index]),
+  Widget _commList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('post')
+          .orderBy('write_date', descending: true)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+
+        return ListView.builder(
+          itemCount: snap.data!.docs.length,
+          itemBuilder: (context, index) {
+            final doc = snap.data!.docs[index];
+            final title = doc['title'] as String;
+            final content = doc['content'] as String;
+            Timestamp timestamp = doc['write_date'] as Timestamp;
+            DateTime dateTime = timestamp.toDate();
+
+            return GestureDetector(
+              onTap: (){
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CommDetail(document: doc.id),
+                  ),
+                );
+              },
+              child: Container(
+                margin: EdgeInsets.all(10),
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Color(0xffD4D8C8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      content,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
-    );
-  }*/
-  
-  // 해시태그, 최신순, 인기순 연결
-  Widget _commList(){
-    return ListView(
-      padding: EdgeInsets.all(20),
-      children: [
-        Column(
-          children: [
-            ListTile(
-              title: Text('글 제목'),
-              subtitle: Text('글 내용'),
-              onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail()));
-              },
-            ),
-          ],
-        ),
-      ],
     );
   }
 
@@ -174,15 +224,16 @@ class _CommMainState extends State<CommMain> {
         appBar: AppBar(
           leading: null,
           elevation: 0,
-          automaticallyImplyLeading: false, // 뒤로가기 버튼 자리 차지하지 않음
+          automaticallyImplyLeading: false,
           title: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
           actions: [
             IconButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => Search()));
-                },
-                icon: Icon(Icons.search),
-                color: Colors.black),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Search()));
+              },
+              icon: Icon(Icons.search),
+              color: Colors.black,
+            ),
             TextButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => CommMyPage()));
