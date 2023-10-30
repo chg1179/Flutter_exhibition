@@ -83,7 +83,9 @@ class _ReviewListState extends State<ReviewList> {
   // 후기 리스트
   Widget buildReviewList() {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance.collection("review_tbl").snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection("review")
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -257,7 +259,7 @@ class _ReviewListState extends State<ReviewList> {
       appBar: AppBar(
         elevation: 0,
         centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
-        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 15)),
+        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 20)),
         leading: null, // 뒤로가기 버튼을 제거합니다.
         backgroundColor: Colors.white,
       ),

@@ -18,24 +18,28 @@ class _CommMyPageState extends State<CommMyPage> {
       padding: EdgeInsets.all(30),
       child: Column(
         children: [
-          SizedBox(height: 30,),
-          CircleAvatar(
-            radius: 80,
-            backgroundImage: AssetImage('assets/ex/ex1.png'),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: CircleAvatar(
+              radius: 80,
+              backgroundImage: AssetImage('assets/ex/ex1.png'),
+            ),
           ),
-          SizedBox(height: 10,),
           Text('작성한 게시글이 없어요', style: TextStyle(fontSize: 15),),
           Text('회원들과 공유하고 싶은 전시, 작품 이야기가 있다면 들려주세요!',
               style: TextStyle(fontSize: 13, color: Colors.black45)),
-          ElevatedButton(
-            onPressed: (){
-              setState(() {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
-              });
-            },
-            child: Text('첫 글 쓰러가기'),
-            style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Color(0xff464D40))
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: ElevatedButton(
+              onPressed: (){
+                setState(() {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
+                });
+              },
+              child: Text('첫 글 쓰러가기'),
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Color(0xff464D40))
+              ),
             ),
           )
         ],
@@ -90,6 +94,7 @@ class _CommMyPageState extends State<CommMyPage> {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
+          centerTitle: true,
           title: Text('내 활동 내역',
               style: TextStyle(color: Colors.black, fontSize: 15)
           ),
@@ -115,7 +120,7 @@ class _CommMyPageState extends State<CommMyPage> {
         ),
         body: TabBarView(
           children: [
-            _myPostList(),
+            _ifMyPostNone(),
             _myCommentList()
           ],
         ),
