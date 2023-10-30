@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MyApp2());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
