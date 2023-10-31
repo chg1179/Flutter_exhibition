@@ -15,12 +15,18 @@ class ExhibitionDetail extends StatefulWidget {
 
 List<Map<String, dynamic>> _expectationReview = [
   {'nick' : '꿀호떡', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당'},
-  {'nick' : '꿀호떡', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당'},
+  {'nick' : '소금빵', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당'},
   {'nick' : '고구마', 'er_cDateTime' : '2023-10-24', 'content' : '완죤 기대중'},
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
+];
+
+List<Map<String, dynamic>> _oneLineReview = [
+  {'nick' : '망치', 'er_cDateTime' : '2023-10-25', 'content' : '잼썻음'},
+  {'nick' : '감자', 'er_cDateTime' : '2023-10-25', 'content' : '생각보단 별루'},
+  {'nick' : '고구마', 'er_cDateTime' : '2023-10-25', 'content' : '굿굿'},
 ];
 
 Map<String, dynamic> _selectEx = {
@@ -47,7 +53,7 @@ String getExhibitionStatus() {
 
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
-
+  final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
 
   Future<void> openURL() async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
@@ -62,6 +68,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   @override
   Widget build(BuildContext context) {
     String _ongoing = getExhibitionStatus();
+    final double appBarHeight = AppBar().preferredSize.height;
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+    final double totalHeight = appBarHeight + statusBarHeight;
 
     Widget _TabBar() {
       return Container(
@@ -117,7 +126,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
               SliverList(
                 delegate: SliverChildListDelegate(
                 [
-                  SizedBox(height: 90),
+                  SizedBox(height: totalHeight),
                   Container(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width,
@@ -233,7 +242,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                         ),
                                       ),
                                     ),
-                                    onPressed: (){},
+                                    onPressed: (){
+                                    },
                                     child: Text("다녀왔어요")
                                 ),
                               ),
@@ -372,179 +382,208 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   ),
                   _TabBar(),
                   Container(
-                    height: 811,
+                    height: MediaQuery.of(context).size.height - (totalHeight+50),
                     child: TabBarView(
                       children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 20),
-                              child: Text("*사전예약, 세부 사항 등은 해당 전시관으로 문의부탁드립니다.", style: TextStyle(color: Color(0xff464D40)),),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Image.asset(
-                                "assets/${widget.imagePath}",
+                        SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 20),
+                                child: Text("*사전예약, 세부 사항 등은 해당 전시관으로 문의부탁드립니다.", style: TextStyle(color: Color(0xff464D40)),),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Text("전시 소개다"),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Image.asset(
-                                "assets/${widget.imagePath}",
+                              Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Image.asset(
+                                  "assets/${widget.imagePath}",
+                                ),
                               ),
-                            ),
-                          ],
+                              Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Text("전시 소개다"),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Image.asset(
+                                  "assets/${widget.imagePath}",
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 30, bottom: 20),
-                              child: Text("두근두근 설레는 기대평을 남겨주세요.", style: TextStyle(fontSize: 16)),
-                            ),
-                            ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                  minimumSize: MaterialStateProperty.all<Size>(Size(300, 50)),
-                                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                                    EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
-                                  ),
-                                  foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        side: BorderSide(color: Color(0xff464D40), style: BorderStyle.solid)
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 30, bottom: 20),
+                                child: Text("두근두근 설레는 기대평을 남겨주세요.", style: TextStyle(fontSize: 16)),
+                              ),
+                              ElevatedButton(
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                    minimumSize: MaterialStateProperty.all<Size>(Size(300, 50)),
+                                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                                      EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
+                                    ),
+                                    foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+                                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          side: BorderSide(color: Color(0xff464D40), style: BorderStyle.solid)
+                                      ),
                                     ),
                                   ),
-                                ),
-                                onPressed: (){
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text("기대평 작성", style: TextStyle(fontSize: 15),),
-                                        content: TextField(controller: _expReview),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('취소', style: TextStyle(color: Colors.black),),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
+                                  onPressed: (){
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text("기대평 작성", style: TextStyle(fontSize: 15),),
+                                          content: TextField(controller: _expReview),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('취소', style: TextStyle(color: Colors.black),),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: Text('작성', style: TextStyle(color: Color(0xff55693e)),),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Text("기대평 작성")
+                              ),
+                              SizedBox(height: 20),
+                              Column(
+                                children: _expectationReview.map((review) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 15),
+                                    child: ListTile(
+                                      title: Row(
+                                        children: [
+                                          Container(
+                                              padding: EdgeInsets.only(bottom: 10),
+                                              width: MediaQuery.of(context).size.width * 0.75,
+                                              child: Text(review['content'])
                                           ),
+                                          Spacer(),
                                           TextButton(
-                                            child: Text('작성', style: TextStyle(color: Color(0xff55693e)),),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
+                                            style: ButtonStyle(
+                                              minimumSize: MaterialStateProperty.all<Size>(Size(40, 20)), // 버튼의 최소 크기
+                                              // 기타 속성들...
+                                            ),
+                                            onPressed: () {},
+                                            child: Text(
+                                              "신고",
+                                              style: TextStyle(color: Color(0xff55693e)),
+                                            ),
                                           ),
                                         ],
-                                      );
-                                    },
-                                  );
-                                },
-                                child: Text("기대평 작성")
-                            ),
-                            SizedBox(height: 20),
-                            Column(
-                              children: _expectationReview.map((review) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 15),
-                                  child: ListTile(
-                                    title: Row(
-                                      children: [
-                                        Container(
-                                            padding: EdgeInsets.only(bottom: 10),
-                                            width: 300,
-                                            child: Text(review['content'])
-                                        ),
-                                        Spacer(),
-                                        TextButton(
-                                          onPressed: () {},
-                                          child: Text(
-                                            "신고",
-                                            style: TextStyle(color: Color(0xff55693e)),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    subtitle: Row(
-                                      children: [
-                                        Text("${review['nick']} │ ${review['er_cDateTime']}"),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            )
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 30, bottom: 20),
-                              child: Text("한줄평을 남겨주세요.", style: TextStyle(fontSize: 16)),
-                            ),
-                            ElevatedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                  minimumSize: MaterialStateProperty.all<Size>(Size(300, 50)),
-                                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                                    EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
-                                  ),
-                                  foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        side: BorderSide(color: Color(0xff464D40), style: BorderStyle.solid)
-                                    ),
-                                  ),
-                                ),
-                                onPressed: (){},
-                                child: Text("한줄평 작성")
-                            ),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: _expectationReview.length,
-                                itemBuilder: (context, index) {
-                                  return Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(bottom: 15),
-                                        child: ListTile(
-                                          title: Row(
-                                            children: [
-                                              Container(
-                                                  padding: EdgeInsets.only(bottom: 10),
-                                                  width: 300,
-                                                  child: Text(_expectationReview[index]['content'])
-                                              ),
-                                              Spacer(),
-                                              TextButton(
-                                                  onPressed: (){},
-                                                  child: Text("신고", style: TextStyle(color: Color(
-                                                      0xff55693e)),)
-                                              )
-                                            ],
-                                          ),
-                                          subtitle: Row(
-                                            children: [
-                                              Text("${_expectationReview[index]['nick']} │ ${_expectationReview[index]['er_cDateTime']}"),
-                                            ],
-                                          ),
-                                        ),
                                       ),
-                                      Divider()
-                                    ],
+                                      subtitle: Row(
+                                        children: [
+                                          Text("${review['nick']} │ ${review['er_cDateTime']}"),
+                                        ],
+                                      ),
+                                    ),
                                   );
-                                },
+                                }).toList(),
+                              )
+                            ],
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 30, bottom: 20),
+                                child: Text("한줄평을 남겨주세요.", style: TextStyle(fontSize: 16)),
                               ),
-                            )
-                          ],
+                              ElevatedButton(
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                                    minimumSize: MaterialStateProperty.all<Size>(Size(300, 50)),
+                                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+                                      EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
+                                    ),
+                                    foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+                                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          side: BorderSide(color: Color(0xff464D40), style: BorderStyle.solid)
+                                      ),
+                                    ),
+                                  ),
+                                  onPressed: (){
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text("한줄평 작성", style: TextStyle(fontSize: 15),),
+                                          content: TextField(controller: _expReview),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text('취소', style: TextStyle(color: Colors.black),),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: Text('작성', style: TextStyle(color: Color(0xff55693e)),),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: Text("한줄평 작성")
+                              ),
+                              SizedBox(height: 20),
+                              Column(
+                                children: _oneLineReview.map((review) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 15),
+                                    child: ListTile(
+                                      title: Row(
+                                        children: [
+                                          Container(
+                                              padding: EdgeInsets.only(bottom: 10),
+                                              width: MediaQuery.of(context).size.width * 0.75,
+                                              child: Text(review['content'])
+                                          ),
+                                          Spacer(),
+                                          TextButton(
+                                            onPressed: () {},
+                                            child: Text(
+                                              "신고",
+                                              style: TextStyle(color: Color(0xff55693e)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      subtitle: Row(
+                                        children: [
+                                          Text("${review['nick']} │ ${review['er_cDateTime']}"),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              )
+                            ],
+                          ),
                         ),
                       ],
                     ),
