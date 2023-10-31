@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
-import 'package:exhibition_project/firebase_options.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/review/review_list.dart';
@@ -11,10 +11,7 @@ import 'myPage/mypage.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  //await Firebase.initializeApp();
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Home()
