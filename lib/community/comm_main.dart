@@ -144,6 +144,49 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
+  // 조회수, 댓글수 아이콘
+  Widget buildIcons() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              buildIconsItem(Icons.visibility, '47'),
+              SizedBox(width: 5),
+              buildIconsItem(Icons.chat_bubble_rounded, '1'),
+              SizedBox(width: 5),
+            ],
+          ),
+          GestureDetector(
+            onTap: (){
+              // 좋아요 카운트 증가 코드 작성
+            },
+            child: buildIconsItem(Icons.favorite, '0')
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 조회수, 댓글수 아이콘
+  Widget buildIconsItem(IconData icon, String text) {
+    return Container(
+      padding: EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Color(0xff464D40),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 13,color: Colors.white,),
+          Text(text, style: TextStyle(color: Colors.white),),
+        ],
+      ),
+    );
+  }
+
   Widget _commList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -161,14 +204,19 @@ class _CommMainState extends State<CommMain> {
           return Center(child: Text('데이터 없음'));
         }
 
-        return ListView.builder(
+        return ListView.separated(
           itemCount: snap.data!.docs.length,
+          separatorBuilder: (context, index) {
+            return Divider(color: Colors.grey, thickness: 0.5); // 구분선의 스타일을 설정합니다.
+          },
           itemBuilder: (context, index) {
             final doc = snap.data!.docs[index];
             final title = doc['title'] as String;
             final content = doc['content'] as String;
             Timestamp timestamp = doc['write_date'] as Timestamp;
             DateTime dateTime = timestamp.toDate();
+
+            final imageFileName = _imgList[index % _imgList.length]['name'];
 
             return GestureDetector(
               onTap: (){
@@ -180,32 +228,66 @@ class _CommMainState extends State<CommMain> {
                 );
               },
               child: Container(
-                margin: EdgeInsets.all(10),
-                padding: EdgeInsets.all(10),
+                margin: EdgeInsets.all(5),
+                padding: EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: Color(0xffD4D8C8),
+                  // color: Color(0xffD4D8C8),
+                  // border: Border.all(width: 1, color: Colors.black45),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundImage: AssetImage('assets/ex/${imageFileName}'),
+                          ),
+                          SizedBox(width: 5,),
+                          Text('userNickname', style: TextStyle(fontSize: 13),),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      content,
-                      style: TextStyle(fontSize: 14),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
-                      style: TextStyle(fontSize: 12),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        content,
+                        style: TextStyle(fontSize: 14),
+                      ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10), // 모서리 둥글기 정도를 설정합니다.
+                        child: Image.asset(
+                          'assets/ex/$imageFileName',
+                          width: 400,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    buildIcons()
                   ],
                 ),
               ),
@@ -225,7 +307,7 @@ class _CommMainState extends State<CommMain> {
           leading: null,
           elevation: 0,
           automaticallyImplyLeading: false,
-          title: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
+          title: Text('커뮤니티️', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
           actions: [
             IconButton(
               onPressed: () {

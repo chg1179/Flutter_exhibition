@@ -34,22 +34,24 @@ class _CommAddState extends State<CommAdd> {
 
   // 글 등록 폼
   Widget buildCommForm() {
-    return Container(
-      height: 400,
-      decoration: BoxDecoration(
-        color: Color(0xffD4D8C8),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTitleInput(),
-          _buildDivider(),
-          SizedBox(height: 10),
-          _buildLocationButton(),
-          _buildContentInput(),
-          _buildAddImageButton(),
-        ],
+    return SingleChildScrollView( // 싱글 차일드 스크롤뷰 추가
+      child: Container(
+        height: 400,
+        decoration: BoxDecoration(
+          color: Color(0xffD4D8C8),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTitleInput(),
+            _buildDivider(),
+            SizedBox(height: 10),
+            _buildLocationButton(),
+            _buildContentInput(),
+            _buildAddImageButton(),
+          ],
+        ),
       ),
     );
   }
@@ -108,7 +110,7 @@ class _CommAddState extends State<CommAdd> {
       padding: const EdgeInsets.only(left: 20, right: 10),
       child: TextField(
         maxLines: 8,
-        maxLength: 1000,
+        maxLength: 300,
         controller: _contentCtr,
         decoration: InputDecoration(
           hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
@@ -163,15 +165,17 @@ class _CommAddState extends State<CommAdd> {
           )
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: buildCommForm(),
-            ),
-          ],
+      body: SingleChildScrollView( // SingleChildScrollView를 여기에 추가
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: buildCommForm(),
+              ),
+            ],
+          ),
         ),
       ),
     );
