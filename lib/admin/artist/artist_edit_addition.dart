@@ -1,5 +1,6 @@
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,7 +10,7 @@ class ArtistEditAdditionPage extends StatelessWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
   final Map<String, String> formData; // 입력한 값을 담는 맵
   const ArtistEditAdditionPage({Key? key, required this.moveToNextTab, required this.formData});
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,6 +30,7 @@ class ArtistEditAddition extends StatefulWidget {
 
 class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   @override
+  
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -65,17 +67,11 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
 
   Widget submitButton() {
     return ElevatedButton(
-      onPressed: () {
-        // Firestore에 작가 정보 추가
-        /*
-        await addArtistFirestore(
+      onPressed: () async {
+        await addArtist(
           'artist',
-          _nameController.text,
-          _englishNameController.text,
-          _nationalityController.text,
-          _expertiseController.text,
-          _introduceController.text,
-        );*/
+          widget.formData,
+        );
         showMoveDialog(context, '작가가 성공적으로 추가되었습니다.', () => ArtistList());
       },
       style: ButtonStyle(

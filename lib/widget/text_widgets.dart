@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 
-Widget textFieldLabel(String txt){
-  return Text(txt, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold));
+Widget textFieldLabel(String text) {
+  return SizedBox(
+    width: 80, // 너비 조정
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  );
 }
 
 Widget duplicateText(String message) {

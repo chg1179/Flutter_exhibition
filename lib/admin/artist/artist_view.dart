@@ -56,6 +56,8 @@ class _ArtistViewState extends State<ArtistView> {
               SizedBox(height: 10),
               Text('소개 : ${artistData['artistIntroduce']}'),
               SizedBox(height: 15),
+              Text('소개 : ${artistData['artistIntroduce']}'),
+              SizedBox(height: 15),
               Text('학력'),
               listContent(widget.document, 'artist', 'artist_education', 'year', false),
               SizedBox(height: 10),

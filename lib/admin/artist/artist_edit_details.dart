@@ -2,7 +2,6 @@ import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
-import 'package:exhibition_project/widget/tab_wigets.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:country_calling_code_picker/picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -90,7 +89,7 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     return Scaffold(
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       body: Container(
-        margin: EdgeInsets.all(30),
+        margin: EdgeInsets.all(20),
         padding: EdgeInsets.all(15),
         child: Center(
           child: Form(
@@ -106,25 +105,15 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          textFieldLabel('작가명'),
-                          textFieldInput(_nameController, "작가명" , 'name'),
+                          textAndTextField('작가명', _nameController, 'name'),
                           SizedBox(height: 30),
-                          textFieldLabel('영어명'),
-                          textFieldInput(_englishNameController,"영어명", 'englishName'),
+                          textAndTextField('영어명', _englishNameController, 'englishName'),
                           SizedBox(height: 30),
-                          textFieldLabel('국적'),
-                          textFieldInput(_nationalityController, "국적", 'nationality'),
-                          ElevatedButton(
-                              onPressed: () => _countrySelect(),
-                              child: Text("국가선택")
-                          ),
+                          textAndTextField('분　야', _expertiseController, 'expertise'),
                           SizedBox(height: 30),
-                          textFieldLabel('전문 분야'),
-                          textFieldInput(_expertiseController, "전문 분야", 'expertise'),
+                          textAndTextField('국　적', _nationalityController, 'nationality'),
                           SizedBox(height: 30),
-                          textFieldLabel('소개'),
-                          textFieldInput(_introduceController, "소개", 'introduce'),
-                          SizedBox(height: 30)
+                          textAndTextField('소　개', _introduceController, 'introduce'),
                         ],
                       )
                   ),
@@ -143,34 +132,53 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     );
   }
 
+  Widget textAndTextField(String txt, final ctr, String kind){
+    return Row(
+      children: [
+        textFieldLabel('$txt'),
+        Expanded(
+          child: textFieldInput(ctr, kind),
+        ),
+        if(kind == 'nationality') SizedBox(width: 30),
+        if(kind == 'nationality')
+          ElevatedButton(
+            onPressed: () => _countrySelect(),
+            child: Text("국가선택")
+          ),
+      ],
+    );
+  }
 
-  TextFormField textFieldInput(final ctr, String hintTxt, String kind) {
+
+  TextFormField textFieldInput(final ctr, String kind) {
+    final isIntroduce = kind == 'introduce';
+    final isNationality = kind == 'nationality';
+    final borderSide = BorderSide(
+      color: Color.fromRGBO(70, 77, 64, 1.0),
+      width: 1.0,
+    );
+
     return TextFormField(
-        enabled: kind != 'nationality',
+        enabled: !isNationality,
         controller: ctr,
         autofocus: true,
+        maxLines: isIntroduce ? 5 : 1,
         inputFormatters: [
-          kind != 'introduce' ? LengthLimitingTextInputFormatter(30) : LengthLimitingTextInputFormatter(1000), // 최대 길이 설정
+          isIntroduce ? LengthLimitingTextInputFormatter(1000) : LengthLimitingTextInputFormatter(30), // 최대 길이 설정
         ],
         decoration: InputDecoration(
-          hintText: hintTxt, //입력란에 나타나는 텍스트
+          hintText: isNationality ? '국가를 선택해주세요.' : null,
           labelStyle: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
-          border: OutlineInputBorder(),
-          focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 필드 비활성화 상태
-                width: 1.8,
-              )
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 필드 비활성화 상태
-            ),
-          ),
-        )
+          focusedBorder: isIntroduce
+              ? OutlineInputBorder(borderSide: borderSide)
+              : UnderlineInputBorder(borderSide: borderSide),
+          enabledBorder: isIntroduce
+              ? OutlineInputBorder(borderSide: borderSide)
+              : UnderlineInputBorder(borderSide: borderSide),
+        ),
     );
   }
 
@@ -179,7 +187,12 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     return ElevatedButton(
       onPressed: allFieldsFilled ? () async {
         try {
-          widget.moveToNextTab(); // 여기서 입력한 값을 보내고 싶어
+          widget.formData['name'] = _nameController.text;
+          widget.formData['englishName'] = _englishNameController.text;
+          widget.formData['expertise'] = _expertiseController.text;
+          widget.formData['nationality'] = _nationalityController.text;
+          widget.formData['introduce'] = _introduceController.text;
+          widget.moveToNextTab(widget.formData); // 여기서 입력한 값을 보냄
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {
