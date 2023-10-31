@@ -9,6 +9,7 @@ class Search extends StatefulWidget {
 
 class _SearchState extends State<Search> {
   final _search = TextEditingController();
+  final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
 
   ButtonStyle _buttonSt(){
     return ButtonStyle(
@@ -148,11 +149,10 @@ class _SearchState extends State<Search> {
   Widget _SearchIsTabBar(){
     return TabBar(
       tabs: [
-        Tab(text: "전시",),
-        Tab(text: "작가",),
-        Tab(text: "전시관",),
-        Tab(text: "작품",),
-        Tab(text: "칼럼",)
+        Tab(child: Text("전시",style: TextStyle(fontSize: 15))),
+        Tab(child: Text("작가",style: TextStyle(fontSize: 15))),
+        Tab(child: Text("전시관",style: TextStyle(fontSize: 15))),
+        Tab(child: Text("작품",style: TextStyle(fontSize: 15))),
       ],
       labelColor: Color(0xff464D40),
       unselectedLabelColor: Color(0xff879878),
@@ -163,34 +163,14 @@ class _SearchState extends State<Search> {
 
   Widget _SearchIs(){
     return Container(
-        height: 200,
+        padding: EdgeInsets.only(bottom: appBarHeight+100),
+        height: MediaQuery.of(context).size.height,
         child: TabBarView(
           children: [
-            Column(
-              children: [
-                Text("전시")
-              ],
-            ),
-            Column(
-              children: [
-                Text("작가")
-              ],
-            ),
-            Column(
-              children: [
-                Text("전시관")
-              ],
-            ),
-            Column(
-              children: [
-                Text("작품")
-              ],
-            ),
-            Column(
-              children: [
-                Text("칼럼")
-              ],
-            ),
+            ExhibitionPage(),
+            ArtistPage(),
+            GalleryPage(),
+            ArtworkPage()
           ],
         )
     );
@@ -200,7 +180,7 @@ class _SearchState extends State<Search> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: DefaultTabController(
-        length: 5,
+        length: 4,
         child: ListView(
           children: [
             Column(
@@ -211,7 +191,7 @@ class _SearchState extends State<Search> {
                 child: TextField(
                   controller: _search,
                   decoration: InputDecoration(
-                    hintText: "전시, 전시관, 작가, 작품, 컬럼 검색",
+                    hintText: "전시, 전시관, 작가, 작품 검색",
                     labelStyle: TextStyle(
                       color: Colors.grey,
                     ),
@@ -253,4 +233,324 @@ class _SearchState extends State<Search> {
       ),
     );
   }
+}
+
+
+///////////////////////////////////////////////////////////////////////전시
+
+class ExhibitionPage extends StatefulWidget {
+  @override
+  _ExhibitionPageState createState() => _ExhibitionPageState();
+}
+
+class _ExhibitionPageState extends State<ExhibitionPage> {
+  final List<Exhibition> exhibitions = [
+    Exhibition(
+      image: 'assets/main/전시2.jpg',
+      title: '전시회 이름',
+      subtitle: '장소',
+      date: '2023.10.31 ~ 2023.10.31',
+    ),
+    Exhibition(
+      image: 'assets/main/전시5.jpg',
+      title: '전시회 이름',
+      subtitle: '장소',
+      date: '2023.10.31 ~ 2023.10.31',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: exhibitions.length,
+        itemBuilder: (context, index) {
+          final exhibition = exhibitions[index];
+          return InkWell(
+            onTap: (){},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  Image.asset(
+                      exhibition.image,
+                      width: 80, // 이미지의 폭
+                      height: 80, // 이미지의 높이
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        exhibition.title,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        exhibition.subtitle,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      Text(
+                        exhibition.date,
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Exhibition {
+  final String image;
+  final String title;
+  final String subtitle;
+  final String date;
+
+  Exhibition({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+    required this.date,
+  });
+}
+
+
+////////////////////////////////////////////////////////////////////////////작가
+
+class ArtistPage extends StatefulWidget {
+  @override
+  _ArtistPageState createState() => _ArtistPageState();
+}
+
+class _ArtistPageState extends State<ArtistPage> {
+  final List<Artist> artists = [
+    Artist(
+      name: "김소월",
+      profileImage: "assets/main/전시1.png",
+      subtitle: "회화",
+    ),
+    Artist(
+      name: "김동률",
+      profileImage: "assets/main/전시2.jpg",
+      subtitle: "갓우",
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: artists.length,
+        itemBuilder: (context, index) {
+          final artist = artists[index];
+          return InkWell(
+            onTap: (){},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(artist.profileImage),
+                    radius: 40,
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        artist.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        artist.subtitle,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Artist {
+  final String name;
+  final String profileImage;
+  final String subtitle;
+
+  Artist({
+    required this.name,
+    required this.profileImage,
+    required this.subtitle,
+  });
+}
+
+///////////////////////////////////////////////////////////////////////갤러리(전시관)
+
+class GalleryPage extends StatefulWidget {
+  @override
+  _GalleryPageState createState() => _GalleryPageState();
+}
+
+class _GalleryPageState extends State<GalleryPage> {
+  final List<Gallery> gallerys = [
+    Gallery(
+      name: "국립현대미술관 창동레지던시",
+      description: "서울",
+      imageUrl: "assets/main/가로1.jpg",
+    ),
+    Gallery(
+      name: "국립현대미술관 서면레지던시",
+      description: "부산",
+      imageUrl: "assets/main/가로2.jpg",
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: gallerys.length,
+        itemBuilder: (context, index) {
+          final gallery = gallerys[index];
+          return InkWell(
+            onTap: (){},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(gallery.imageUrl),
+                    radius: 40,
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        gallery.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        gallery.description,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Gallery {
+  final String name;
+  final String description;
+  final String imageUrl;
+
+  Gallery({
+    required this.name,
+    required this.description,
+    required this.imageUrl,
+  });
+}
+
+///////////////////////////////////////////////////////////////////////작품(artwork)
+
+class ArtworkPage extends StatefulWidget {
+  @override
+  _ArtworkPageState createState() => _ArtworkPageState();
+}
+
+class _ArtworkPageState extends State<ArtworkPage> {
+  final List<Artwork> artworks = [
+    Artwork(
+      image: 'assets/main/전시2.jpg',
+      title: '아트워크 1',
+      subtitle: '작가 이름 1',
+    ),
+    Artwork(
+      image: 'assets/main/전시3.jpg',
+      title: '아트워크 2',
+      subtitle: '작가 이름 2',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: artworks.length,
+        itemBuilder: (context, index) {
+          final artwork = artworks[index];
+          return InkWell(
+            onTap: (){},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  Image.asset(
+                      artwork.image,
+                      width: 80, // 이미지의 폭
+                      height: 80, // 이미지의 높이
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        artwork.title,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        artwork.subtitle,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Artwork {
+  final String image;
+  final String title;
+  final String subtitle;
+
+  Artwork({
+    required this.image,
+    required this.title,
+    required this.subtitle,
+  });
 }
