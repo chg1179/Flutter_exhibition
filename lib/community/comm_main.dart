@@ -3,8 +3,12 @@ import 'package:exhibition_project/community/comm_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../exhibition/ex_list.dart';
 import '../exhibition/search.dart';
 import '../firebase_options.dart';
+import '../main.dart';
+import '../myPage/mypage.dart';
+import '../review/review_list.dart';
 import 'comm_add.dart';
 import 'comm_mypage.dart';
 
@@ -47,6 +51,14 @@ class _CommMainState extends State<CommMain> {
 
   int selectedButtonIndex = 0;
   String selectedTag = '전체';
+
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
@@ -153,9 +165,9 @@ class _CommMainState extends State<CommMain> {
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, '47'),
+              buildIconsItem(Icons.visibility, '0'),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, '1'),
+              buildIconsItem(Icons.chat_bubble_rounded, '0'),
               SizedBox(width: 5),
             ],
           ),
@@ -356,6 +368,61 @@ class _CommMainState extends State<CommMain> {
           child: Icon(Icons.edit),
           backgroundColor: Color(0xff464D40),
           mini: true,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+          items: [
+            BottomNavigationBarItem(
+              icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                  },
+                  icon : Icon(Icons.home),
+                  color: Colors.black
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                  },
+                  icon : Icon(Icons.account_balance, color: Colors.black)
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                  },
+                  icon : Icon(Icons.comment),
+                  color: Colors.black
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                  },
+                  icon : Icon(Icons.library_books),
+                  color: Colors.black
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: IconButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                  },
+                  icon : Icon(Icons.account_circle),
+                  color: Colors.black
+              ),
+              label: '',
+            ),
+          ],
         ),
       ),
     );

@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/review/review_add.dart';
 import 'package:exhibition_project/review/review_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import '../community/comm_main.dart';
+import '../exhibition/ex_list.dart';
 import '../firebase_options.dart';
+import '../myPage/mypage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +35,14 @@ class ReviewList extends StatefulWidget {
 
 class _ReviewListState extends State<ReviewList> {
   final _searchCtr = TextEditingController();
+  int _currentIndex = 0;
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   List<Map<String, dynamic>> _list = [
     {'title': '최신순', 'value': 'latest'},
     {'title': '인기순', 'value': 'popular'},
@@ -294,6 +306,61 @@ class _ReviewListState extends State<ReviewList> {
             bottom: 10,
             right: 10,
             child: buildAddReviewButton(),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        items: [
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                },
+                icon : Icon(Icons.home),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                },
+                icon : Icon(Icons.account_balance, color: Colors.black)
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                },
+                icon : Icon(Icons.comment),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                },
+                icon : Icon(Icons.library_books),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                },
+                icon : Icon(Icons.account_circle),
+                color: Colors.black
+            ),
+            label: '',
           ),
         ],
       ),
