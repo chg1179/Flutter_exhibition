@@ -1,8 +1,14 @@
+import 'package:exhibition_project/community/comm_main.dart';
+import 'package:exhibition_project/exhibition/ex_list.dart';
+import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/myPage/be_back_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
 import 'package:exhibition_project/myPage/like_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
+import 'package:exhibition_project/myPage/my_calendar.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
+import 'package:exhibition_project/review/review_list.dart';
+import 'package:exhibition_project/user/home.dart';
 import 'package:flutter/material.dart';
 
 
@@ -29,10 +35,15 @@ class mypagetest extends StatefulWidget {
 
 class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateMixin {
   double temperature = 52;
+  int _currentIndex = 0;
   late TabController _tabController;
   int _currentPageIndex = 0;
   final PageController _pageController = PageController();
-
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
   @override
   void dispose() {
     _pageController.dispose();
@@ -186,7 +197,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                   InkWell(
                                     onTap: () {
                                       Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) => Calendar()));
+                                          MaterialPageRoute(builder: (context) => MyCalendar()));
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.all(10.0),
@@ -297,6 +308,61 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                         )
                       ],
                     ),
+                  ),
+                ],
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                currentIndex: _currentIndex,
+                onTap: _onTabTapped,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: IconButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                        },
+                        icon : Icon(Icons.home),
+                        color: Colors.black
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: IconButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                        },
+                        icon : Icon(Icons.account_balance, color: Colors.black)
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: IconButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                        },
+                        icon : Icon(Icons.comment),
+                        color: Colors.black
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: IconButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                        },
+                        icon : Icon(Icons.library_books),
+                        color: Colors.black
+                    ),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: IconButton(
+                        onPressed: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                        },
+                        icon : Icon(Icons.account_circle),
+                        color: Colors.black
+                    ),
+                    label: '',
                   ),
                 ],
               ),

@@ -32,52 +32,60 @@ class _CalendarState extends State<Calendar> {
   Map<DateTime, String> _events = {};
   TextEditingController _memoController = TextEditingController();
 
+  // 이미지를 관리할 맵을 추가
+  Map<DateTime, String> _images = {
+    DateTime(2023, 10, 25): 'assets/ex/ex1.png',
+    DateTime(2023, 10, 26): 'assets/ex/ex1.png',
+    // 다른 날짜와 이미지 추가
+  };
+
   Future<void> _selectDate(BuildContext context) async {
     DateTime? pickedDate = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) {
           return Scaffold(
-            appBar: AppBar( backgroundColor: Colors.white,
-              title: Text("마이 페이지"),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.add_alert_outlined, color: Colors.black,),
-                  onPressed: () {
-                    print('안녕');
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.shopping_cart_outlined, color: Colors.black,),
-                  onPressed: () {
-                    print('안녕');
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.settings_outlined, color: Colors.black,),
-                  onPressed: () {
-                    print('안녕');
-                  },
-                )
-              ],
-            ),
-            body: Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    child: CalendarDatePicker(
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now().add(Duration(days: 365)),
-                      onDateChanged: (DateTime picked) {
-                        Navigator.pop(context, picked);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            appBar: AppBar(
+                backgroundColor: Colors.white,
+                title: Text("마이 페이지"),
+                actions: [
+            IconButton(
+            icon: Icon(Icons.add_alert_outlined, color: Colors.black),
+            onPressed: () {
+              print('안녕');
+            },
+          ),
+          IconButton(
+          icon: Icon(Icons.shopping_cart_outlined, color: Colors.black),
+          onPressed: () {
+          print('안녕');
+          },
+          ),
+          IconButton(
+          icon: Icon(Icons.settings_outlined, color: Colors.black),
+          onPressed: () {
+          print('안녕');
+          },
+          )
+          ],
+          ),
+          body: Container(
+          child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          Container(
+          child: CalendarDatePicker(
+          initialDate: DateTime.now(),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now().add(Duration(days: 365)),
+          onDateChanged: (DateTime picked) {
+          Navigator.pop(context, picked);
+          },
+          ),
+          ),
+          ],
+          ),
+          ),
           );
         },
       ),
@@ -93,7 +101,9 @@ class _CalendarState extends State<Calendar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("마이페이지",) ),
+      appBar: AppBar(
+        title: Text("마이페이지"),
+      ),
       body: Column(
         children: [
           Center(
@@ -110,13 +120,20 @@ class _CalendarState extends State<Calendar> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.edit_calendar_sharp, color: Colors.white)
+                    Icon(Icons.edit_calendar_sharp, color: Colors.white),
                   ],
                 ),
               ),
             ),
           ),
-
+          SizedBox(height: 20),
+          _images[_dateTime] != null
+              ? Image.asset(
+            _images[_dateTime]!,
+            width: 100,
+            height: 100,
+          )
+              : Container(),
           SizedBox(height: 20),
           _events[_dateTime] != null
               ? Column(
@@ -138,12 +155,14 @@ class _CalendarState extends State<Calendar> {
                 margin: EdgeInsets.all(30),
                 child: TextField(
                   decoration: InputDecoration(
-                      labelText: "간단 메모",
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors.black,
-                            style: BorderStyle.solid),
-                      )),
+                    labelText: "간단 메모",
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Colors.black,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                  ),
                   controller: _memoController,
                 ),
               ),

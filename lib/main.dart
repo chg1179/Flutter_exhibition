@@ -13,19 +13,19 @@ void main() async{
   //await Firebase.initializeApp();
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MyApp()
+      home: Home()
     )
   );
 }
 
-class MyApp extends StatefulWidget {
-  MyApp({super.key});
+class Home extends StatefulWidget {
+  Home({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  _HomeState createState() => _HomeState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _HomeState extends State<Home> {
   int _currentIndex = 0;
   bool _isSearchVisible = false;
 
@@ -124,7 +124,7 @@ class _MyAppState extends State<MyApp> {
               BottomNavigationBarItem(
                 icon: IconButton(
                     onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                     },
                     icon : Icon(Icons.home),
                     color: Colors.black

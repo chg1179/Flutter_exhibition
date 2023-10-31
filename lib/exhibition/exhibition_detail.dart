@@ -105,7 +105,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           actions: [
             IconButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
               },
               icon: Icon(Icons.home, color: Colors.black),
             ),

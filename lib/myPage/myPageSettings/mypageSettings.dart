@@ -9,10 +9,10 @@ import '../../myPage/myPageSettings/notice.dart';
 import 'alert.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(MySetting());
 }
 
-class MyApp extends StatelessWidget {
+class MySetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
