@@ -1,7 +1,8 @@
+import 'package:exhibition_project/exhibition/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ExhibitionDetail extends StatefulWidget {
   final String imagePath;
@@ -47,6 +48,17 @@ String getExhibitionStatus() {
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
 
+
+  void openURL() async {
+    const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
+
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String _ongoing = getExhibitionStatus();
@@ -90,6 +102,15 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
             },
             icon: Icon(Icons.arrow_back, color: Colors.black),
           ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+              },
+              icon: Icon(Icons.home, color: Colors.black),
+            ),
+            SizedBox(width: 10,)
+          ],
         ),
         body: CustomScrollView(
             slivers: <Widget>[
@@ -154,7 +175,12 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                           ],
                         ),
                         SizedBox(height: 20),
-                        Text(_selectEx['place'], style: TextStyle(fontSize: 16),),
+                        InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(imagePath: _selectEx['posterPath'])));
+                            },
+                            child: Text(_selectEx['place'], style: TextStyle(fontSize: 16),)
+                        ),
                         Row(
                           children: [
                             Text("${_selectEx['startDate']} - ${_selectEx['lastDate']}",style: TextStyle(fontSize: 16)),
@@ -228,8 +254,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                         ),
                                       ),
                                     ),
-                                    onPressed: (){},
-                                    child: Text("전시 홈페이지")
+                                    onPressed: (){
+                                      openURL();
+                                    },
+                                    child: Text("전시회 홈페이지")
                                 ),
                               ),
                             ],
