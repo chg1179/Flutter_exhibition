@@ -1,4 +1,4 @@
-import 'package:exhibition_project/exhibition/gallery_info.dart';
+import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
