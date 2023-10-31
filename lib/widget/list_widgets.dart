@@ -139,10 +139,10 @@ Widget listContent(DocumentSnapshot document, String parentCollection, String ch
               child: Row(
                 children: [
                   SizedBox(width: 5),
-                  Text('- ${data['year']}', textAlign: TextAlign.center, style: TextStyle(fontSize: 15)),
+                  Text('- ${data['year']}', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
                   SizedBox(width: 5),
                   Expanded(
-                    child: Text('${data['content']}', textAlign: TextAlign.start, style: TextStyle(fontSize: 15)),
+                    child: Text('${data['content']}', textAlign: TextAlign.start, style: TextStyle(fontSize: 14)),
                   ),
                 ],
               ),
