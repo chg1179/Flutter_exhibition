@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_detail.dart';
 import 'package:firebase_core/firebase_core.dart';

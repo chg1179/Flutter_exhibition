@@ -1,3 +1,6 @@
+
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_add.dart';
 import 'package:exhibition_project/community/comm_main.dart';
@@ -17,20 +20,21 @@ class _CommDetailState extends State<CommDetail> {
 
   ScrollController _scrollController = ScrollController();
   bool _showFloatingButton = false;
+  Map<String, dynamic>? _postData;
+  List<Map<String, dynamic>> _comments = [];
 
   @override
   void initState() {
     super.initState();
+    _getPostData();
+    _loadComments();
 
-    // 스크롤 위치 감지를 위한 리스너 등록
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
-        // 스크롤 위치가 0보다 크면 플로팅 버튼 표시
         setState(() {
           _showFloatingButton = true;
         });
       } else {
-        // 스크롤 위치가 0 이하이면 플로팅 버튼 숨김
         setState(() {
           _showFloatingButton = false;
         });
@@ -38,14 +42,45 @@ class _CommDetailState extends State<CommDetail> {
     });
   }
 
-  @override
-  void dispose() {
-    // 스크롤 컨트롤러 정리
-    _scrollController.dispose();
-    super.dispose();
+  void _getPostData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('post').doc(widget.document).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _postData = documentSnapshot.data() as Map<String, dynamic>;
+        });
+      } else {
+        print('게시글을 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
   }
 
-  // 댓글 등록 로직
+  void _loadComments() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('post')
+          .doc(widget.document)
+          .collection('comment')
+          .orderBy('write_date', descending: false)
+          .get();
+      final comments = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'comment': data['comment'] as String,
+          'write_date': data['write_date'] as Timestamp,
+        };
+      }).toList();
+
+      setState(() {
+        _comments = comments;
+      });
+    } catch (e) {
+      print('댓글을 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
   void _addComment() async {
     String commentText = _commentCtr.text;
 
@@ -53,31 +88,31 @@ class _CommDetailState extends State<CommDetail> {
       try {
         await _firestore.collection('post').doc(widget.document).collection('comment').add({
           'comment': commentText,
-          'write_date': FieldValue.serverTimestamp()
+          'write_date': FieldValue.serverTimestamp(),
         });
 
         _commentCtr.clear();
         FocusScope.of(context).unfocus();
 
+        // 화면 업데이트
+        _loadComments();
         _showSnackBar('댓글이 등록되었습니다!');
+
       } catch (e) {
         print('댓글 등록 오류: $e');
       }
     }
   }
 
-  // 스낵바 함수
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: TextStyle(color: Colors.black)),
-        behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.white,
       ),
     );
   }
 
-  // 커뮤니티 홈 버튼
   Widget buildTitleButton(BuildContext context) {
     return TextButton(
       onPressed: () {
@@ -105,7 +140,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 게시글 리스트 출력
   Widget buildDetailContent(String title, String content) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
@@ -122,8 +156,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-
-  // 작성자, 날짜
   Widget buildAuthorInfo() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -150,7 +182,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 글 제목
   Widget buildTitle(String title) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -158,7 +189,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 글 내용
   Widget buildContent(String content) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -166,15 +196,23 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 글 이미지
+
+
   Widget buildImage() {
+    String? imagePath = _postData?['imagePath'] as String?;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Image.asset('assets/ex/ex3.png', width: 400, height: 400, fit: BoxFit.cover),
+      child: imagePath != null
+          ? Image.file(
+        File(imagePath),
+        width: 400,
+        height: 400,
+        fit: BoxFit.cover,
+      )
+          : SizedBox(width: 0, height: 0), // 이미지가 없을 때 빈 SizedBox 반환
     );
   }
 
-  // 조회수, 댓글, 하트 수
   Widget buildIcons() {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
@@ -200,7 +238,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 좋아요, 댓글, 하트 수
   Widget buildIconsItem(IconData icon, String text) {
     return Container(
       padding: EdgeInsets.all(3),
@@ -218,7 +255,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 댓글 작성 폼
   Widget buildCommentForm() {
     return Row(
       children: [
@@ -240,7 +276,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 수정 삭제 메뉴
   void _showMenu() {
     final document = widget.document;
     showModalBottomSheet(
@@ -292,7 +327,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 게시글 삭제 다이얼로그
   void _confirmDelete(String documentId) {
     showDialog(
       context: context,
@@ -321,7 +355,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 삭제 후 다이얼로그
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -347,31 +380,32 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 게시글 삭제 로직
   void _deletePost(String documentId) async {
     await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
   }
 
-  // 댓글 리스트 출력
-  Widget _commentsList(QuerySnapshot? comments) {
-    if (comments != null && comments.docs.isNotEmpty) {
-      return Column(
-        children: comments.docs.map((doc) {
-          final commentData = doc.data() as Map<String, dynamic>;
-          final commentText = commentData['comment'] as String;
-          final timestamp = commentData['write_date'] as Timestamp?;
-          final commentDate = timestamp != null ? timestamp.toDate() : null;
+  Widget _commentsList(QuerySnapshot<Object?> data) {
+    if (_comments.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 50),
+        child: Column(
+          children: _comments.map((commentData) {
+            final commentText = commentData['comment'] as String;
+            final timestamp = commentData['write_date'] as Timestamp;
+            final commentDate = timestamp.toDate();
 
-          return ListTile(
-            title: Text(commentText, style: TextStyle(fontSize: 15),),
-            subtitle: Text(commentDate != null ? commentDate.toString() : '날짜 없음'),
-          );
-        }).toList(),
+            return ListTile(
+              title: Text(commentText, style: TextStyle(fontSize: 15)),
+              subtitle: Text(commentDate.toString()),
+            );
+          }).toList(),
+        ),
       );
     } else {
       return Center(child: Text('댓글이 없습니다.'));
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -395,58 +429,31 @@ class _CommDetailState extends State<CommDetail> {
         controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
-            child: FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance.collection('post').doc(widget.document).get(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('데이터를 불러오는 중 오류가 발생했습니다: ${snapshot.error}'));
-                }
-                if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
-                  final documentData = snapshot.data?.data() as Map<String, dynamic>;
-
-                  final title = documentData['title'] as String;
-                  final content = documentData['content'] as String;
-
-                  return Column(
-                    children: [
-                      buildDetailContent(title, content),
-                    ],
-                  );
-                } else {
-                  return Center(child: Text('게시글을 찾을 수 없습니다.'));
-                }
-              },
+            child: _postData == null
+                ? Center(child: CircularProgressIndicator())
+                : Column(
+              children: [
+                buildDetailContent(_postData!['title'] as String, _postData!['content'] as String),
+                StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('post')
+                      .doc(widget.document)
+                      .collection('comment')
+                      .orderBy('write_date', descending: false)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                    }
+                    return _commentsList(snapshot.data as QuerySnapshot);
+                  },
+                ),
+              ],
             ),
           ),
-          SliverToBoxAdapter(
-            child: StreamBuilder(
-              stream: _firestore.collection('post')
-                  .doc(widget.document)
-                  .collection('comment').orderBy('write_date', descending: false).snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-                }
-                if (snapshot.hasData) {
-                  return _commentsList(snapshot.data as QuerySnapshot);
-                } else {
-                  return Center(child: Text('댓글이 없습니다.'));
-                }
-              },
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.only(bottom: 80),
-              child: Text('오늘의 인기 게시글'),
-            ),
-          )
         ],
       ),
       floatingActionButton: _showFloatingButton
@@ -454,11 +461,10 @@ class _CommDetailState extends State<CommDetail> {
             padding: EdgeInsets.only(bottom: 30),
             child: FloatingActionButton(
               onPressed: () {
-                // 페이지의 최상단으로 스크롤
                 _scrollController.animateTo(
                   0.0,
-                  duration: Duration(milliseconds: 2), // 스크롤 애니메이션 지속 시간
-                  curve: Curves.easeInOut, // 애니메이션 효과
+                  duration: Duration(milliseconds: 2),
+                  curve: Curves.easeInOut,
                 );
               },
               child: Icon(Icons.arrow_upward),
