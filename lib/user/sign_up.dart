@@ -7,7 +7,7 @@ import '../firestore_connect/user.dart';
 import '../hash/hash_password.dart';
 import 'sign_in.dart';
 import '../style/button_styles.dart';
-import '../widget/sign_widgets.dart';
+import '../widget/text_widgets.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -17,7 +17,7 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final _key = GlobalKey<FormState>();
+  final _key = GlobalKey<FormState>(); // Form 위젯과 연결. 동적인 행동 처리
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pwdController = TextEditingController();
   final TextEditingController _pwdCheckController = TextEditingController();
@@ -120,7 +120,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-
   TextFormField textFieldInput(final ctr, String hintTxt, String kind) {
     return TextFormField(
       controller: ctr,
@@ -132,7 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
       obscureText: kind == 'pwd'
           ? pwdHide
           : (kind == 'pwdCheck' ? pwdCheckHide : false),
-      validator: (val) { // 인풋창에 입력된 값 필터
+      validator: (val) { // 인풋 창에 입력된 값 필터
         RegExp regExp = new RegExp(r'\s'); //공백 정규식
         if (val!.isEmpty) { // 입력 값이 없을 때
           return '필수 입력 값입니다.';
