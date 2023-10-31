@@ -15,6 +15,37 @@ class _CommDetailState extends State<CommDetail> {
   final _commentCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
 
+  ScrollController _scrollController = ScrollController();
+  bool _showFloatingButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 스크롤 위치 감지를 위한 리스너 등록
+    _scrollController.addListener(() {
+      if (_scrollController.offset > 3) {
+        // 스크롤 위치가 0보다 크면 플로팅 버튼 표시
+        setState(() {
+          _showFloatingButton = true;
+        });
+      } else {
+        // 스크롤 위치가 0 이하이면 플로팅 버튼 숨김
+        setState(() {
+          _showFloatingButton = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // 스크롤 컨트롤러 정리
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // 댓글 등록 로직
   void _addComment() async {
     String commentText = _commentCtr.text;
 
@@ -25,26 +56,28 @@ class _CommDetailState extends State<CommDetail> {
           'write_date': FieldValue.serverTimestamp()
         });
 
-        // 댓글 입력창 초기화
         _commentCtr.clear();
-
-        // 키보드 숨기기
         FocusScope.of(context).unfocus();
 
-        // 스낵바 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('댓글이 등록되었습니다!', style: TextStyle(color: Colors.black),),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Colors.white,
-          ),
-        );
+        _showSnackBar('댓글이 등록되었습니다!');
       } catch (e) {
         print('댓글 등록 오류: $e');
       }
     }
   }
 
+  // 스낵바 함수
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: Colors.black)),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.white,
+      ),
+    );
+  }
+
+  // 커뮤니티 홈 버튼
   Widget buildTitleButton(BuildContext context) {
     return TextButton(
       onPressed: () {
@@ -72,6 +105,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
+  // 게시글 리스트 출력
   Widget buildDetailContent(String title, String content) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
@@ -88,7 +122,8 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 작성자, 글 게시시간
+
+  // 작성자, 날짜
   Widget buildAuthorInfo() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -106,7 +141,8 @@ class _CommDetailState extends State<CommDetail> {
               Text('userNicname', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
             ],
           ),
-          Text('방금 전',
+          Text(
+            '방금 전',
             style: TextStyle(fontSize: 10, color: Colors.black45, fontWeight: FontWeight.bold),
           ),
         ],
@@ -114,7 +150,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 제목
+  // 글 제목
   Widget buildTitle(String title) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -122,15 +158,15 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 내용
+  // 글 내용
   Widget buildContent(String content) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Text(content),
+      child: Text(content, style: TextStyle(fontSize: 15),),
     );
   }
 
-  // 이미지
+  // 글 이미지
   Widget buildImage() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -138,6 +174,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
+  // 조회수, 댓글, 하트 수
   Widget buildIcons() {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
@@ -146,9 +183,9 @@ class _CommDetailState extends State<CommDetail> {
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, '47'),
+              buildIconsItem(Icons.visibility, '0'),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, '1'),
+              buildIconsItem(Icons.chat_bubble_rounded, '0'),
               SizedBox(width: 5),
             ],
           ),
@@ -163,7 +200,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 조회수, 댓글수 아이콘
+  // 좋아요, 댓글, 하트 수
   Widget buildIconsItem(IconData icon, String text) {
     return Container(
       padding: EdgeInsets.all(3),
@@ -174,6 +211,7 @@ class _CommDetailState extends State<CommDetail> {
       child: Row(
         children: [
           Icon(icon, size: 13, color: Colors.white),
+          SizedBox(width: 2),
           Text(text, style: TextStyle(color: Colors.white)),
         ],
       ),
@@ -190,19 +228,19 @@ class _CommDetailState extends State<CommDetail> {
             decoration: InputDecoration(
               hintText: '댓글을 작성해주세요',
               contentPadding: EdgeInsets.all(10),
-              border: InputBorder.none, // 테두리를 없애기 위해 InputBorder.none을 사용
+              border: InputBorder.none,
             ),
           ),
         ),
         TextButton(
-          onPressed: _addComment
-          ,
+          onPressed: _addComment,
           child: Text('등록', style: TextStyle(color: Color(0xff464D40), fontWeight: FontWeight.bold)),
         ),
       ],
     );
   }
 
+  // 수정 삭제 메뉴
   void _showMenu() {
     final document = widget.document;
     showModalBottomSheet(
@@ -254,7 +292,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 게시글 삭제 확인 대화상자 표시
+  // 게시글 삭제 다이얼로그
   void _confirmDelete(String documentId) {
     showDialog(
       context: context,
@@ -273,28 +311,7 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 _deletePost(documentId);
                 Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text('삭제되었습니다.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CommMain(),
-                              ),
-                            );
-                          },
-                          child: Text('확인'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                _showDeleteDialog();
               },
               child: Text('삭제'),
             ),
@@ -304,11 +321,38 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  // 게시글 삭제
+  // 삭제 후 다이얼로그
+  void _showDeleteDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text('삭제되었습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CommMain(),
+                  ),
+                );
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 게시글 삭제 로직
   void _deletePost(String documentId) async {
     await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
   }
 
+  // 댓글 리스트 출력
   Widget _commentsList(QuerySnapshot? comments) {
     if (comments != null && comments.docs.isNotEmpty) {
       return Column(
@@ -319,7 +363,7 @@ class _CommDetailState extends State<CommDetail> {
           final commentDate = timestamp != null ? timestamp.toDate() : null;
 
           return ListTile(
-            title: Text(commentText),
+            title: Text(commentText, style: TextStyle(fontSize: 15),),
             subtitle: Text(commentDate != null ? commentDate.toString() : '날짜 없음'),
           );
         }).toList(),
@@ -347,19 +391,19 @@ class _CommDetailState extends State<CommDetail> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            FutureBuilder<DocumentSnapshot>(
+      body: CustomScrollView(
+        controller: _scrollController,
+        slivers: [
+          SliverToBoxAdapter(
+            child: FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance.collection('post').doc(widget.document).get(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('에러 발생: ${snapshot.error}'));
+                  return Center(child: Text('데이터를 불러오는 중 오류가 발생했습니다: ${snapshot.error}'));
                 }
-
                 if (snapshot.hasData && snapshot.data != null && snapshot.data!.exists) {
                   final documentData = snapshot.data?.data() as Map<String, dynamic>;
 
@@ -372,36 +416,57 @@ class _CommDetailState extends State<CommDetail> {
                     ],
                   );
                 } else {
-                  return Center(child: Text('데이터 없음'));
+                  return Center(child: Text('게시글을 찾을 수 없습니다.'));
                 }
               },
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 40),
-              child: StreamBuilder(
-                stream: _firestore.collection('post')
-                    .doc(widget.document)
-                    .collection('comment').orderBy('write_date', descending: false).snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
-
-                  if (snapshot.hasError) {
-                    return Text('댓글을 불러오는 중 오류 발생: ${snapshot.error}');
-                  }
-
-                  if (snapshot.hasData) {
-                    return _commentsList(snapshot.data as QuerySnapshot);
-                  } else {
-                    return Center(child: Text('댓글이 없습니다.'));
-                  }
-                },
-              ),
-            )
-          ],
-        ),
+          ),
+          SliverToBoxAdapter(
+            child: StreamBuilder(
+              stream: _firestore.collection('post')
+                  .doc(widget.document)
+                  .collection('comment').orderBy('write_date', descending: false).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                }
+                if (snapshot.hasData) {
+                  return _commentsList(snapshot.data as QuerySnapshot);
+                } else {
+                  return Center(child: Text('댓글이 없습니다.'));
+                }
+              },
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.only(bottom: 80),
+              child: Text('오늘의 인기 게시글'),
+            ),
+          )
+        ],
       ),
+      floatingActionButton: _showFloatingButton
+          ? Container(
+            padding: EdgeInsets.only(bottom: 30),
+            child: FloatingActionButton(
+              onPressed: () {
+                // 페이지의 최상단으로 스크롤
+                _scrollController.animateTo(
+                  0.0,
+                  duration: Duration(milliseconds: 2), // 스크롤 애니메이션 지속 시간
+                  curve: Curves.easeInOut, // 애니메이션 효과
+                );
+              },
+              child: Icon(Icons.arrow_upward),
+              backgroundColor: Color(0xff464D40),
+              mini: true,
+            ),
+          )
+          : null,
       bottomSheet: Container(
         padding: const EdgeInsets.only(right: 10, left: 10),
         child: buildCommentForm(),

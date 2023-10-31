@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -39,14 +41,6 @@ class CommMain extends StatefulWidget {
 class _CommMainState extends State<CommMain> {
   List<String> _tagList = [
     '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
-  ];
-
-  List<Map<String, String>> _imgList = [
-    {'name': 'ex1.png'},
-    {'name': 'ex2.png'},
-    {'name': 'ex3.png'},
-    {'name': 'ex4.jpg'},
-    {'name': 'ex5.jpg'},
   ];
 
   int selectedButtonIndex = 0;
@@ -107,7 +101,7 @@ class _CommMainState extends State<CommMain> {
 
   Widget _recommendhashTag() {
     return Container(
-      padding: EdgeInsets.only(top: 10, right: 50, bottom: 20),
+      padding: EdgeInsets.only(top: 10, right: 50, bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -120,7 +114,7 @@ class _CommMainState extends State<CommMain> {
               final index = entry.key;
               final tag = entry.value;
               final isAllTag = tag == '전체';
-              final tagText = isAllTag ? tag : '#$tag'; // '전체' 태그일 때는 '#'를 붙이지 않음
+              final tagText = isAllTag ? tag : '#$tag';
               return ElevatedButton(
                 child: Text(tagText),
                 onPressed: () {
@@ -140,14 +134,12 @@ class _CommMainState extends State<CommMain> {
 
   Widget _recommendTab() {
     return Container(
-      padding: EdgeInsets.all(20),
-      height: 80,
+      height: 50,
       child: TabBar(
         indicatorColor: Color(0xff464D40),
         labelColor: Colors.black,
         labelStyle: TextStyle(fontWeight: FontWeight.bold),
         unselectedLabelColor: Colors.black45,
-        labelPadding: EdgeInsets.symmetric(horizontal: 16),
         tabs: [
           Tab(text: '최신순'),
           Tab(text: '인기순'),
@@ -156,7 +148,6 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  // 조회수, 댓글수 아이콘
   Widget buildIcons() {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
@@ -172,17 +163,16 @@ class _CommMainState extends State<CommMain> {
             ],
           ),
           GestureDetector(
-            onTap: (){
-              // 좋아요 카운트 증가 코드 작성
-            },
-            child: buildIconsItem(Icons.favorite, '0')
+              onTap: (){
+                // 좋아요 카운트 증가 코드 작성
+              },
+              child: buildIconsItem(Icons.favorite, '0')
           ),
         ],
       ),
     );
   }
 
-  // 조회수, 댓글수 아이콘
   Widget buildIconsItem(IconData icon, String text) {
     return Container(
       padding: EdgeInsets.all(3),
@@ -192,8 +182,8 @@ class _CommMainState extends State<CommMain> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 13,color: Colors.white,),
-          Text(text, style: TextStyle(color: Colors.white),),
+          Icon(icon, size: 13, color: Colors.white),
+          Text(text, style: TextStyle(color: Colors.white)),
         ],
       ),
     );
@@ -219,7 +209,7 @@ class _CommMainState extends State<CommMain> {
         return ListView.separated(
           itemCount: snap.data!.docs.length,
           separatorBuilder: (context, index) {
-            return Divider(color: Colors.grey, thickness: 0.5); // 구분선의 스타일을 설정합니다.
+            return Divider(color: Colors.grey, thickness: 0.8);
           },
           itemBuilder: (context, index) {
             final doc = snap.data!.docs[index];
@@ -228,10 +218,18 @@ class _CommMainState extends State<CommMain> {
             Timestamp timestamp = doc['write_date'] as Timestamp;
             DateTime dateTime = timestamp.toDate();
 
-            final imageFileName = _imgList[index % _imgList.length]['name'];
+            String? imagePath;
+
+            final data = doc.data() as Map<String, dynamic>;
+            if (data.containsKey('imagePath')) {
+              imagePath = data['imagePath'] as String;
+            } else {
+              // 'imagePath' 필드가 문서 데이터에 존재하지 않는 경우, 이곳에서 처리할 수 있습니다
+              imagePath = null;
+            }
 
             return GestureDetector(
-              onTap: (){
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -242,11 +240,6 @@ class _CommMainState extends State<CommMain> {
               child: Container(
                 margin: EdgeInsets.all(5),
                 padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  // color: Color(0xffD4D8C8),
-                  // border: Border.all(width: 1, color: Colors.black45),
-                  borderRadius: BorderRadius.circular(10),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -256,10 +249,10 @@ class _CommMainState extends State<CommMain> {
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            backgroundImage: AssetImage('assets/ex/${imageFileName}'),
+                            // 사용자 프로필 이미지를 여기에 표시할 수 있습니다.
                           ),
-                          SizedBox(width: 5,),
-                          Text('userNickname', style: TextStyle(fontSize: 13),),
+                          SizedBox(width: 5),
+                          Text('userNickname', style: TextStyle(fontSize: 13)),
                         ],
                       ),
                     ),
@@ -267,10 +260,7 @@ class _CommMainState extends State<CommMain> {
                       padding: const EdgeInsets.all(4.0),
                       child: Text(
                         title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                     ),
                     Padding(
@@ -287,18 +277,19 @@ class _CommMainState extends State<CommMain> {
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10), // 모서리 둥글기 정도를 설정합니다.
-                        child: Image.asset(
-                          'assets/ex/$imageFileName',
-                          width: 400,
-                          height: 200,
-                          fit: BoxFit.cover,
+                    if (imagePath != null)
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(imagePath),
+                            width: 400,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                    ),
                     buildIcons()
                   ],
                 ),
@@ -309,6 +300,8 @@ class _CommMainState extends State<CommMain> {
       },
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -340,8 +333,7 @@ class _CommMainState extends State<CommMain> {
                   color: Color(0xffD4D8C8),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text('내활동', style: TextStyle(color: Color(0xff464D40)),
-                ),
+                child: Text('내활동', style: TextStyle(color: Color(0xff464D40))),
               ),
             ),
           ],
@@ -361,6 +353,7 @@ class _CommMainState extends State<CommMain> {
             ),
           ],
         ),
+
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
@@ -369,6 +362,7 @@ class _CommMainState extends State<CommMain> {
           backgroundColor: Color(0xff464D40),
           mini: true,
         ),
+
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
@@ -412,6 +406,7 @@ class _CommMainState extends State<CommMain> {
               ),
               label: '',
             ),
+
             BottomNavigationBarItem(
               icon: IconButton(
                   onPressed: (){

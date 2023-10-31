@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+
+import 'comm_main.dart';
 
 class CommAdd extends StatefulWidget {
-  const CommAdd({super.key});
+  const CommAdd({Key? key});
 
   @override
   State<CommAdd> createState() => _CommAddState();
@@ -11,52 +16,81 @@ class CommAdd extends StatefulWidget {
 class _CommAddState extends State<CommAdd> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
-  bool _isPublic = false;
-
+  File? _imageFile;
 
   // 글 등록
   void _addPost() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
       CollectionReference post = FirebaseFirestore.instance.collection("post");
 
+      String imagePath = '';
+
+      if (_imageFile != null) {
+        imagePath = await _saveImage(_imageFile!);
+      }
+
       await post.add({
         'title': _titleCtr.text,
         'content': _contentCtr.text,
-        'write_date' : DateTime.now()
+        'write_date' : DateTime.now(),
+        'imagePath': imagePath,
       });
 
       _titleCtr.clear();
       _contentCtr.clear();
+      setState(() {
+        _imageFile = null; // 이미지 업로드 후 초기화
+      });
     } else {
       print("제목과 내용을 입력해주세요");
     }
   }
 
-  // 글 등록 폼
+  // 이미지 저장 함수
+  Future<String> _saveImage(File imageFile) async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    Directory buskingDir = Directory('${dir.path}/busking');
+
+    if (!await buskingDir.exists()) {
+      await buskingDir.create(recursive: true);
+    }
+
+    final name = DateTime.now().millisecondsSinceEpoch.toString();
+    File targetFile = File('${buskingDir.path}/$name.png');
+    await imageFile.copy(targetFile.path);
+
+    return targetFile.path;
+  }
+
+  // 이미지 선택
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   Widget buildCommForm() {
-    return SingleChildScrollView( // 싱글 차일드 스크롤뷰 추가
+    return SingleChildScrollView(
       child: Container(
-        height: 400,
-        decoration: BoxDecoration(
-          color: Color(0xffD4D8C8),
-          borderRadius: BorderRadius.circular(5),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildTitleInput(),
             _buildDivider(),
             SizedBox(height: 10),
-            _buildLocationButton(),
+            _buildImgButton(),
             _buildContentInput(),
-            _buildAddImageButton(),
           ],
         ),
       ),
     );
   }
 
-  // 제목
   Widget _buildTitleInput() {
     return Container(
       child: TextField(
@@ -75,7 +109,6 @@ class _CommAddState extends State<CommAdd> {
     );
   }
 
-  // 중간 라인
   Widget _buildDivider() {
     return Container(
       margin: EdgeInsets.only(right: 20, left: 20),
@@ -85,31 +118,21 @@ class _CommAddState extends State<CommAdd> {
     );
   }
 
-  // 위치 추가
-  Widget _buildLocationButton() {
+  Widget _buildImgButton() {
     return Container(
-      width: 100,
-      child: TextButton(
-        onPressed: () {},
-        child: Row(
-          children: [
-            Icon(Icons.location_on, color: Colors.black26),
-            Text(
-              '위치 추가',
-              style: TextStyle(color: Colors.black26, fontSize: 13),
-            ),
-          ],
-        ),
+      padding: EdgeInsets.only(left: 10),
+      child: IconButton(
+        onPressed: _pickImage,
+        icon: Icon(Icons.image_rounded, color: Colors.black26),
       ),
     );
   }
 
-  // 내용
   Widget _buildContentInput() {
     return Container(
       padding: const EdgeInsets.only(left: 20, right: 10),
       child: TextField(
-        maxLines: 8,
+        maxLines: 10,
         maxLength: 300,
         controller: _contentCtr,
         decoration: InputDecoration(
@@ -124,15 +147,12 @@ class _CommAddState extends State<CommAdd> {
     );
   }
 
-  // 이미지
-  Widget _buildAddImageButton() {
-    return Container(
-      alignment: Alignment.bottomLeft,
-      child: IconButton(
-        onPressed: () {},
-        icon: Icon(Icons.image),
-      ),
-    );
+  Widget _buildSelectedImage() {
+    if (_imageFile != null) {
+      return Image.file(_imageFile!);
+    } else {
+      return Container();
+    }
   }
 
   @override
@@ -157,6 +177,7 @@ class _CommAddState extends State<CommAdd> {
           TextButton(
             onPressed: (){
               _addPost();
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
             },
             child: Text(
               '등록',
@@ -165,7 +186,7 @@ class _CommAddState extends State<CommAdd> {
           )
         ],
       ),
-      body: SingleChildScrollView( // SingleChildScrollView를 여기에 추가
+      body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.all(10.0),
           child: Column(
@@ -174,6 +195,7 @@ class _CommAddState extends State<CommAdd> {
                 padding: const EdgeInsets.all(8.0),
                 child: buildCommForm(),
               ),
+              _buildSelectedImage(),
             ],
           ),
         ),
