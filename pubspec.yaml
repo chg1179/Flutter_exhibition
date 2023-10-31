@@ -36,11 +36,12 @@ dependencies:
   firebase_core:
   firebase_auth:
   cloud_firestore:
-  intl:
+  intl: ^0.18.1
   provider:
   crypto:
   google_maps_flutter: ^2.0.3
-
+  table_calendar: ^3.0.6
+  intl_translation: ^0.18.2
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -56,7 +57,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
