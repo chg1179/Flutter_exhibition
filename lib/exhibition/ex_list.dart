@@ -1,3 +1,4 @@
+import 'package:exhibition_project/community/comm_main.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';
@@ -79,6 +80,9 @@ class _Ex_listState extends State<Ex_list> {
         _currentIndex = index;
       });
     }
+
+    double screenWidth = MediaQuery.of(context).size.width;
+    double inkWidth = screenWidth / 2;
 
     return Scaffold(
       appBar: AppBar(
@@ -325,7 +329,7 @@ class _Ex_listState extends State<Ex_list> {
               padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 330, // 각 열의 최대 너비
+                  maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
                   crossAxisSpacing: 15.0, // 열 간의 간격
                   mainAxisSpacing: 20.0, // 행 간의 간격
                   childAspectRatio: 2/5.1
@@ -398,7 +402,7 @@ class _Ex_listState extends State<Ex_list> {
           BottomNavigationBarItem(
             icon: IconButton(
                 onPressed: (){
-                  //Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                 },
                 icon : Icon(Icons.home),
                 color: Colors.black
@@ -415,7 +419,13 @@ class _Ex_listState extends State<Ex_list> {
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.comment,color: Colors.black),
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                },
+                icon : Icon(Icons.comment),
+                color: Colors.black
+            ),
             label: '',
           ),
           BottomNavigationBarItem(

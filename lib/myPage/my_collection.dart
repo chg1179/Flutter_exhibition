@@ -1,3 +1,4 @@
+import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/material.dart';
 class MyCollection extends StatelessWidget {
@@ -128,25 +129,30 @@ class ArtworkItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Image.asset(
-              artwork.image,
-              width: 150, // 이미지 너비 조정
-              height: 150, // 이미지 높이 조정
-              fit: BoxFit.cover,
-            ),
-            SizedBox(height: 10),
-            Text(
-              artwork.title,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              artwork.subtitle,
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
+        child: InkWell(
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(imagePath: artwork.image)));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                artwork.image,
+                width: 150, // 이미지 너비 조정
+                height: 150, // 이미지 높이 조정
+                fit: BoxFit.cover,
+              ),
+              SizedBox(height: 10),
+              Text(
+                artwork.title,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              Text(
+                artwork.subtitle,
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
         ),
       ),
     );
