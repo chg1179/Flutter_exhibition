@@ -67,30 +67,45 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
 
 
   Widget buildSection(String title, List<String> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(left: 16.0),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        ...items.map((item) =>
-            Padding(
-              padding: const EdgeInsets.only(left: 100),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.only(left: 15),
+              width: 130,
               child: Text(
-                item,
+                title,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
                 ),
               ),
-            )),
-      ],
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: items.map((item) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Text(
+                        item,
+                        style: TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -113,6 +128,15 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
         preferredSize: Size.fromHeight(250.0),
         child: AppBar(
           elevation: 0,
+          actions: [
+            IconButton(
+              icon: Icon(
+                isLiked ? Icons.favorite : Icons.favorite_border,
+                color: isLiked ? Colors.red : Colors.white,
+              ),
+              onPressed: toggleLike,
+            ),
+          ],
           flexibleSpace: Stack(
             children: [
               Image.asset(
@@ -120,25 +144,6 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
-              ),
-              Align(
-                alignment: Alignment(-0.95, -0.5),
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-              Align(
-                alignment: Alignment(0.95, -0.5),
-                child: IconButton(
-                  icon: Icon(
-                    isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: isLiked ? Colors.red : Colors.white,
-                  ),
-                  onPressed: toggleLike,
-                ),
               ),
               Positioned(
                 bottom: 0,
@@ -156,7 +161,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           '찬신리',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 18,
                           ),
                         ),
                       ),
@@ -165,8 +170,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                         child: Text(
                           '회화',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 15,
                             color: Colors.black,
                           ),
                         ),
@@ -237,7 +241,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   itemCount: artworkData.length,
                   itemBuilder: (context, index) {
                     return Container(
-                      height: 1000,
+                      height: 1200,
                       child: GridItem(
                         imageAsset: artworkData[index]['image'] ?? '',
                         title: artworkData[index]['title'] ?? '',
@@ -247,8 +251,11 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   },
                 ),
                 GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: MediaQuery.of(context).size.width / 2, // 각 열의 최대 너비
+                      crossAxisSpacing: 15.0, // 열 간의 간격
+                      mainAxisSpacing: 20.0, // 행 간의 간격
+                      childAspectRatio: 2/5.1
                   ),
                   itemCount: artworkData.length,
                   itemBuilder: (context, index) {

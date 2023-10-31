@@ -1,3 +1,4 @@
+import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 
@@ -90,6 +91,9 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                     Padding(
                       padding: const EdgeInsets.only(top: 10, bottom: 10),
                       child: InkWell(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+                        },
                         child: Row(
                           children: [
                             SizedBox(width: 10),
@@ -98,7 +102,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                               backgroundImage: AssetImage("${widget.imagePath}"),
                             ),
                             SizedBox(width: 15),
-                            Text("차승언", style: TextStyle(fontSize: 16),)
+                            Text(_artworkInfo['artist'], style: TextStyle(fontSize: 16),)
                           ],
                         ),
                       )
@@ -113,7 +117,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                       child: Stack(
                         children: [
                           Text(
-                            "   추천 작품",
+                            "    추천 작품",
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           Positioned(
