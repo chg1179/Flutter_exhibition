@@ -74,7 +74,7 @@ flutter:
     - assets/ex/
     - assets/main/
     - assets/icons/
-
+    - assets/comm_profile/
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

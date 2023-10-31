@@ -26,7 +26,23 @@ class myPageSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("설정"),
+        title: Text(
+          "설정",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 여기에 뒤로 가기 동작 추가
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: ListView(
         children: [

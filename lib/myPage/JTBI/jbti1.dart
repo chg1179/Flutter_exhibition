@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'resultGraph.dart';
 import '../myPageSettings/useTerms.dart';
 
 void main() {
@@ -68,7 +68,23 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('JBTI - 전시유형검사'),
+        title: Text(
+          "전시유형검사",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 여기에 뒤로 가기 동작 추가
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Container(
         child: SingleChildScrollView(
@@ -161,7 +177,8 @@ class QuestionSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          SizedBox(height: 20),
+          Divider(),
+          SizedBox(height: 20,),
           Text(
             '${questionIndex + 1}. $question',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -174,8 +191,8 @@ class QuestionSection extends StatelessWidget {
                 '동의',
                 style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
-              SizedBox(width: 15),
-              ...options.asMap().entries.map((entry) {
+                SizedBox(width: 10),
+                ...options.asMap().entries.map((entry) {
                 final int answerIndex = entry.key;
                 final String text = entry.value;
                 return AnswerOption(
@@ -186,15 +203,13 @@ class QuestionSection extends StatelessWidget {
                   onSelected: onAnswerSelected,
                 );
               }).toList(),
-              SizedBox(width: 15),
+              SizedBox(width: 10,),
               Text(
                 '비동의',
                 style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ],
           ),
-          SizedBox(height: 20),
-
         ],
       ),
     );
@@ -229,7 +244,7 @@ class AnswerOption extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        margin: EdgeInsets.symmetric(horizontal: 10),
+        margin: EdgeInsets.symmetric(horizontal: 7),
         decoration: BoxDecoration(
           color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
           border: Border.all(color: borderColor, width: 2),

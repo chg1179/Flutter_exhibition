@@ -19,13 +19,11 @@ class _State extends State<Alert> {
       title: 'test123',
       home: Scaffold(
         appBar: AppBar(
-          title: Center(
-            child: Text(
-              "알림설정",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+          title: Text(
+            "알림설정",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
           backgroundColor: Colors.white,
