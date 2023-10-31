@@ -94,7 +94,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                 leading: IconButton(
                   icon: Icon(Icons.arrow_back),
                   color: Colors.black,
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                  },
                 ),
                 actions: [
                   InkWell(
