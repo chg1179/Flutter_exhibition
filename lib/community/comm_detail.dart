@@ -27,6 +27,18 @@ class _CommDetailState extends State<CommDetail> {
 
         // 댓글 입력창 초기화
         _commentCtr.clear();
+
+        // 키보드 숨기기
+        FocusScope.of(context).unfocus();
+
+        // 스낵바 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('댓글이 등록되었습니다!', style: TextStyle(color: Colors.black),),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.white,
+          ),
+        );
       } catch (e) {
         print('댓글 등록 오류: $e');
       }
@@ -183,7 +195,8 @@ class _CommDetailState extends State<CommDetail> {
           ),
         ),
         TextButton(
-          onPressed: _addComment,
+          onPressed: _addComment
+          ,
           child: Text('등록', style: TextStyle(color: Color(0xff464D40), fontWeight: FontWeight.bold)),
         ),
       ],
