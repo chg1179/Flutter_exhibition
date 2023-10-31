@@ -98,7 +98,7 @@ class _Ex_listState extends State<Ex_list> {
             labelStyle: TextStyle(
               color: Colors.grey,
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 20.0, horizontal: -35),
+            contentPadding: EdgeInsets.symmetric(vertical: 20.0, horizontal: -47),
             suffixIcon: IconButton(
               icon: Icon(Icons.search, color: Color(0xff464D40)),
               onPressed: () {
@@ -129,98 +129,95 @@ class _Ex_listState extends State<Ex_list> {
             ),
             child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                        textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.black,)),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                        elevation: MaterialStateProperty.all(0),
-                      ),
-                      onPressed: (){
-                        showModalBottomSheet(
-                            enableDrag : true,
-                            shape : RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15))),
-                            context: context,
-                            builder: (context) {
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.remove, size: 35,),
-                                  Text("정렬 기준", style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),),
-                                  SizedBox(height: 20,),
-                                  TextButton(
-                                      style: ButtonStyle(
-                                        minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                      ),
-                                      onPressed: (){
-                                        setState(() {
-                                          _selectedOption = "최신순";
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      child: Text("최신순", style: TextStyle(fontSize: 19, color: Colors.black,),)
-                                  ),
-                                  SizedBox(
-                                    width: 120,
-                                    child: Divider(
-                                      color: Colors.black,
-                                      thickness: 0.1,
+                ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                      textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.black,)),
+                      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                      elevation: MaterialStateProperty.all(0),
+                    ),
+                    onPressed: (){
+                      showModalBottomSheet(
+                          enableDrag : true,
+                          shape : RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15))),
+                          context: context,
+                          builder: (context) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.remove, size: 35,),
+                                Text("정렬 기준", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                SizedBox(height: 20,),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                     ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _selectedOption = "최신순";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("최신순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 120,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
                                   ),
-                                  TextButton(
-                                      style: ButtonStyle(
-                                        minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                      ),
-                                      onPressed: (){
-                                        setState(() {
-                                          _selectedOption = "인기순";
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      child: Text("인기순", style: TextStyle(fontSize: 19, color: Colors.black,),)
-                                  ),
-                                  SizedBox(
-                                    width: 120,
-                                    child: Divider(
-                                      color: Colors.black,
-                                      thickness: 0.1,
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                     ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _selectedOption = "인기순";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("인기순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 120,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
                                   ),
-                                  TextButton(
-                                      style: ButtonStyle(
-                                        minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                      ),
-                                      onPressed: (){
-                                        setState(() {
-                                          _selectedOption = "종료순";
-                                          Navigator.pop(context);
-                                        });
-                                      },
-                                      child: Text("종료순", style: TextStyle(fontSize: 19, color: Colors.black,),)
-                                  ),
-                                  SizedBox(
-                                    width: 120,
-                                    child: Divider(
-                                      color: Colors.black,
-                                      thickness: 0.1,
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                     ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _selectedOption = "종료순";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("종료순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 120,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
                                   ),
-                                  SizedBox(height: 20,)
-                                ],
-                              );
-                            },
-                        );
+                                ),
+                                SizedBox(height: 20,)
+                              ],
+                            );
+                          },
+                      );
 
-                      },
-                      child: Row(
-                        children: [
-                          Text("${_selectedOption} ", style: TextStyle(color: Colors.black),),
-                          Icon(Icons.expand_more, color: Colors.black,)
-                        ],
-                      ),
-                  ),
+                    },
+                    child: Row(
+                      children: [
+                        Text("${_selectedOption} ", style: TextStyle(color: Colors.black, fontSize: 15)),
+                        Icon(Icons.expand_more, color: Colors.black,)
+                      ],
+                    ),
                 ),
                 Spacer(),
                 Padding(
@@ -235,12 +232,12 @@ class _Ex_listState extends State<Ex_list> {
                         context: context,
                         builder: (context) {
                           return Container(
-                            height: MediaQuery.of(context).size.height * 0.85,
+                            height: MediaQuery.of(context).size.height * 0.88,
                             child: Column(
                               children: [
                                 Icon(Icons.remove, size: 35,),
-                                Text("필터 설정", style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),),
-                                SizedBox(height: 20,),
+                                Text("필터 설정", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                SizedBox(height: 8,),
                                 Divider(
                                   color: Colors.black,
                                   thickness: 0.1,
@@ -283,12 +280,10 @@ class _Ex_listState extends State<Ex_list> {
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      SizedBox(width: 10,),
                                       Reset(
                                         placeSelectedOptions: _placeSelectedOptions,
                                         onReset: _resetState,
                                       ),
-                                      SizedBox(width: 20,),
                                       Expanded(
                                         child: ElevatedButton(
                                             style: ButtonStyle(
@@ -326,13 +321,13 @@ class _Ex_listState extends State<Ex_list> {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
+              padding: const EdgeInsets.only(left: 10, right: 10),
               child: GridView.builder(
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
-                  crossAxisSpacing: 15.0, // 열 간의 간격
-                  mainAxisSpacing: 20.0, // 행 간의 간격
-                  childAspectRatio: 2/5.1
+                  crossAxisSpacing: 10.0, // 열 간의 간격
+                  mainAxisSpacing: 10.0, // 행 간의 간격
+                  childAspectRatio: 2/5
                 ),
                 itemCount: _exList.length,
                 itemBuilder: (context, index) {
@@ -369,7 +364,7 @@ class _Ex_listState extends State<Ex_list> {
                           ListTile(
                             title: Padding(
                               padding: const EdgeInsets.only(top: 5, bottom: 5),
-                              child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                              child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),maxLines: 3, overflow: TextOverflow.ellipsis)
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -557,13 +552,13 @@ class _PlaceFlgState extends State<PlaceFlg> {
       child: Container(
         decoration: BoxDecoration(
           color: selected ? Color(0xff464D40) : Color(0xffF9F9F9),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? Color(0xff464D40) : Color(0xffD4D8C8),
             width: 1,
           ),
         ),
-        padding: EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+        padding: EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 7),
         child: Text(
           label,
           style: TextStyle(color: selected ? Colors.white : Color(0xff464D40)),
@@ -611,21 +606,18 @@ class _PlaceFlgState extends State<PlaceFlg> {
               print("_placeFlg: $_placeFlg");
             });
           },
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5, bottom: 5),
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Text("지역", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
-                ),
-                Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: _placeFlg ? _iconLess() : _iconMore(),
-                )
-              ],
-            ),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Text("지역", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
+              ),
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(right: 20),
+                child: _placeFlg ? _iconLess() : _iconMore(),
+              )
+            ],
           ),
         ),
         _placeSelectBtn()
@@ -693,13 +685,13 @@ class _CategoryFlgState extends State<CategoryFlg> {
       child: Container(
         decoration: BoxDecoration(
           color: selected ? Color(0xff464D40) : Color(0xffF9F9F9),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? Color(0xff464D40) : Color(0xffD4D8C8),
             width: 1,
           ),
         ),
-        padding: EdgeInsets.only(left: 15, right: 15, top: 10, bottom: 10),
+        padding: EdgeInsets.only(left: 10, right: 10, top: 7, bottom: 7),
         child: Text(
           label,
           style: TextStyle(color: selected ? Colors.white : Color(0xff464D40)),
@@ -748,21 +740,18 @@ class _CategoryFlgState extends State<CategoryFlg> {
               print("_placeFlg: $_categoryFlg");
             });
           },
-          child: Padding(
-            padding: const EdgeInsets.only(top: 5, bottom: 5),
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 20),
-                  child: Text("카테고리", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
-                ),
-                Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(right: 20),
-                  child: _categoryFlg ? _iconLess() : _iconMore(),
-                )
-              ],
-            ),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Text("카테고리", style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),),
+              ),
+              Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(right: 20),
+                child: _categoryFlg ? _iconLess() : _iconMore(),
+              )
+            ],
           ),
         ),
         _categorySelectBtn()

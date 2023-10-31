@@ -90,9 +90,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           unselectedLabelColor: Colors.black45,
           labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           tabs: [
-            Tab(text: '전시소개'),
-            Tab(text: '기대평'),
-            Tab(text: '한줄평'),
+            Tab(child: Text("전시소개", style: TextStyle(fontSize: 15))),
+            Tab(child: Text("기대평", style: TextStyle(fontSize: 15))),
+            Tab(child: Text("한줄평", style: TextStyle(fontSize: 15))),
           ],
         ),
       );
@@ -440,7 +440,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title: Text("기대평 작성", style: TextStyle(fontSize: 15),),
+                                          title: Text("기대평 작성", style: TextStyle(fontSize: 16),),
                                           content: TextField(controller: _expReview),
                                           actions: <Widget>[
                                             TextButton(
@@ -460,7 +460,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       },
                                     );
                                   },
-                                  child: Text("기대평 작성")
+                                  child: Text("기대평 작성", style: TextStyle(fontSize: 16),)
                               ),
                               SizedBox(height: 20),
                               Column(
@@ -479,7 +479,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                           TextButton(
                                             style: ButtonStyle(
                                               minimumSize: MaterialStateProperty.all<Size>(Size(40, 20)), // 버튼의 최소 크기
-                                              // 기타 속성들...
                                             ),
                                             onPressed: () {},
                                             child: Text(
@@ -565,6 +564,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                           ),
                                           Spacer(),
                                           TextButton(
+                                            style: ButtonStyle(
+                                              minimumSize: MaterialStateProperty.all<Size>(Size(40, 20)),
+                                            ),
                                             onPressed: () {},
                                             child: Text(
                                               "신고",
