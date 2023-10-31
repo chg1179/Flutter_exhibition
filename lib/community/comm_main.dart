@@ -38,6 +38,7 @@ class CommMain extends StatefulWidget {
 }
 
 class _CommMainState extends State<CommMain> {
+  bool isLiked = false;
   List<String> _tagList = [
     '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
   ];
@@ -162,17 +163,24 @@ class _CommMainState extends State<CommMain> {
             ],
           ),
           GestureDetector(
-              onTap: (){
-                // 좋아요 카운트 증가 코드 작성
-              },
-              child: buildIconsItem(Icons.favorite, '0')
+            onTap: () {
+              // 좋아요 토글 기능
+              setState(() {
+                isLiked = !isLiked;
+              });
+            },
+            child: buildIconsItem(
+              isLiked ? Icons.favorite : Icons.favorite_border, // 아이콘 변경
+              '0',
+              isLiked ? Colors.red : null, // 아이콘 색상 변경
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildIconsItem(IconData icon, String text) {
+  Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) { // [Color?]로 변경
     return Container(
       padding: EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -181,7 +189,8 @@ class _CommMainState extends State<CommMain> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 13, color: Colors.white),
+          Icon(icon, size: 13, color: iconColor ?? Colors.white), // 색상 선택 기능 추가
+          SizedBox(width: 2),
           Text(text, style: TextStyle(color: Colors.white)),
         ],
       ),
