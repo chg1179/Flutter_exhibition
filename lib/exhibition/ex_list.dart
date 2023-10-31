@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
+import 'package:exhibition_project/main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -397,7 +398,7 @@ class _Ex_listState extends State<Ex_list> {
           BottomNavigationBarItem(
             icon: IconButton(
                 onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                  //Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
                 },
                 icon : Icon(Icons.home),
                 color: Colors.black

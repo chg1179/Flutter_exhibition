@@ -49,7 +49,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
 
 
-  void openURL() async {
+  Future<void> openURL() async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
 
     if (await canLaunch(url)) {
