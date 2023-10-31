@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../myPageSettings/useTerms.dart';
+
 void main() {
   runApp(App());
 }
@@ -53,7 +55,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         _tabController.animateTo(_tabController.index + 1);
 
         _scrollController.animateTo(
-          (_tabController.index + 1) * ((MediaQuery.of(context).size.height) / 9) -
+          (_tabController.index + 1) * (MediaQuery.of(context).size.height / 9) -
               (MediaQuery.of(context).size.height / 2),
           duration: Duration(milliseconds: 500),
           curve: Curves.easeInOut,
@@ -68,22 +70,42 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
       appBar: AppBar(
         title: Text('JBTI - 전시유형검사'),
       ),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children:
-          List.generate(questions.length, (index) {
-            return Opacity(
-              opacity: selectedAnswerIndices[index] >= 0 ? 0.7 : 1.0,
-              child: QuestionSection(
-                questionIndex: index,
-                question: questions[index],
-                options: ['1', '2','3','4','5'],
-                selectedAnswerIndex: selectedAnswerIndices[index],
-                onAnswerSelected: onAnswerSelected,
+      body: Container(
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            children: [
+
+              Column(
+                children: List.generate(questions.length, (index) {
+                  return Opacity(
+                    opacity: selectedAnswerIndices[index] >= 0 ? 0.3 : 1.0,
+                    child: QuestionSection(
+                      questionIndex: index,
+                      question: questions[index],
+                      options: ['1', '2', '3', '4', '5'],
+                      selectedAnswerIndex: selectedAnswerIndices[index],
+                      onAnswerSelected: onAnswerSelected,
+                    ),
+                  );
+                }),
               ),
-            );
-          }),
+
+              if (calculateProgress() * 100 == 100)
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UseTerms(),
+                      ),
+                    );
+                  },
+                  child: Text('나의 전시유형 보러가기'),
+                ),
+              SizedBox(height: 20,)
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Container(
@@ -103,6 +125,10 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
       ),
     );
   }
+
+
+
+
 
   double calculateProgress() {
     int answeredCount = selectedAnswerIndices.where((index) => index >= 0).length;
@@ -135,7 +161,6 @@ class QuestionSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-
           SizedBox(height: 20),
           Text(
             '${questionIndex + 1}. $question',
@@ -150,21 +175,17 @@ class QuestionSection extends StatelessWidget {
                 style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
               SizedBox(width: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: options.asMap().entries.map((entry) {
-                  final int answerIndex = entry.key;
-                  final String text = entry.value;
-                  return AnswerOption(
-                    questionIndex: questionIndex,
-                    answerIndex: answerIndex,
-                    text: text,
-                    isSelected: selectedAnswerIndex == answerIndex,
-                    onSelected: onAnswerSelected,
-                  );
-                }).toList(),
-              )
-              ,
+              ...options.asMap().entries.map((entry) {
+                final int answerIndex = entry.key;
+                final String text = entry.value;
+                return AnswerOption(
+                  questionIndex: questionIndex,
+                  answerIndex: answerIndex,
+                  text: text,
+                  isSelected: selectedAnswerIndex == answerIndex,
+                  onSelected: onAnswerSelected,
+                );
+              }).toList(),
               SizedBox(width: 15),
               Text(
                 '비동의',
@@ -172,9 +193,8 @@ class QuestionSection extends StatelessWidget {
               ),
             ],
           ),
-
           SizedBox(height: 20),
-          Divider(),
+
         ],
       ),
     );
@@ -215,6 +235,12 @@ class AnswerOption extends StatelessWidget {
           border: Border.all(color: borderColor, width: 2),
           borderRadius: BorderRadius.circular(size / 2),
         ),
+        child: Center(
+          child: Text(
+            isSelected ? (answerIndex == 0 ? '동의' : (answerIndex == 4 ? '비동의' : '')) : text,
+            style: TextStyle(color: isSelected ? Colors.white : borderColor),
+          ),
+        ),
       ),
     );
   }
@@ -241,25 +267,5 @@ class AnswerOption extends StatelessWidget {
     ];
 
     return answerColors[index];
-  }
-}
-
-class AnswerPainter extends CustomPainter {
-  final bool isSelected;
-
-  AnswerPainter({required this.isSelected});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = isSelected ? Colors.blue : Colors.grey
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width / 2, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
   }
 }
