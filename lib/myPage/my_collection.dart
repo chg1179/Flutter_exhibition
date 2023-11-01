@@ -1,5 +1,6 @@
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
+import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/material.dart';
 class MyCollection extends StatelessWidget {
@@ -49,9 +50,9 @@ class _MyCollection2State extends State<MyCollection2> {
           ),
           bottom: TabBar(
             tabs: [
-              Tab(text: '작품'),
-              Tab(text: '작가'),
-              Tab(text: '전시관'),
+              Tab(child: Text("작품", style: TextStyle(fontSize: 16))),
+              Tab(child: Text("작가", style: TextStyle(fontSize: 16))),
+              Tab(child: Text("전시관", style: TextStyle(fontSize: 16))),
             ],
             indicator: BoxDecoration(
               border: Border(
@@ -268,7 +269,9 @@ class _ExhibitionPageState extends State<ExhibitionPage> {
         itemBuilder: (context, index) {
           final gallery = gallerys[index];
           return InkWell(
-            onTap: (){},
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(imagePath: gallery.imageUrl)));
+            },
             child: Padding(
               padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
               child: Row(
