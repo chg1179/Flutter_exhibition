@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 //${widget.formData['name']}')
 
 // 작가 정보만 추가
-Future<void> addArtist(String collectionStr, Map<String, String> formData) async {
+Future<String> addArtist(String collectionStr, Map<String, String> formData) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
   // 작가 정보 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
@@ -16,19 +16,23 @@ Future<void> addArtist(String collectionStr, Map<String, String> formData) async
     'expertise': formData['expertise'],
     'artistIntroduce': formData['introduce'],
   });
+
+  // artist 변수를 사용하여 문서의 ID를 가져옴
+  return artist.id;
 }
 
 // 작가 정보 및 추가
-Future<void> addArtistImg(String collectionStr, Map<String, String> formData) async {
-  final FirebaseFirestore _fs = FirebaseFirestore.instance;
-
-  // 작가 정보 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
-  DocumentReference artist = await _fs.collection(collectionStr).add({
-    'artistName': formData['name'],
-    'artistEnglishName': formData['englishName'],
-    'artistNationality': formData['nationality'],
-    'expertise': formData['expertise'],
-    'artistIntroduce': formData['introduce'],
+Future<void> addArtistImg(String parentCollection, String childCollection, String documentId, String downloadURL, String folderName) async {
+  // 작가 이미지 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
+  await FirebaseFirestore.instance
+      .collection(parentCollection)
+      .doc(documentId)
+      .collection(childCollection)
+      .add({
+        'downloadURL' : downloadURL,
+        'folderName' : '$folderName',
+        'artistImagePostdate': FieldValue.serverTimestamp(),
+        'artistImageUpdatedate': FieldValue.serverTimestamp()
   });
 }
 

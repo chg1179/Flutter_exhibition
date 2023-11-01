@@ -1,15 +1,6 @@
-import 'dart:io';
-
 import 'package:exhibition_project/admin/artist/artist_edit_addition.dart';
-import 'package:exhibition_project/admin/artist/artist_edit_details.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
-import 'package:exhibition_project/admin/artist/artist_list.dart';
-import 'package:exhibition_project/dialog/show_message.dart';
-import 'package:exhibition_project/firestore_connect/user.dart';
-import 'package:exhibition_project/style/button_styles.dart';
-import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -80,8 +71,7 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
                   controller: _tabController,
                   children: [
                     // 탭에 해당하는 페이지 위젯들을 추가합니다
-                    //ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
-                    ArtistEditDetailsPage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
+                    ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
                     ArtistEditAdditionPage(formData: formData, imageFile: _imageFile),
                   ],
                 ),

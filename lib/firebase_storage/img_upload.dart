@@ -24,13 +24,17 @@ class ImageUploader {
     FirebaseStorage storage = FirebaseStorage.instance;
     String folder = '$folderName/';
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    Reference storageReference = storage.ref().child('$folder/$fileName.jpg');
+    Reference storageReference = storage.ref().child('$folder$fileName.jpg');
     UploadTask uploadTask = storageReference.putData(imageBytes);
 
-    await uploadTask.whenComplete(() async {
-      // String downloadURL = await storageReference.getDownloadURL(); // 로그인 후 url 받아오기 가능
-      return '$fileName.jpg';
-    });
-    return '';
+    try {
+      await uploadTask;
+      String fullPath = storageReference.fullPath;
+      String downloadUrl = await storage.ref(fullPath).getDownloadURL(); // 변경된 부분: 스토리지 경로로부터 다운로드 URL을 얻습니다.
+      return downloadUrl;
+    } catch (e) {
+      print('Error: $e');
+      return ''; // 또는 에러 처리를 적절히 해줄 수 있습니다
+    }
   }
 }
