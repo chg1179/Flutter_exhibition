@@ -6,10 +6,26 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:exhibition_project/main.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(Ex_list());
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Ex_list(),
+    );
+  }
 }
 
 class Ex_list extends StatefulWidget {
@@ -49,22 +65,129 @@ class _Ex_listState extends State<Ex_list> {
     });
   }
 
-  String getOngoing(String lastDate, String startDate) {
-    DateFormat dateFormat = DateFormat('yyyy.MM.dd'); // 입력된 'lastDate' 형식에 맞게 설정
-
+  String getOngoing(DateTime startDate, DateTime endDate) {
     DateTime currentDate = DateTime.now();
-    DateTime exLastDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
-    DateTime exStartDate = dateFormat.parse(startDate);
 
-    // 비교
-    if(currentDate.isBefore(exStartDate)){
+    if(currentDate.isBefore(startDate)){
       return "예정";
-    }else if(currentDate.isBefore(exLastDate)) {
+    }else if(currentDate.isBefore(endDate)) {
       return "진행중";
     } else {
       return "종료";
     }
   }
+
+  Widget _exhibitionList() {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double inkWidth = screenWidth / 2;
+
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('exhibition')
+          .orderBy('startDate', descending: true)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
+                  crossAxisSpacing: 10.0, // 열 간의 간격
+                  mainAxisSpacing: 10.0, // 행 간의 간격
+                  childAspectRatio: 2/5
+              ),
+              itemCount: snap.data!.docs.length,
+              itemBuilder: (context, index) {
+
+                final doc = snap.data!.docs[index];
+                final exTitle = doc['exTitle'] as String;
+                final place = "씨알콜렉티브/서울";
+                Timestamp startTimestamp = doc['startDate'] as Timestamp;
+                DateTime startDate = startTimestamp.toDate();
+                Timestamp endTimestamp = doc['endDate'] as Timestamp;
+                DateTime endDate = endTimestamp.toDate();
+
+                String? imagePath;
+
+                final data = doc.data() as Map<String, dynamic>;
+                if (data.containsKey('imagePath')) {
+                  imagePath = data['imagePath'] as String;
+                } else {
+                  // 'imagePath' 필드가 문서 데이터에 존재하지 않는 경우, 이곳에서 처리할 수 있습니다
+                  imagePath = null;
+                }
+
+                return InkWell(
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(imagePath: "ex/ex1.png", document : doc.id)));
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.all(5.0),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(5),
+                            topRight: Radius.circular(5),
+                          ),
+                          child: Image.asset("assets/ex/ex1.png"),
+                        ),
+                        Container(
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
+                            decoration: BoxDecoration(
+                            ),
+                            child: Text(getOngoing(startDate,endDate),
+                                style: TextStyle(
+                                  decoration: TextDecoration.underline,
+                                  decorationStyle: TextDecorationStyle.double,
+                                  decorationColor: Color(0xff464D40),
+                                  decorationThickness: 1.5,
+                                )
+                            )
+                        ),
+                        ListTile(
+                          title: Padding(
+                              padding: const EdgeInsets.only(top: 5, bottom: 5),
+                              child: Text(exTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),maxLines: 3, overflow: TextOverflow.ellipsis)
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 5),
+                                child: Text(place, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 5),
+                                child: Text("${DateFormat('yyyy.MM.dd').format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}"),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +204,7 @@ class _Ex_listState extends State<Ex_list> {
       });
     }
 
-    double screenWidth = MediaQuery.of(context).size.width;
-    double inkWidth = screenWidth / 2;
+
 
     return Scaffold(
       appBar: AppBar(
@@ -319,75 +441,7 @@ class _Ex_listState extends State<Ex_list> {
               ],
             ),
           ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
-                  crossAxisSpacing: 10.0, // 열 간의 간격
-                  mainAxisSpacing: 10.0, // 행 간의 간격
-                  childAspectRatio: 2/5
-                ),
-                itemCount: _exList.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: (){
-                      print("${_exList[index]['title']} 눌럿다");
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(imagePath: _exList[index]['posterPath'])));
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.all(5.0),
-                      child: Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(5),
-                              topRight: Radius.circular(5),
-                            ),
-                            child: Image.asset("assets/${_exList[index]['posterPath']}"),
-                          ),
-                          Container(
-                              alignment: Alignment.centerLeft,
-                              padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
-                              decoration: BoxDecoration(
-                              ),
-                              child: Text(getOngoing(_exList[index]['lastDate'],_exList[index]['startDate']),
-                                style: TextStyle(
-                                  decoration: TextDecoration.underline,
-                                  decorationStyle: TextDecorationStyle.double,
-                                  decorationColor: Color(0xff464D40),
-                                  decorationThickness: 1.5,
-                                )
-                              )
-                          ),
-                          ListTile(
-                            title: Padding(
-                              padding: const EdgeInsets.only(top: 5, bottom: 5),
-                              child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),maxLines: 3, overflow: TextOverflow.ellipsis)
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Text(_exList[index]['place'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Text("${_exList[index]['startDate']} ~ ${_exList[index]['lastDate']}"),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          )
+          _exhibitionList(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

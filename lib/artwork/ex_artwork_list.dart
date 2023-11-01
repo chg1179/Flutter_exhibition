@@ -354,7 +354,6 @@ class _ExArtworkListState extends State<ExArtworkList> {
           BottomNavigationBarItem(
             icon: IconButton(
                 onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
                 },
                 icon : Icon(Icons.home),
                 color: Colors.black

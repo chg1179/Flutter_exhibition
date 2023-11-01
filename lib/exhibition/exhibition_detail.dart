@@ -2,12 +2,16 @@ import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ExhibitionDetail extends StatefulWidget {
   final String imagePath;
+  final String document;
 
-  ExhibitionDetail({required this.imagePath});
+  ExhibitionDetail({required this.imagePath, required this.document});
 
   @override
   State<ExhibitionDetail> createState() => _ExhibitionDetailState();
@@ -37,25 +41,50 @@ Map<String, dynamic> _selectEx = {
   'posterPath': 'ex/ex1.png'
 };
 
-String getExhibitionStatus() {
-  DateTime now = DateTime.now();
-  DateTime startDate = DateTime.parse(_selectEx['startDate']);
-  DateTime lastDate = DateTime.parse(_selectEx['lastDate']);
 
-  if (startDate.isAfter(now)) {
-    return '예정';
-  } else if (lastDate.isBefore(now)) {
-    return '종료';
-  } else {
-    return '진행중';
-  }
-}
 
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
+  final _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? _exDetailData;
 
-  Future<void> openURL() async {
+  @override
+  void initState() {
+    super.initState();
+    _getExDetailData();
+  }
+
+  void _getExDetailData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
+        });
+      } else {
+        print('전시회 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  String getExhibitionStatus() {
+    DateTime now = DateTime.now();
+    DateTime startDate = _exDetailData?['startDate'].toDate();
+    DateTime endDate = _exDetailData?['endDate'].toDate();
+
+    if (startDate.isAfter(now)) {
+      return '예정';
+    } else if (endDate.isBefore(now)) {
+      return '종료';
+    } else {
+      return '진행중';
+    }
+  }
+
+  Future<void> openURL(String url) async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
 
     if (await canLaunch(url)) {
@@ -121,7 +150,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
             SizedBox(width: 10,)
           ],
         ),
-        body: CustomScrollView(
+        body:
+        _exDetailData == null
+          ? Center(child: CircularProgressIndicator())
+          :CustomScrollView(
             slivers: <Widget>[
               SliverList(
                 delegate: SliverChildListDelegate(
@@ -146,7 +178,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                             Container(
                               width: MediaQuery.of(context).size.width * 0.7,
                               child: Text(
-                                _selectEx['title'],
+                                _exDetailData?['exTitle'] as String,
                                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -192,7 +224,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                         ),
                         Row(
                           children: [
-                            Text("${_selectEx['startDate']} - ${_selectEx['lastDate']}",style: TextStyle(fontSize: 16)),
+                            Text("${DateFormat('yyyy.MM.dd').format(_exDetailData?['startDate'].toDate())} ~ ${DateFormat('yyyy.MM.dd').format(_exDetailData?['endDate'].toDate())}",style: TextStyle(fontSize: 16)),
                             Spacer(),
                             Container(
                               height: 40, // 아이콘 버튼의 높이 조절
@@ -265,7 +297,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ),
                                     ),
                                     onPressed: (){
-                                      openURL();
+                                      openURL(_exDetailData!['exPage'].toString());
                                     },
                                     child: Text("전시회 홈페이지")
                                 ),
@@ -317,9 +349,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                             children: [
                               Container(
                                   width: 100,
-                                  child: Text("전화번호", style: TextStyle( fontWeight: FontWeight.bold),)
+                                  child: Text("전화번호", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
-                              Text("02-597-5701", style: TextStyle())
+                              Text(_exDetailData?['phone'] == null ? "-" : _exDetailData?['phone'], style: TextStyle())
                             ],
                           ),
                         ),
