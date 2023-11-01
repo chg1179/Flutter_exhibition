@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
@@ -39,27 +38,40 @@ class ArtistEditProfile extends StatefulWidget {
 
 class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Map<String, String> formData = {};  // 다음 탭으로 값을 보내는 맵
-  late FilePickerResult? file;
+  final picker = ImagePicker();
+  XFile? _imageFile;
 
-  Future<void> saveSelectedImage() async {
-    FilePickerResult? pickedFile = await FilePicker.platform.pickFiles();
+  Future<void> getImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
-      final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
-
-      if (image != null) {
-        String downloadURL = await uploadImageToFirebaseStorage(image);
-
-        setState(() {
-          file = pickedFile;
-          print('Image uploaded. URL: $downloadURL');
-        });
-      } else {
-        print('파일을 선택하지 않았습니다.');
-      }
+      setState(() {
+        _imageFile = pickedFile;
+      });
     } else {
-      print('파일을 선택하지 않았습니다.');
+      print('이미지가 선택되지 않았습니다.');
     }
   }
+
+  Future<void> uploadImage() async {
+    if (_imageFile != null) {
+      Uint8List? imageBytes = await _imageFile!.readAsBytes();
+
+      FirebaseStorage storage = FirebaseStorage.instance;
+      String folderName = 'artist_images/';
+      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+      Reference storageReference = storage.ref().child('$folderName/$fileName.jpg');
+      UploadTask uploadTask = storageReference.putData(imageBytes);
+
+      await uploadTask.whenComplete(() async {
+        String downloadURL = await storageReference.getDownloadURL();
+        print('Firebase Storage에 이미지 업로드 완료: $downloadURL');
+      });
+    } else {
+      print('이미지를 선택하지 않았습니다.');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -81,12 +93,16 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ElevatedButton(
-                          onPressed: saveSelectedImage,
-                          child: Text('프로필 이미지 선택'),
+                          onPressed: getImage,
+                          child: Text('이미지 선택'),
+                        ),
+                        ElevatedButton(
+                          onPressed: uploadImage,
+                          child: Text('이미지 업로드'),
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            widget.moveToNextTab(formData, file);
+                            //widget.moveToNextTab(formData, file);
                           },
                           child: Text('다음'),
                         ),
