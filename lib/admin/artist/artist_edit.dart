@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:exhibition_project/admin/artist/artist_edit_addition.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_details.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
@@ -6,6 +8,7 @@ import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +34,7 @@ class ArtistEdit extends StatefulWidget {
 class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Map<String, String> formData = {}; // 다음 탭으로 값을 보내는 맵
+  FilePickerResult? file; // 이미지 파일의 정보
 
   @override
   void initState() {
@@ -44,11 +48,12 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  void moveToNextTab(Map<String, String> data) {
+  void moveToNextTab(Map<String, String> data, FilePickerResult? imgFile) {
     if (_tabController.index < _tabController.length - 1) {
       _tabController.animateTo(_tabController.index + 1);
       if (_tabController.index == 0) {
         formData = data;
+        file = imgFile;
       }
     }
   }
@@ -77,9 +82,9 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
                   controller: _tabController,
                   children: [
                     // 탭에 해당하는 페이지 위젯들을 추가합니다
-                    ArtistEditProfilePage(moveToNextTab: moveToNextTab, formData: formData), // 다음 인덱스로 이동할 함수를 보냄
-                    ArtistEditDetailsPage(moveToNextTab: moveToNextTab, formData: formData),
-                    ArtistEditAdditionPage(moveToNextTab: moveToNextTab, formData: formData),
+                    ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
+                    ArtistEditDetailsPage(moveToNextTab: moveToNextTab, formData: formData, file: file),
+                    ArtistEditAdditionPage(formData: formData, file: file),
                   ],
                 ),
               ),

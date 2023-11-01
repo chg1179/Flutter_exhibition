@@ -1,35 +1,36 @@
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:exhibition_project/firebase_storage/img_upload.dart';
+import 'package:exhibition_project/firebase_storage/permission_status.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ArtistEditProfilePage extends StatelessWidget {
   final Function moveToNextTab;
-  final Map<String, String> formData;
 
   const ArtistEditProfilePage({
     Key? key,
     required this.moveToNextTab,
-    required this.formData,
   });
 
   @override
   Widget build(BuildContext context) {
     return ArtistEditProfile(
       moveToNextTab: moveToNextTab,
-      formData: formData,
     );
   }
 }
 
 class ArtistEditProfile extends StatefulWidget {
   final Function moveToNextTab;
-  final Map<String, String> formData;
 
   const ArtistEditProfile({
     Key? key,
     required this.moveToNextTab,
-    required this.formData,
   });
 
   @override
@@ -37,34 +38,26 @@ class ArtistEditProfile extends StatefulWidget {
 }
 
 class _ArtistEditProfileState extends State<ArtistEditProfile> {
-  final ImagePicker _picker = ImagePicker();
-  File? savedImage; // 변수를 null로 초기화
+  Map<String, String> formData = {};  // 다음 탭으로 값을 보내는 맵
+  late FilePickerResult? file;
 
   Future<void> saveSelectedImage() async {
-    final XFile? pickedImage = await _picker.pickImage(source: ImageSource.gallery);
+    FilePickerResult? pickedFile = await FilePicker.platform.pickFiles();
+    if (pickedFile != null) {
+      final XFile? image = await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (pickedImage != null) {
-      Directory appDocDir = await getApplicationDocumentsDirectory();
-      String destPath = '${appDocDir.path}/images';
+      if (image != null) {
+        String downloadURL = await uploadImageToFirebaseStorage(image);
 
-      Directory(destPath).create(recursive: true).then((Directory directory) {
-        String currentTime = DateTime.now().millisecondsSinceEpoch.toString();
-        String fileName = 'file_$currentTime.png';
-
-        File newImage = File('${directory.path}/$fileName');
-        File(pickedImage.path).copy(newImage.path).then((File newFile) {
-          if (newFile.existsSync()) {
-            setState(() {
-              savedImage = newFile;
-            });
-            print('이미지 저장 완료. 경로: ${newFile.path}');
-          } else {
-            print('이미지 저장 실패.');
-          }
-        }).catchError((e) {
-          print('에러: $e');
+        setState(() {
+          file = pickedFile;
+          print('Image uploaded. URL: $downloadURL');
         });
-      });
+      } else {
+        print('파일을 선택하지 않았습니다.');
+      }
+    } else {
+      print('파일을 선택하지 않았습니다.');
     }
   }
 
@@ -89,12 +82,11 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                       children: [
                         ElevatedButton(
                           onPressed: saveSelectedImage,
-                          child: Text('프로필 이미지 선택 및 저장'),
+                          child: Text('프로필 이미지 선택'),
                         ),
-                        if (savedImage != null) Image.file(savedImage!),
                         ElevatedButton(
                           onPressed: () {
-                            widget.moveToNextTab(widget.formData);
+                            widget.moveToNextTab(formData, file);
                           },
                           child: Text('다음'),
                         ),

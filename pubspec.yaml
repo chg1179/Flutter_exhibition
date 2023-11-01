@@ -36,6 +36,9 @@ dependencies:
   firebase_core:
   firebase_auth:
   cloud_firestore:
+  firebase_storage:
+  file_picker:
+  permission_handler:
   intl: ^0.18.1
   provider:
   crypto:

@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:country_calling_code_picker/picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,12 +14,13 @@ import 'package:flutter/services.dart';
 class ArtistEditDetailsPage extends StatelessWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
   final Map<String, String> formData; // 입력한 값을 담는 맵
-  const ArtistEditDetailsPage({Key? key, required this.moveToNextTab, required this.formData});
+  final FilePickerResult? file; // 이미지 파일 정보
+  const ArtistEditDetailsPage({Key? key, required this.moveToNextTab, required this.formData, required this.file});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ArtistEditDetails(moveToNextTab: moveToNextTab, formData: formData)
+        home: ArtistEditDetails(moveToNextTab: moveToNextTab, formData: formData, file: file)
     );
   }
 }
@@ -24,7 +28,8 @@ class ArtistEditDetailsPage extends StatelessWidget {
 class ArtistEditDetails extends StatefulWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
   final Map<String, String> formData; // 입력한 값을 담는 맵
-  const ArtistEditDetails({Key? key, required this.moveToNextTab, required this.formData});
+  final FilePickerResult? file; // 이미지 파일
+  const ArtistEditDetails({Key? key, required this.moveToNextTab, required this.formData, required this.file});
 
   @override
   State<ArtistEditDetails> createState() => _ArtistEditDetailsState();
@@ -192,7 +197,7 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
           widget.formData['expertise'] = _expertiseController.text;
           widget.formData['nationality'] = _nationalityController.text;
           widget.formData['introduce'] = _introduceController.text;
-          widget.moveToNextTab(widget.formData); // 여기서 입력한 값을 보냄
+          widget.moveToNextTab(widget.formData, widget.file); // 여기서 입력한 값을 보냄
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {

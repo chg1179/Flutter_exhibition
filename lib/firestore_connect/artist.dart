@@ -49,6 +49,7 @@ Future<void> addArtistFirestore(String collectionStr, String artistName, String 
   });
 
   // 작가 이미지
+
   await artist.collection("artist_image").add({
     'artistImagePath': imagePath,
     'timestamp': FieldValue.serverTimestamp(),

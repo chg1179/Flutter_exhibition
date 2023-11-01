@@ -1,28 +1,32 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ArtistEditAdditionPage extends StatelessWidget {
-  final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
   final Map<String, String> formData; // 입력한 값을 담는 맵
-  const ArtistEditAdditionPage({Key? key, required this.moveToNextTab, required this.formData});
-  
+  final FilePickerResult? file; // 이미지 파일 정보
+  const ArtistEditAdditionPage({Key? key, required this.formData, required this.file});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ArtistEditAddition(moveToNextTab: moveToNextTab, formData: formData)
+        home: ArtistEditAddition(formData: formData, file: file)
     );
   }
 }
 
 class ArtistEditAddition extends StatefulWidget {
-  final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
   final Map<String, String> formData; // 입력한 값을 담는 맵
-  const ArtistEditAddition({Key? key, required this.moveToNextTab, required this.formData});
+  final FilePickerResult? file; // 이미지 파일 정보
+  const ArtistEditAddition({Key? key, required this.formData, required this.file});
 
   @override
   State<ArtistEditAddition> createState() => _ArtistEditAdditionState();
@@ -30,7 +34,7 @@ class ArtistEditAddition extends StatefulWidget {
 
 class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   @override
-  
+
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -49,6 +53,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(widget.file != null ? '${widget.file}' : 'File is null'),
                         Container(
                             margin: EdgeInsets.all(20),
                             child: submitButton(),
@@ -72,6 +77,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
           'artist',
           widget.formData,
         );
+
         showMoveDialog(context, '작가가 성공적으로 추가되었습니다.', () => ArtistList());
       },
       style: ButtonStyle(
