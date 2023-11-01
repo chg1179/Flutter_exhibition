@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
+// 이미지 선택
 class ImageSelector {
   final picker = ImagePicker();
 
@@ -11,6 +12,7 @@ class ImageSelector {
   }
 }
 
+// 이미지 업로드
 class ImageUploader {
   final String folderName;
 
@@ -26,8 +28,8 @@ class ImageUploader {
     UploadTask uploadTask = storageReference.putData(imageBytes);
 
     await uploadTask.whenComplete(() async {
-      String downloadURL = await storageReference.getDownloadURL();
-      return downloadURL;
+      // String downloadURL = await storageReference.getDownloadURL(); // 로그인 후 url 받아오기 가능
+      return '$fileName.jpg';
     });
     return '';
   }

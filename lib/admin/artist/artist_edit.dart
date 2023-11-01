@@ -12,6 +12,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ArtistEditPage extends StatelessWidget {
   const ArtistEditPage({super.key});
@@ -35,11 +36,12 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
   late TabController _tabController;
   Map<String, String> formData = {}; // 다음 탭으로 값을 보내는 맵
   FilePickerResult? file; // 이미지 파일의 정보
+  XFile? _imageFile; //  이미지 파일. 파라미터로 넘길 값
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -48,13 +50,9 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  void moveToNextTab(Map<String, String> data, FilePickerResult? imgFile) {
+  void moveToNextTab() {
     if (_tabController.index < _tabController.length - 1) {
       _tabController.animateTo(_tabController.index + 1);
-      if (_tabController.index == 0) {
-        formData = data;
-        file = imgFile;
-      }
     }
   }
 
@@ -82,9 +80,9 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
                   controller: _tabController,
                   children: [
                     // 탭에 해당하는 페이지 위젯들을 추가합니다
-                    ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
-                    ArtistEditDetailsPage(moveToNextTab: moveToNextTab, formData: formData, file: file),
-                    ArtistEditAdditionPage(formData: formData, file: file),
+                    //ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
+                    ArtistEditDetailsPage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
+                    ArtistEditAdditionPage(formData: formData, imageFile: _imageFile),
                   ],
                 ),
               ),

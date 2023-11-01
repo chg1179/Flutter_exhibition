@@ -17,6 +17,21 @@ Future<void> addArtist(String collectionStr, Map<String, String> formData) async
     'artistIntroduce': formData['introduce'],
   });
 }
+
+// 작가 정보 및 추가
+Future<void> addArtistImg(String collectionStr, Map<String, String> formData) async {
+  final FirebaseFirestore _fs = FirebaseFirestore.instance;
+
+  // 작가 정보 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
+  DocumentReference artist = await _fs.collection(collectionStr).add({
+    'artistName': formData['name'],
+    'artistEnglishName': formData['englishName'],
+    'artistNationality': formData['nationality'],
+    'expertise': formData['expertise'],
+    'artistIntroduce': formData['introduce'],
+  });
+}
+
 Future<void> addArtistFirestore(String collectionStr, String artistName, String artistEnglishName, String artistNationality, String education, String history, String awards, String expertise, String artistIntroduce, String imagePath) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 

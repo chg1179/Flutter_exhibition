@@ -1,35 +1,28 @@
-import 'dart:io';
-
-import 'package:exhibition_project/admin/artist/artist_list.dart';
-import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/firebase_storage/img_upload.dart';
+import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:country_calling_code_picker/picker.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ArtistEditDetailsPage extends StatelessWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
-  final Map<String, String> formData; // 입력한 값을 담는 맵
-  final FilePickerResult? file; // 이미지 파일 정보
-  const ArtistEditDetailsPage({Key? key, required this.moveToNextTab, required this.formData, required this.file});
-
+  const ArtistEditDetailsPage({Key? key, required this.moveToNextTab});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ArtistEditDetails(moveToNextTab: moveToNextTab, formData: formData, file: file)
+        home: ArtistEditDetails(moveToNextTab: moveToNextTab)
     );
   }
 }
 
 class ArtistEditDetails extends StatefulWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
-  final Map<String, String> formData; // 입력한 값을 담는 맵
-  final FilePickerResult? file; // 이미지 파일
-  const ArtistEditDetails({Key? key, required this.moveToNextTab, required this.formData, required this.file});
+  const ArtistEditDetails({Key? key, required this.moveToNextTab});
 
   @override
   State<ArtistEditDetails> createState() => _ArtistEditDetailsState();
@@ -37,21 +30,49 @@ class ArtistEditDetails extends StatefulWidget {
 
 class _ArtistEditDetailsState extends State<ArtistEditDetails> {
   final _key = GlobalKey<FormState>(); // Form 위젯과 연결. 동적인 행동 처리
-  Country? _country;
+  Country? _country; // 국가
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _englishNameController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _expertiseController = TextEditingController();
   final TextEditingController _introduceController = TextEditingController();
   bool allFieldsFilled = false; // 모든 값을 입력하지 않으면 비활성화
+  Map<String, String> formData = {};
+  final ImageSelector selector = ImageSelector();//이미지
+  late ImageUploader uploader;
+  XFile? _imageFile;
+  bool _saving = false; // 저장 로딩
 
   @override
   void initState() {
     super.initState();
     _init();
+    uploader = ImageUploader('artist_images');
   }
 
-  void _init() async{ //동기 맞추기
+
+  Future<void> getImage() async {
+    XFile? pickedFile = await selector.selectImage();
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile;
+      });
+    } else {
+      print('No image selected.');
+    }
+  }
+
+  Future<void> uploadImage() async {
+    if (_imageFile != null) {
+      String downloadURL = await uploader.uploadImage(_imageFile!);
+      print('Uploaded to Firebase Storage: $downloadURL');
+    } else {
+      print('No image selected.');
+    }
+  }
+
+  //동기 맞추기
+  void _init() async{
     final country = await getDefaultCountry(context);
     setState(() {
       _country = country;
@@ -63,8 +84,8 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     });
   }
 
+  // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트
   void updateButtonState() async {
-    // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트합니다.
     setState(() {
       allFieldsFilled = _nameController.text.isNotEmpty &&
           _englishNameController.text.isNotEmpty &&
@@ -74,7 +95,7 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     });
   }
 
-  void _countrySelect() async {
+  void _countrySelect() async { //국가 선택
     final selectedCountry = await showCountryPickerSheet(
       context,
       cancelWidget: Center(
@@ -85,10 +106,12 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     if (selectedCountry != null) {
       setState(() {
         _country = selectedCountry;
-        _nationalityController.text = _country!.name; // 예시로 국가의 이름을 표시합니다.
+        _nationalityController.text = _country!.name; // 국가의 이름 표시
       });
     }
   }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,6 +133,10 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          ElevatedButton(
+                            onPressed : getImage,
+                            child: Text('이미지 선택'),
+                          ),
                           textAndTextField('작가명', _nameController, 'name'),
                           SizedBox(height: 30),
                           textAndTextField('영어명', _englishNameController, 'englishName'),
@@ -127,7 +154,12 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
                   Container(
                       margin: EdgeInsets.all(20),
                       child: submitButton()
-                  )
+                  ),
+                  if (_saving) // 저장 중일 때 로딩 표시를 보여줌
+                    Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
                 ],
               ),
             ),
@@ -192,12 +224,28 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
     return ElevatedButton(
       onPressed: allFieldsFilled ? () async {
         try {
-          widget.formData['name'] = _nameController.text;
-          widget.formData['englishName'] = _englishNameController.text;
-          widget.formData['expertise'] = _expertiseController.text;
-          widget.formData['nationality'] = _nationalityController.text;
-          widget.formData['introduce'] = _introduceController.text;
-          widget.moveToNextTab(widget.formData, widget.file); // 여기서 입력한 값을 보냄
+          // 입력한 정보 저장
+          // 저장 중에 로딩 표시
+          setState(() {
+            _saving = true;
+          });
+          formData['name'] = _nameController.text;
+          formData['englishName'] = _englishNameController.text;
+          formData['expertise'] = _expertiseController.text;
+          formData['nationality'] = _nationalityController.text;
+          formData['introduce'] = _introduceController.text;
+
+          // 파이어베이스에 정보 및 이미지 저장
+          await addArtist('artist',formData);
+          if (_imageFile != null) {
+            await uploadImage();
+          }
+
+          // 저장 완료 후 로딩 표시 비활성화 및 페이지 전환
+          setState(() {
+            _saving = false;
+          });
+          widget.moveToNextTab(); // 다음 탭으로 이동
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {
@@ -207,7 +255,7 @@ class _ArtistEditDetailsState extends State<ArtistEditDetails> {
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(allFieldsFilled ? Colors.green : Colors.grey), // 모든 값을 입력했다면 그린 색상으로 활성화
       ),
-      child: boldGreyButtonContainer('다음'),
+      child: boldGreyButtonContainer('정보 저장'),
     );
   }
 }

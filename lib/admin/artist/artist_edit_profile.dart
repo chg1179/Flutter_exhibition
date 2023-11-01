@@ -1,12 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
-import 'package:exhibition_project/firebase_storage/permission_status.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
 
 class ArtistEditProfilePage extends StatelessWidget {
   final Function moveToNextTab;
@@ -46,7 +40,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   @override
   void initState() {
     super.initState();
-    uploader = ImageUploader('artist_images'); // Providing folderName here
+    uploader = ImageUploader('artist_images');
   }
 
   Future<void> getImage() async {
@@ -68,6 +62,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       print('No image selected.');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,17 +83,14 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ElevatedButton(
-                          onPressed: getImage,
+                          onPressed : getImage,
                           child: Text('이미지 선택'),
                         ),
                         ElevatedButton(
-                          onPressed: uploadImage,
-                          child: Text('이미지 업로드'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            //widget.moveToNextTab(formData, file);
-                          },
+                          onPressed : _imageFile != null ? () async{
+                            print(_imageFile?.path);
+                            //widget.moveToNextTab(formData, _imageFile);
+                          } : null,
                           child: Text('다음'),
                         ),
                       ],

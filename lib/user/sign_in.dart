@@ -147,7 +147,7 @@ class _SignInCheckState extends State<SignInCheck> {
       bool pwdCheck = isPasswordValid(password, userHashPassword, userRandomSalt);
       print(pwdCheck);
       if (pwdCheck) {
-        Provider.of<UserModel>(context, listen: false).signIn(userDocument.id); //세션 값 부여
+        Provider.of<UserModel>(context, listen: false).signIn(userDocument.id, userDocument.get('status')); //세션 값 부여
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('로그인 되었습니다.'))
         );
