@@ -18,7 +18,7 @@ class _SearchState extends State<Search> {
       foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
         RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(14),
           side: BorderSide(color: Colors.black, width: 0.5),
         ),
       ),
@@ -55,8 +55,8 @@ class _SearchState extends State<Search> {
 
   Widget recommendedTag(){
     return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
+      spacing: 7.0,
+      runSpacing: 1.0,
       children: List<Widget>.generate(recommendedSearches.length, (int index) {
         return ElevatedButton(
           onPressed: (){
@@ -73,8 +73,8 @@ class _SearchState extends State<Search> {
 
   Widget favourKeyword(){
     return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
+      spacing: 7.0,
+      runSpacing: 1.0,
       children: List<Widget>.generate(favourKey.length, (int index) {
         return ElevatedButton(
           onPressed: (){
@@ -119,23 +119,23 @@ class _SearchState extends State<Search> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30, top: 30, bottom: 20),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 30, bottom: 20),
           child: Text("추천 검색어", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
         ),
         Padding(
-            padding: const EdgeInsets.only(left: 30, right: 30,),
+            padding: const EdgeInsets.only(left: 20, right: 20,),
             child: recommendedTag()
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30, top: 40, bottom: 20),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 40, bottom: 20),
           child: Text("취향분석 맞춤 키워드", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
         ),
         Padding(
-            padding: const EdgeInsets.only(left: 30, right: 30,),
+            padding: const EdgeInsets.only(left: 20, right: 20,),
             child: favourKeyword()
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 30, right: 30, top: 40, bottom: 10),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 40, bottom: 10),
           child: Text("인기 검색어", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
         ),
         Padding(
