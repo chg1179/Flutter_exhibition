@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comm_detail.dart';
+import 'package:exhibition_project/community/comm_edit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,6 @@ import '../firebase_options.dart';
 import '../main.dart';
 import '../myPage/mypage.dart';
 import '../review/review_list.dart';
-import 'comm_add.dart';
 import 'comm_mypage.dart';
 
 void main() async {
@@ -150,6 +150,7 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
+///////////////////////////////////////////////////////////댓글수 카운트
   Map<String, int> commentCounts = {};
 
   @override
@@ -159,6 +160,8 @@ class _CommMainState extends State<CommMain> {
     _updateSelectedTag(selectedButtonIndex);
   }
 
+
+  //게시글 아이디 불러오기
   Future<List<String>> getPostDocumentIds() async {
     try {
       final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
@@ -170,6 +173,7 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
+  // 댓글수 length로 불러오기
   Future<int> getCommentCount(String docId) async {
     try {
       final QuerySnapshot commentQuery = await FirebaseFirestore.instance
@@ -184,6 +188,7 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
+  // 해당 게시글 아이디별 댓글수
   Future<void> calculateCommentCounts(List<String> documentIds) async {
     for (String documentId in documentIds) {
       try {
@@ -206,6 +211,7 @@ class _CommMainState extends State<CommMain> {
     List<String> documentIds = await getPostDocumentIds();
     await calculateCommentCounts(documentIds);
   }
+
 
   Widget buildIcons(String docId, int commentCount) {
     return Padding(
@@ -424,7 +430,7 @@ class _CommMainState extends State<CommMain> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => CommEdit()));
           },
           child: Icon(Icons.edit),
           backgroundColor: Color(0xff464D40),

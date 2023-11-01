@@ -5,47 +5,92 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'comm_main.dart';
 
-class CommAdd extends StatefulWidget {
-  const CommAdd({Key? key});
+class CommEdit extends StatefulWidget {
+  final String? documentId;
+  CommEdit({Key? key, this.documentId}) : super(key: key);
 
   @override
-  State<CommAdd> createState() => _CommAddState();
+  State<CommEdit> createState() => _CommEditState();
 }
 
-class _CommAddState extends State<CommAdd> {
+class _CommEditState extends State<CommEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
   File? _imageFile;
 
-  // 글 등록
-  void _addPost() async {
+  @override
+  void initState() {
+    super.initState();
+
+    // documentId가 있는 경우 데이터 불러옴
+    if (widget.documentId != null) {
+      _loadPostData(widget.documentId!);
+    }
+  }
+
+  Future<void> _loadPostData(String documentId) async {
+    try {
+      final documentSnapshot =
+      await FirebaseFirestore.instance.collection('post').doc(documentId).get();
+      if (documentSnapshot.exists) {
+        final data = documentSnapshot.data() as Map<String, dynamic>;
+        final title = data['title'] as String;
+        final content = data['content'] as String;
+        final imagePath = data['imagePath'] as String;
+
+        File? imageFile = imagePath.isNotEmpty ? File(imagePath) : null;
+
+        setState(() {
+          _titleCtr.text = title;
+          _contentCtr.text = content;
+          _imageFile = imageFile;
+        });
+      } else {
+        print('게시글을 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  void _savePost() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
       CollectionReference post = FirebaseFirestore.instance.collection("post");
 
-      String imagePath = ''; // 기본값 설정
+      String imagePath = '';
 
       if (_imageFile != null) {
         imagePath = await _saveImage(_imageFile!);
       }
 
-      await post.add({
-        'title': _titleCtr.text,
-        'content': _contentCtr.text,
-        'write_date': DateTime.now(),
-        'imagePath': imagePath,
-      });
+      if (widget.documentId != null) {
+        // documentId가 있는 경우 수정
+        await post.doc(widget.documentId!).update({
+          'title': _titleCtr.text,
+          'content': _contentCtr.text,
+          'write_date': DateTime.now(),
+          'imagePath': imagePath,
+        });
+      } else {
+        // documentId가 없는 경우 추가
+        await post.add({
+          'title': _titleCtr.text,
+          'content': _contentCtr.text,
+          'write_date': DateTime.now(),
+          'imagePath': imagePath,
+        });
+      }
 
       _titleCtr.clear();
       _contentCtr.clear();
       setState(() {
-        _imageFile = null; // 이미지 업로드 후 초기화
+        _imageFile = null;
       });
     } else {
       print("제목과 내용을 입력해주세요");
     }
   }
 
-  // 이미지 저장 함수
   Future<String> _saveImage(File imageFile) async {
     Directory dir = await getApplicationDocumentsDirectory();
     Directory buskingDir = Directory('${dir.path}/busking');
@@ -61,7 +106,6 @@ class _CommAddState extends State<CommAdd> {
     return targetFile.path;
   }
 
-  // 이미지 선택
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -148,9 +192,9 @@ class _CommAddState extends State<CommAdd> {
 
   Widget _buildSelectedImage() {
     if (_imageFile != null) {
-      return Image.file(_imageFile!); // 이미지가 있을 때만 이미지를 출력
+      return Image.file(_imageFile!);
     } else {
-      return Container(); // 이미지가 없을 때는 아무것도 출력하지 않음
+      return Container();
     }
   }
 
@@ -169,17 +213,17 @@ class _CommAddState extends State<CommAdd> {
           },
         ),
         title: Text(
-          '글 작성',
+          widget.documentId != null ? '글 수정' : '글 작성',
           style: TextStyle(color: Colors.black, fontSize: 15),
         ),
         actions: [
           TextButton(
             onPressed: () {
-              _addPost();
+              _savePost();
               Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
             },
             child: Text(
-              '등록',
+              widget.documentId != null ? '수정' : '등록',
               style: TextStyle(color: Colors.black45, fontWeight: FontWeight.bold),
             ),
           )

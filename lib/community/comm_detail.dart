@@ -1,8 +1,6 @@
-
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/community/comm_add.dart';
+import 'package:exhibition_project/community/comm_edit.dart';
 import 'package:exhibition_project/community/comm_main.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +13,8 @@ class CommDetail extends StatefulWidget {
 }
 
 class _CommDetailState extends State<CommDetail> {
+  bool isLiked = false;
+
   final _commentCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
 
@@ -28,6 +28,7 @@ class _CommDetailState extends State<CommDetail> {
     super.initState();
     _getPostData();
     _loadComments();
+    loadCommentCounts();
 
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
@@ -42,7 +43,7 @@ class _CommDetailState extends State<CommDetail> {
     });
   }
 
-  void _getPostData() async {
+  Future<void> _getPostData() async {
     try {
       final documentSnapshot = await _firestore.collection('post').doc(widget.document).get();
       if (documentSnapshot.exists) {
@@ -57,7 +58,7 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  void _loadComments() async {
+  Future<void> _loadComments() async {
     try {
       final querySnapshot = await _firestore
           .collection('post')
@@ -66,7 +67,7 @@ class _CommDetailState extends State<CommDetail> {
           .orderBy('write_date', descending: false)
           .get();
       final comments = querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         return {
           'comment': data['comment'] as String,
           'write_date': data['write_date'] as Timestamp,
@@ -95,6 +96,7 @@ class _CommDetailState extends State<CommDetail> {
         FocusScope.of(context).unfocus();
 
         // 화면 업데이트
+        loadCommentCounts();
         _loadComments();
         _showSnackBar('댓글이 등록되었습니다!');
 
@@ -150,7 +152,7 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
-          buildIcons(),
+          buildIcons(widget.document, commentCounts[widget.document] ?? 0),
         ],
       ),
     );
@@ -213,7 +215,45 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  Widget buildIcons() {
+  Map<String, int> commentCounts = {};
+
+  //게시글 아이디 불러오기
+  Future<List<String>> getPostDocumentIds() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      return documentIds;
+    } catch (e) {
+      print('게시물 ID를 불러오는 동안 오류 발생: $e');
+      return [];
+    }
+  }
+
+  // 해당 게시글 아이디별 댓글수
+  Future<void> calculateCommentCounts(List<String> documentIds) async {
+    for (String documentId in documentIds) {
+      try {
+        final QuerySnapshot commentQuery = await FirebaseFirestore.instance
+            .collection('post')
+            .doc(documentId)
+            .collection('comment')
+            .get();
+        int commentCount = commentQuery.docs.length;
+        commentCounts[documentId] = commentCount;
+        setState(() {});
+      } catch (e) {
+        print('댓글 수 조회 중 오류 발생: $e');
+        commentCounts[documentId] = 0;
+      }
+    }
+  }
+
+  Future<void> loadCommentCounts() async {
+    List<String> documentIds = await getPostDocumentIds();
+    await calculateCommentCounts(documentIds);
+  }
+
+  Widget buildIcons(String docId, int commentCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -223,22 +263,31 @@ class _CommDetailState extends State<CommDetail> {
             children: [
               buildIconsItem(Icons.visibility, '0'),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, '0'),
+              buildIconsItem(
+                Icons.chat_bubble_rounded,
+                commentCount.toString(),
+              ),
               SizedBox(width: 5),
             ],
           ),
           GestureDetector(
             onTap: () {
-              // 좋아요 카운트 증가 코드 작성
+              setState(() {
+                isLiked = !isLiked;
+              });
             },
-            child: buildIconsItem(Icons.favorite, '0'),
+            child: buildIconsItem(
+              isLiked ? Icons.favorite : Icons.favorite_border,
+              '0',
+              isLiked ? Colors.red : null,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget buildIconsItem(IconData icon, String text) {
+  Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) {
     return Container(
       padding: EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -247,7 +296,7 @@ class _CommDetailState extends State<CommDetail> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 13, color: Colors.white),
+          Icon(icon, size: 13, color: iconColor ?? Colors.white),
           SizedBox(width: 2),
           Text(text, style: TextStyle(color: Colors.white)),
         ],
@@ -308,7 +357,7 @@ class _CommDetailState extends State<CommDetail> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CommAdd(),
+                      builder: (context) => CommEdit(documentId: widget.document),
                     ),
                   );
                 },
@@ -382,16 +431,16 @@ class _CommDetailState extends State<CommDetail> {
 
   void _deletePost(String documentId) async {
     try {
-      // 해당 게시글의 댓글 컬렉션 참조를 가져옵니다.
+      // 해당 게시글의 댓글 컬렉션 참조 가져오기
       final commentCollection = FirebaseFirestore.instance.collection("post").doc(documentId).collection("comment");
 
-      // 게시글의 댓글 컬렉션에 속한 모든 댓글 문서를 삭제합니다.
+      // 게시글의 댓글 컬렉션에 속한 모든 댓글 문서 삭제
       final commentQuerySnapshot = await commentCollection.get();
       for (var commentDoc in commentQuerySnapshot.docs) {
         await commentDoc.reference.delete();
       }
 
-      // 게시글 문서를 삭제합니다.
+      // 게시글 문서 삭제
       await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
 
 
@@ -402,26 +451,191 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget _commentsList(QuerySnapshot<Object?> data) {
     if (_comments.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 50),
-        child: Column(
-          children: _comments.map((commentData) {
-            final commentText = commentData['comment'] as String;
-            final timestamp = commentData['write_date'] as Timestamp;
-            final commentDate = timestamp.toDate();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _comments.map((commentData) {
+          final commentText = commentData['comment'] as String;
+          final timestamp = commentData['write_date'] as Timestamp;
+          final commentDate = timestamp.toDate();
 
-            return ListTile(
-              title: Text(commentText, style: TextStyle(fontSize: 15)),
-              subtitle: Text(commentDate.toString()),
-            );
-          }).toList(),
-        ),
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                width: 300,
+                child: ListTile(
+                  title: Text(commentText, style: TextStyle(fontSize: 13)),
+                  subtitle: Text(commentDate.toString(),style: TextStyle(fontSize: 10)),
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  _showCommentMenu(commentData, widget.document);
+                },
+                icon: Icon(Icons.more_vert, size: 15),
+                color: Color(0xff464D40),
+              ),
+            ],
+          );
+        }).toList(),
       );
     } else {
       return Center(child: Text('댓글이 없습니다.'));
     }
   }
 
+  void _showCommentMenu(Map<String, dynamic> commentData, String documentId) {
+    final commentId = commentData['reference'].id;
+    final commentText = commentData['comment'] as String;
+
+    showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.only(top: 10),
+          height: 200,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.maximize_rounded, color: Colors.black, size: 30),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('댓글 수정'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditCommentDialog(commentId, commentText, commentText);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('댓글 삭제'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteComment(documentId, commentId);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditCommentDialog(String documentId, String commentId, String initialText) {
+    final TextEditingController editCommentController = TextEditingController(text: initialText);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('댓글 수정'),
+          content: TextField(
+            controller: editCommentController,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                String updatedComment = editCommentController.text;
+                _editComment(commentId, updatedComment);
+                Navigator.pop(context);
+              },
+              child: Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editComment(String commentId, String updatedComment) async {
+    try {
+      await _firestore.collection('post').doc(widget.document).collection('comment').doc(commentId).update({
+        'comment': updatedComment,
+      });
+
+      // 화면 업데이트
+      _loadComments();
+      _showSnackBar('댓글이 수정되었습니다!');
+    } catch (e) {
+      print('댓글 수정 오류: $e');
+    }
+  }
+
+  void _confirmDeleteComment(String documentId, String commentId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('댓글 삭제'),
+          content: Text('댓글을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteComment(documentId, commentId);
+                Navigator.pop(context);
+                _showDeleteCommentDialog();
+              },
+              child: Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteCommentDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text('댓글이 삭제되었습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteComment(String documentId, String commentId) async {
+    try {
+      await _firestore.collection('post').doc(documentId).collection('comment').doc(commentId).delete();
+      // 화면 업데이트
+      _loadComments();
+    } catch (e) {
+      print('댓글 삭제 오류: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -446,26 +660,26 @@ class _CommDetailState extends State<CommDetail> {
         slivers: [
           SliverToBoxAdapter(
             child: _postData == null
-                ? Center(child: CircularProgressIndicator())
-                : Column(
-              children: [
-                buildDetailContent(_postData!['title'] as String, _postData!['content'] as String),
-                StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('post')
-                      .doc(widget.document)
-                      .collection('comment')
-                      .orderBy('write_date', descending: false)
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-                    }
-                    return _commentsList(snapshot.data as QuerySnapshot);
-                  },
+              ? CircularProgressIndicator()
+              : Column(
+                children: [
+                  buildDetailContent(_postData!['title'] as String, _postData!['content'] as String),
+                  StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('post')
+                        .doc(widget.document)
+                        .collection('comment')
+                        .orderBy('write_date', descending: false)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+                      if (snapshot.hasError) {
+                        return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                      }
+                      return _commentsList(snapshot.data as QuerySnapshot);
+                    },
                 ),
               ],
             ),
@@ -496,3 +710,4 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 }
+

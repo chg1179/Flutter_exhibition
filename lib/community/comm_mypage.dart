@@ -1,4 +1,4 @@
-import 'package:exhibition_project/community/comm_add.dart';
+import 'package:exhibition_project/community/comm_edit.dart';
 import 'package:flutter/material.dart';
 
 class CommMyPage extends StatefulWidget {
@@ -33,7 +33,7 @@ class _CommMyPageState extends State<CommMyPage> {
             child: ElevatedButton(
               onPressed: (){
                 setState(() {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommEdit()));
                 });
               },
               child: Text('첫 글 쓰러가기'),
