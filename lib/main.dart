@@ -74,7 +74,7 @@ class _HomeState extends State<Home> {
                           child: Container(
                             child: Align(
                               alignment: Alignment.centerRight,
-                              child: Text('추천', style: TextStyle(color: Colors.white),),
+                              child: Text('추천', style: TextStyle(color: Color(0xffD4D8C8)),),
                             ),
                           ),
                         ),
@@ -82,7 +82,7 @@ class _HomeState extends State<Home> {
                           child: Container(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('팔로잉', style: TextStyle(color: Colors.white),),
+                              child: Text('팔로잉', style: TextStyle(color: Color(0xffD4D8C8))),
                             ),
                           ),
                         ),
@@ -107,7 +107,7 @@ class _HomeState extends State<Home> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: '전시 검색',
-                  prefixIcon: Icon(Icons.search, color: Colors.white,),
+                  prefixIcon: Icon(Icons.search, color: Color(0xffD4D8C8)),
                   contentPadding: EdgeInsets.all(8.0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),

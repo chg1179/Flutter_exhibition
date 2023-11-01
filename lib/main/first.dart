@@ -36,7 +36,7 @@ class FirstPage extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(13.0),
-                      child: Text('오늘의 전시🔥', style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
+                      child: Text('오늘의 전시🔥', style: TextStyle(color: Color(0xffD4D8C8),fontWeight: FontWeight.bold)),
                     ),
                     Center(
                       child: Container(
@@ -272,7 +272,7 @@ class MainList extends StatefulWidget {
   _MainListState createState() => _MainListState();
 }
 class _MainListState extends State<MainList> {
-  final PageController _controller = PageController(viewportFraction: 1.0);
+  final PageController _controller = PageController(viewportFraction: 0.8);
   int _currentPage = 0;
 
   @override
@@ -305,66 +305,90 @@ class _MainListState extends State<MainList> {
         int nextPage = (_currentPage + 1) % widget.images.length;
         _controller.animateToPage(
           nextPage,
-          duration: Duration(milliseconds: 500),
+          duration: Duration(milliseconds: 1000),
           curve: Curves.easeOut,
         );
         _startAutoScroll();
       }
+      print('Auto scroll started to page ');
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: BoxConstraints(maxHeight: 400),
-      child: PageView.builder(
-        controller: _controller,
-        itemCount: widget.images.length,
-        onPageChanged: (int page) {
-          setState(() {
-            _currentPage = page;
-          });
-        },
-        itemBuilder: (context, index) {
-          final imageInfo = widget.images[index];
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+        .collection('exhibition')
+        .orderBy('postDate', descending: true)
+        .limit(3)
+        .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+        return Container(
+          constraints: BoxConstraints(maxHeight: 400),
+          child: PageView.builder(
+            controller: _controller,
+            //itemCount: widget.images.length,
+            itemCount: snap.data!.docs.length,
+            // onPageChanged: (int page) {
+            //   setState(() {
+            //     _currentPage = page;
+            //   });
+            // }, // 이자식때문에 슬라이드가 안됌
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              final imageInfo = widget.images[index];
 
-          // Wrap each image with InkWell for click functionality
-          return InkWell(
-            onTap: () {
-              _onImageClicked(imageInfo);
-            },
-            child: Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset(
-                          'assets/main/${imageInfo['name']}',
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          height: 300,
+              // Wrap each image with InkWell for click functionality
+              return InkWell(
+                onTap: () {
+                  _onImageClicked(imageInfo);
+                },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.asset(
+                              'assets/main/${imageInfo['name']}',
+                              width: MediaQuery.of(context).size.width * 0.5,
+                              height: 300,
+                            ),
+                            Text(
+                              '${data['exTitle']}',
+                              style: TextStyle(
+                                color: Color(0xffD4D8C8),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              //갤러리 장소 조인해야함...ㅠ
+                              imageInfo['description']!,
+                              style: TextStyle(fontSize: 10 , color: Colors.grey, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                        Text(
-                          imageInfo['title']!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          imageInfo['description']!,
-                          style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        );
+      }
     );
   }
 
@@ -441,7 +465,7 @@ class _UserListState extends State<UserList> {
       height: 300,
       child: PageView.builder(
         controller: _controller,
-        itemCount: widget.users.length,
+        itemCount: snap.data!.docs.length,
         onPageChanged: (int page) {
           setState(() {
             _currentPage = page;

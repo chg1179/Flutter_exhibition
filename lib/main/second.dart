@@ -1,7 +1,4 @@
-import 'package:exhibition_project/admin/main.dart';
-import 'package:exhibition_project/myPage/mypage.dart';
-import 'package:exhibition_project/review/review_list.dart';
-import 'package:exhibition_project/user/home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -44,59 +41,79 @@ class _SecondPageState extends State<SecondPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 170, // 프로필 사진 영역의 높이 설정
-            child: Container(
-              color: Color(0xff464D40),// 배경색 설정
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: widget.followingData.length,
-                itemBuilder: (context, index) {
-                  final isSelected = index == selectedUserIndex;
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+        .collection('user')
+        .orderBy('joinDate',descending: true)
+        .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return Center(child: Text('에러 발생: ${snap.error}'));
+          }
+          if (!snap.hasData) {
+            return Center(child: Text('데이터 없음'));
+          }
+        return Container(
+          color: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 170, // 프로필 사진 영역의 높이 설정
+                child: Container(
+                  color: Color(0xff464D40),// 배경색 설정
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    //itemCount: widget.followingData.length,
+                    itemCount: snap.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot doc = snap.data!.docs[index];
+                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                      final isSelected = index == selectedUserIndex;
 
-                  return InkWell(
-                    onTap: () => handleUserClick(index),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 60,),
-                        Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: isSelected ? Colors.orange : Colors.transparent,
-                              width: 3.0,
+                      return InkWell(
+                        onTap: () => handleUserClick(index),
+                        child: Column(
+                          children: [
+                            SizedBox(height: 80,),
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isSelected ? Colors.orange : Colors.transparent,
+                                  width: 3.0,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 8.0,right: 8),
+                                child: CircleAvatar(
+                                  radius: 30, // 프로필 사진 크기
+                                  backgroundImage: AssetImage('assets/main/${widget.followingData[index]['profileImage']}'),
+                                ),
+                              ),
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 8.0,right: 8),
-                            child: CircleAvatar(
-                              radius: 30, // 프로필 사진 크기
-                              backgroundImage: AssetImage('assets/main/${widget.followingData[index]['profileImage']}'),
+                            SizedBox(height: 4), // 프로필 사진과 이름 간의 간격 조절
+                            Text(
+                              '${data['nickName']}',
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
                             ),
-                          ),
+                          ],
                         ),
-                        SizedBox(height: 4), // 프로필 사진과 이름 간의 간격 조절
-                        Text(
-                          widget.followingData[index]['name']!,
-                          style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+              Expanded(
+                child: PhotoGrid(),
+              ),
+            ],
           ),
-          Expanded(
-            child: PhotoGrid(),
-          ),
-        ],
-      ),
+        );
+      }
     );
   }
 
