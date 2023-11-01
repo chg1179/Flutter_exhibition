@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
-import 'package:exhibition_project/review/review_add.dart';
+import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -50,13 +50,6 @@ class _ReviewListState extends State<ReviewList> {
     {'title': '역대 인기순', 'value': 'all_time_popular'},
   ];
 
-  List<Map<String, String>> _imgList = [
-    {'name': 'ex1.png'},
-    {'name': 'ex2.png'},
-    {'name': 'ex3.png'},
-    {'name': 'ex4.jpg'},
-    {'name': 'ex5.jpg'},
-  ];
   String? _selectedList = '최신순';
 
   @override
@@ -97,6 +90,7 @@ class _ReviewListState extends State<ReviewList> {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection("review")
+          .orderBy('write_date', descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
@@ -145,7 +139,7 @@ class _ReviewListState extends State<ReviewList> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5.0),
                 child: Image.asset(
-                  'assets/ex/${_imgList[index]['name']}',
+                  '',
                   width: screenWidth,
                   height: 200,
                   fit: BoxFit.cover,
@@ -175,7 +169,7 @@ class _ReviewListState extends State<ReviewList> {
                       children: [
                         CircleAvatar(
                           radius: 8,
-                          backgroundImage: AssetImage('assets/ex/${_imgList[index]['name']}'),
+                          backgroundImage: AssetImage(''),
                         ),
                         SizedBox(width: 5,),
                         Text('hj', style: TextStyle(fontSize: 13, color: Colors.black)),
@@ -217,7 +211,7 @@ class _ReviewListState extends State<ReviewList> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ReviewAdd(),
+                builder: (context) => ReviewEdit(),
               ),
             );
           },

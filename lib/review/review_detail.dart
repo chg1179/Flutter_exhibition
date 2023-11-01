@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/review/review_add.dart';
+import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 
 class ReviewDetail extends StatefulWidget {
@@ -47,7 +48,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReviewAdd(),
+                      builder: (context) => ReviewEdit(documentId: document.id),
                     ),
                   );
                 },
@@ -110,55 +111,55 @@ class _ReviewDetailState extends State<ReviewDetail> {
   Widget _reviewDetailWidget() {
     final document = widget.document;
     return SingleChildScrollView(
-      child : Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(document['title'], style: TextStyle(fontSize: 25)),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: AssetImage('assets/ex/ex1.png'),
-                    ),
-                    SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('hj', style: TextStyle(fontSize: 15)),
-                        //Text(document['nickName'], style: TextStyle(fontSize: 13)),
-                        Text('2023. 10. 19. 22:09 · 비공개', style: TextStyle(fontSize: 12, color: Colors.black45)),
-                      ],
-                    ),
-                  ],
+        child : Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(document['title'], style: TextStyle(fontSize: 25)),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: AssetImage('assets/ex/ex1.png'),
+                      ),
+                      SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('hj', style: TextStyle(fontSize: 15)),
+                          //Text(document['nickName'], style: TextStyle(fontSize: 13)),
+                          Text('2023. 10. 19. 22:09 · 비공개', style: TextStyle(fontSize: 12, color: Colors.black45)),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                child: IconButton(
-                  onPressed: _showMenu,
-                  icon: Icon(Icons.more_vert, size: 20,),
-                  color: Colors.black45,
+                Container(
+                  child: IconButton(
+                    onPressed: _showMenu,
+                    icon: Icon(Icons.more_vert, size: 20,),
+                    color: Colors.black45,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 20),
-          Container(
-              height:1.0,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.black12
-          ),
-          SizedBox(height: 20),
-          Image.asset('assets/ex/ex4.jpg', width: MediaQuery.of(context).size.width, height: 400),
-          SizedBox(height: 20),
-          Text(document['content']),
-          SizedBox(height: 30),
-        ],
-      )
+              ],
+            ),
+            SizedBox(height: 20),
+            Container(
+                height:1.0,
+                width: MediaQuery.of(context).size.width,
+                color: Colors.black12
+            ),
+            SizedBox(height: 20),
+            Image.asset('assets/ex/ex4.jpg', width: MediaQuery.of(context).size.width, height: 400),
+            SizedBox(height: 20),
+            Text(document['content']),
+            SizedBox(height: 30),
+          ],
+        )
     );
   }
 

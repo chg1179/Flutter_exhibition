@@ -1,87 +1,112 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import 'comm_main.dart';
 
-
-class CommEdit extends StatefulWidget {
+class ReviewEdit extends StatefulWidget {
   final String? documentId;
 
-  // 생성자에 documentId를 추가하고 null을 허용
-  CommEdit({Key? key, this.documentId}) : super(key: key);
+  // 생성자에 documentId를 추가하고 null을 허용합니다.
+  ReviewEdit({Key? key, this.documentId}) : super(key: key);
 
   @override
-  State<CommEdit> createState() => _CommEditState();
+  State<ReviewEdit> createState() => _ReviewEditState();
 }
 
-class _CommEditState extends State<CommEdit> {
+class _ReviewEditState extends State<ReviewEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
-  String? _imageURL; // 선택한 이미지의 URL을 저장
+  File? _imageFile;
 
   @override
   void initState() {
     super.initState();
-    // documentId가 있는 경우 데이터를 불러옴
+    // documentId가 있는 경우 데이터를 불러옵니다.
     if (widget.documentId != null) {
-      _loadPostData(widget.documentId!);
+      _loadReviewData(widget.documentId!);
+      print(_titleCtr);
+      print(_contentCtr);
     }
   }
 
-  Future<void> _loadPostData(String documentId) async {
+  Future<void> _loadReviewData(String documentId) async {
     try {
       final documentSnapshot =
-      await FirebaseFirestore.instance.collection('post').doc(documentId).get();
+      await FirebaseFirestore.instance.collection('review').doc(documentId).get();
       if (documentSnapshot.exists) {
         final data = documentSnapshot.data() as Map<String, dynamic>;
         final title = data['title'] as String;
         final content = data['content'] as String;
+        final imagePath = data['imagePath'] as String?;
 
+        File? imageFile = imagePath != null ? File(imagePath) : null;
 
         setState(() {
           _titleCtr.text = title;
           _contentCtr.text = content;
+          _imageFile = imageFile;
         });
       } else {
-        print('게시글을 찾을 수 없습니다.');
+        print('리뷰를 찾을 수 없습니다.');
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
-  void _savePost() async {
+  void _saveReview() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
-      CollectionReference post = FirebaseFirestore.instance.collection("post");
+      CollectionReference review = FirebaseFirestore.instance.collection("review");
 
+      String imagePath = '';
+
+      if (_imageFile != null) {
+        imagePath = await _saveImage(_imageFile!);
+      }
 
       if (widget.documentId != null) {
-        // documentId가 있는 경우 수정
-        await post.doc(widget.documentId!).update({
+        // documentId가 있는 경우 수정합니다.
+        await review.doc(widget.documentId!).update({
           'title': _titleCtr.text,
           'content': _contentCtr.text,
           'write_date': DateTime.now(),
-          'imageURL' : _imageURL
+          'imagePath': imagePath,
         });
       } else {
-        // documentId가 없는 경우 추가
-        await post.add({
+        // documentId가 없는 경우 추가합니다.
+        await review.add({
           'title': _titleCtr.text,
           'content': _contentCtr.text,
           'write_date': DateTime.now(),
-          'imageURL' : _imageURL
+          'imagePath': imagePath,
         });
       }
 
       _titleCtr.clear();
       _contentCtr.clear();
-
+      setState(() {
+        _imageFile = null;
+      });
     } else {
       print("제목과 내용을 입력해주세요");
     }
+  }
+
+  Future<String> _saveImage(File imageFile) async {
+    Directory dir = await getApplicationDocumentsDirectory();
+    Directory buskingDir = Directory('${dir.path}/busking');
+
+    if (!await buskingDir.exists()) {
+      await buskingDir.create(recursive: true);
+    }
+
+    final name = DateTime.now().millisecondsSinceEpoch.toString();
+    File targetFile = File('${buskingDir.path}/$name.png');
+    await imageFile.copy(targetFile.path);
+
+    return targetFile.path;
   }
 
   Future<void> _pickImage() async {
@@ -89,37 +114,11 @@ class _CommEditState extends State<CommEdit> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      // 이미지 업로드
-      final imageURL = await _uploadImage(File(pickedFile.path));
-      if (imageURL != null) {
-        // 이미지 업로드가 성공한 경우 URL을 상태에 저장
-        setState(() {
-          _imageURL = imageURL;
-        });
-      }
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
     }
   }
-
-  Future<String?> _uploadImage(File imageFile) async {
-    try {
-      // 이미지 파일의 이름 생성 (예: 현재 시간을 기반으로)
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final storageRef = FirebaseStorage.instance.ref().child('post_images/$fileName.jpg');
-
-      // 이미지를 Firebase Storage에 업로드
-      await storageRef.putFile(imageFile);
-
-      // 업로드한 이미지의 다운로드 URL 획득
-      final downloadURL = await storageRef.getDownloadURL();
-      print(downloadURL);
-      return downloadURL;
-
-    } catch (e) {
-      print('이미지 업로드 중 오류 발생: $e');
-      return null;
-    }
-  }
-
 
   Widget buildCommForm() {
     return SingleChildScrollView(
@@ -158,10 +157,10 @@ class _CommEditState extends State<CommEdit> {
 
   Widget _buildDivider() {
     return Container(
-      margin: EdgeInsets.only(right: 20, left: 20),
-      height: 2.0,
-      width: MediaQuery.of(context).size.width,
-      color: Colors.black12,
+        margin: EdgeInsets.only(right: 20, left: 20),
+    height: 2.0,
+    width: MediaQuery.of(context).size.width,
+    color: Colors.black12,
     );
   }
 
@@ -179,8 +178,8 @@ class _CommEditState extends State<CommEdit> {
     return Container(
       padding: const EdgeInsets.only(left: 20, right: 10),
       child: TextField(
-        maxLines: 10,
-        maxLength: 300,
+        maxLines: 20,
+        maxLength: 1000,
         controller: _contentCtr,
         decoration: InputDecoration(
           hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
@@ -194,16 +193,16 @@ class _CommEditState extends State<CommEdit> {
     );
   }
 
-  // Widget _buildSelectedImage() {
-  //   if (_imageURL != null) {
-  //     return Container(
-  //       padding: EdgeInsets.only(left: 10),
-  //       child: IconButton(
-  //         onPressed: _pickImage,
-  //         icon: Icon(Icons.image_rounded, color: Colors.black26),
-  //       ),
-  //     );
-  // }
+  Widget _buildSelectedImage() {
+    if (_imageFile != null) {
+      return Container(
+        child: Image.file(_imageFile!, width: 100, height: 100, fit: BoxFit.cover,),
+        alignment: Alignment.topLeft,
+      );
+    } else {
+      return Container();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -226,8 +225,8 @@ class _CommEditState extends State<CommEdit> {
         actions: [
           TextButton(
             onPressed: () {
-              _savePost();
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+              _saveReview();
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
             },
             child: Text(
               widget.documentId != null ? '수정' : '등록',
@@ -245,7 +244,7 @@ class _CommEditState extends State<CommEdit> {
                 padding: const EdgeInsets.all(8.0),
                 child: buildCommForm(),
               ),
-               // _buildSelectedImage(),
+              _buildSelectedImage(),
             ],
           ),
         ),

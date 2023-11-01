@@ -678,7 +678,10 @@ class _CommDetailState extends State<CommDetail> {
                       if (snapshot.hasError) {
                         return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
                       }
-                      return _commentsList(snapshot.data as QuerySnapshot);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 40.0),
+                        child: _commentsList(snapshot.data as QuerySnapshot),
+                      );
                     },
                 ),
               ],
