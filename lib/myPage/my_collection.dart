@@ -1,3 +1,4 @@
+import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/material.dart';
@@ -82,27 +83,35 @@ class _ArtPageState extends State<ArtPage> {
     // 예시 아트워크 데이터. 실제 데이터로 대체해야 합니다.
     final List<Artwork> artworks = [
       Artwork(
-        image: 'assets/main/전시2.jpg',
+        image: 'assets/main/전시5.jpg',
         title: '아트워크 1',
-        subtitle: '지역: 작가 이름 1',
+        subtitle: '작가 이름 1',
       ),
       Artwork(
         image: 'assets/main/전시3.jpg',
         title: '아트워크 2',
-        subtitle: '작가: 작가 이름 2',
-      ),
+        subtitle: '작가 이름 2',
+      )
     ];
 
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 1행에 2개의 항목을 배치
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+      child: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 5, // 열 간 간격
+          mainAxisSpacing: 5, // 행 간 간격
+          childAspectRatio: 1/1.5, // 가로 세로 비율
+        ),
+        itemCount: artworks.length,
+        itemBuilder: (context, index) {
+          return Center(
+            child: ArtworkItem(
+              artwork: artworks[index],
+            ),
+          );
+        },
       ),
-      itemCount: artworks.length,
-      itemBuilder: (context, index) {
-        return ArtworkItem(
-          artwork: artworks[index],
-        );
-      },
     );
   }
 }
@@ -126,34 +135,29 @@ class ArtworkItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Container(
-        child: InkWell(
-          onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(imagePath: artwork.image)));
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                artwork.image,
-                width: 150, // 이미지 너비 조정
-                height: 150, // 이미지 높이 조정
-                fit: BoxFit.cover,
-              ),
-              SizedBox(height: 10),
-              Text(
-                artwork.title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              Text(
-                artwork.subtitle,
-                style: TextStyle(fontSize: 12),
-              ),
-            ],
+    return InkWell(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(imagePath: artwork.image)));
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            artwork.image,
+            width: 150, // 이미지 너비 조정
+            height: 200, // 이미지 높이 조정
+            fit: BoxFit.cover,
           ),
-        ),
+          SizedBox(height: 10),
+          Text(
+            artwork.title,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          Text(
+            artwork.subtitle,
+            style: TextStyle(fontSize: 12),
+          ),
+        ],
       ),
     );
   }
@@ -165,39 +169,61 @@ class ArtistPage extends StatefulWidget {
 }
 
 class _ArtistPageState extends State<ArtistPage> {
-  // 예시 작가 목록 데이터. 실제 데이터로 대체해야 합니다.
   final List<Artist> artists = [
     Artist(
       name: "김소월",
-      profileImage: "assets/main/전시2.jpg",
+      profileImage: "assets/main/전시3.jpg",
       subtitle: "회화",
     ),
     Artist(
       name: "김동률",
-      profileImage: "assets/main/전시2.jpg",
+      profileImage: "assets/main/전시1.png",
       subtitle: "갓우",
     ),
-    // 다른 작가들의 정보도 추가할 수 있습니다.
   ];
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: artists.length,
-      itemBuilder: (context, index) {
-        final artist = artists[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: AssetImage(artist.profileImage),
-            radius: 60,
-          ),
-          title: Text(artist.name,style: TextStyle(fontWeight: FontWeight.bold),),
-          subtitle: Text(artist.subtitle,style: TextStyle(fontWeight: FontWeight.bold),),
-          onTap: () {
-            // 작가를 클릭했을 때의 동작을 추가하세요.
-          },
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: artists.length,
+        itemBuilder: (context, index) {
+          final artist = artists[index];
+          return InkWell(
+            onTap: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(artist.profileImage),
+                    radius: 40,
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        artist.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        artist.subtitle,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -220,57 +246,69 @@ class ExhibitionPage extends StatefulWidget {
 }
 
 class _ExhibitionPageState extends State<ExhibitionPage> {
-  // 예시 전시관 목록 데이터. 실제 데이터로 대체해야 합니다.
-  final List<Exhibition> exhibitions = [
-    Exhibition(
+  final List<Gallery> gallerys = [
+    Gallery(
       name: "국립현대미술관 창동레지던시",
       description: "서울",
       imageUrl: "assets/main/가로1.jpg",
     ),
-    Exhibition(
+    Gallery(
       name: "국립현대미술관 서면레지던시",
       description: "부산",
       imageUrl: "assets/main/가로2.jpg",
     ),
-    // 다른 전시관들의 정보도 추가할 수 있습니다.
   ];
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: exhibitions.length,
-      itemBuilder: (context, index) {
-        final exhibition = exhibitions[index];
-        return Padding(
-          padding: EdgeInsets.all(8.0), // 간격을 8로 조절
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundImage: AssetImage(exhibition.imageUrl),
-              radius: 60, // 원하는 크기로 조절
-            ),
-            title: Text(
-              '${exhibition.name}/${exhibition.description}',
-              style: TextStyle(
-                fontSize: 14, // 글씨 크기 조절
-                fontWeight: FontWeight.bold, // 글씨체를 볼드로 설정
+    return Padding(
+      padding: const EdgeInsets.only(top: 15),
+      child: ListView.builder(
+        itemCount: gallerys.length,
+        itemBuilder: (context, index) {
+          final gallery = gallerys[index];
+          return InkWell(
+            onTap: (){},
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage(gallery.imageUrl),
+                    radius: 40,
+                  ),
+                  SizedBox(width: 30),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        gallery.name,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Text(
+                        gallery.description,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            onTap: () {
-              // 전시관을 클릭했을 때의 동작을 추가하세요.
-            },
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
 
-class Exhibition {
+class Gallery {
   final String name;
   final String description;
   final String imageUrl;
 
-  Exhibition({
+  Gallery({
     required this.name,
     required this.description,
     required this.imageUrl,
