@@ -1,4 +1,9 @@
+import 'package:exhibition_project/admin/main.dart';
+import 'package:exhibition_project/myPage/mypage.dart';
+import 'package:exhibition_project/review/review_list.dart';
+import 'package:exhibition_project/user/home.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class SecondPage extends StatefulWidget {
   final List<Map<String, String>> followingData = [
@@ -41,42 +46,164 @@ class _SecondPageState extends State<SecondPage> {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 110, // 프로필 사진 영역의 높이 설정
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 170, // 프로필 사진 영역의 높이 설정
+            child: Container(
+              color: Color(0xff464D40),// 배경색 설정
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.followingData.length,
                 itemBuilder: (context, index) {
                   final isSelected = index == selectedUserIndex;
 
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: InkWell(
-                      onTap: () => handleUserClick(index),
-                      child: Column(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isSelected ? Colors.blue : Colors.transparent,
-                                width: 2.0,
-                              ),
+                  return InkWell(
+                    onTap: () => handleUserClick(index),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 60,),
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? Colors.orange : Colors.transparent,
+                              width: 3.0,
                             ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8.0,right: 8),
                             child: CircleAvatar(
                               radius: 30, // 프로필 사진 크기
                               backgroundImage: AssetImage('assets/main/${widget.followingData[index]['profileImage']}'),
                             ),
                           ),
-                          SizedBox(height: 4), // 프로필 사진과 이름 간의 간격 조절
-                          Text(
-                            widget.followingData[index]['name']!,
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4), // 프로필 사진과 이름 간의 간격 조절
+                        Text(
+                          widget.followingData[index]['name']!,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          Expanded(
+            child: PhotoGrid(),
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+class PhotoGrid extends StatefulWidget {
+  PhotoGrid({super.key});
+
+  @override
+  State<PhotoGrid> createState() => _PhotoGridExState();
+}
+
+class _PhotoGridExState extends State<PhotoGrid> {
+
+  final List<Map<String, dynamic>> _exList = [
+    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex1.png'},
+    {'title': '김유경: Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.10.26', 'posterPath' : 'ex/ex2.png'},
+    {'title': '원본 없는 판타지', 'place' : '온수공간/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex3.png'},
+    {'title': '강태구몬, 닥설랍, 진택 : The Instant kids', 'place' : '러브 컨템포러리 아트/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex4.jpg'},
+    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex5.jpg'},
+    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex1.png'},
+    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex2.png'},
+    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.11.15', 'lastDate' : '2023.12.15', 'posterPath' : 'ex/ex3.png'},
+  ];
+
+
+  String getOngoing(String lastDate, String startDate) {
+    DateFormat dateFormat = DateFormat('yyyy.MM.dd'); // 입력된 'lastDate' 형식에 맞게 설정
+
+    DateTime currentDate = DateTime.now();
+    DateTime exLastDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
+    DateTime exStartDate = dateFormat.parse(startDate);
+
+    // 비교
+    if(currentDate.isBefore(exStartDate)){
+      return "예정";
+    }else if(currentDate.isBefore(exLastDate)) {
+      return "진행중";
+    } else {
+      return "종료";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20),
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 330, // 각 열의 최대 너비
+                    crossAxisSpacing: 15.0, // 열 간의 간격
+                    mainAxisSpacing: 20.0, // 행 간의 간격
+                    childAspectRatio: 2/5.1
+                ),
+                itemCount: _exList.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: (){
+                      print("${_exList[index]['title']} 눌럿다");
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.all(5.0),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(5),
+                              topRight: Radius.circular(5),
+                            ),
+                            child: Image.asset("assets/${_exList[index]['posterPath']}"),
+                          ),
+                          Container(
+                              alignment: Alignment.centerLeft,
+                              padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
+                              decoration: BoxDecoration(
+                              ),
+                              child: Text(getOngoing(_exList[index]['lastDate'],_exList[index]['startDate']),
+                                  style: TextStyle(
+                                    decoration: TextDecoration.underline,
+                                    decorationStyle: TextDecorationStyle.double,
+                                    decorationColor: Color(0xff464D40),
+                                    decorationThickness: 1.5,
+                                  )
+                              )
+                          ),
+                          ListTile(
+                            title: Padding(
+                              padding: const EdgeInsets.only(top: 5, bottom: 5),
+                              child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 5),
+                                  child: Text(_exList[index]['place'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 5),
+                                  child: Text("${_exList[index]['startDate']} ~ ${_exList[index]['lastDate']}"),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -85,151 +212,9 @@ class _SecondPageState extends State<SecondPage> {
                 },
               ),
             ),
-            Expanded(
-              child: PhotoGrid(),
-            ),
-          ],
-        ),
+          )
+        ],
       ),
-    );
-  }
-}
-class PhotoGrid extends StatefulWidget {
-  final List<Map<String, dynamic>> photos = [
-    {
-      'image': '전시2.jpg',
-      'description': '몽마르세',
-      'area' : '제주도,제주시'
-    },
-    {
-      'image': '전시3.jpg',
-      'description': '몽마르세 이름',
-      'area' : '서울, 송파구'
-    },
-    {
-      'image': '전시5.jpg',
-      'description': '전시회 몽마르세 3',
-      'area' : '제주도,제주시'
-    },
-    {
-      'image': '때깔3.jpg',
-      'description': '몽마르세 4',
-      'area' : '제주도,제주시'
-    },
-    {
-      'image': '전시3.jpg',
-      'description': '몽마르세 2',
-      'area' : '제주도,제주시'
-    },
-    {
-      'image': '전시5.jpg',
-      'description': '몽마르세',
-      'area' : '제주도,제주시'
-    },
-    // 추가 이미지와 설명
-  ];
-
-  @override
-  _PhotoGridState createState() => _PhotoGridState();
-}
-
-class _PhotoGridState extends State<PhotoGrid> {
-  late List<bool> isLiked; // 좋아요 상태 목록
-  int selectedPhotoIndex = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    isLiked = List.filled(widget.photos.length, false); // 각 사진에 대한 초기 좋아요 상태
-  }
-
-  void toggleLike(int index) {
-    setState(() {
-      isLiked[index] = !isLiked[index]; // 해당 사진의 좋아요 상태를 토글
-    });
-  }
-
-  Future<void> showDescriptionDialog(BuildContext context, int index) {
-    return showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                'assets/main/${widget.photos[index]['image']}',
-                width: 200, // 이미지의 폭
-                height: 200, // 이미지의 높이
-                fit: BoxFit.cover,
-              ),
-              SizedBox(height: 8),
-              Text(
-                widget.photos[index]['description'],
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                widget.photos[index]['area'],
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // 다이얼로그 닫기
-              },
-              child: Text('닫기'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-      ),
-      itemCount: widget.photos.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap: () {
-            showDescriptionDialog(context, index);
-          },
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Card(
-              elevation: 5,
-              child: Stack(
-                children: [
-                  Image.asset(
-                    'assets/main/${widget.photos[index]['image']}',
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.fill,
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton(
-                      icon: Icon(
-                        isLiked[index] ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked[index] ? Colors.red : Colors.black,
-                      ),
-                      onPressed: () {
-                        toggleLike(index);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
