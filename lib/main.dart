@@ -50,15 +50,16 @@ class _HomeState extends State<Home> {
         length: 2, // 탭 수
         child: Scaffold(
           appBar: AppBar(
+            leading: Image.asset('main/logo_green.png'),
             elevation: 0,
-            backgroundColor: Colors.white,
+            backgroundColor:Color(0xff464D40),
             title: null, // title 숨기기
             actions: [
               IconButton(
                 onPressed: (){
                   Navigator.push(context,MaterialPageRoute(builder: (context) => Search()));
                 },
-                icon: Icon(Icons.search, color: Colors.black),
+                icon: Icon(Icons.search, color: Colors.white),
               )
             ],
             flexibleSpace: PreferredSize(
@@ -73,7 +74,7 @@ class _HomeState extends State<Home> {
                           child: Container(
                             child: Align(
                               alignment: Alignment.centerRight,
-                              child: Text('추천'),
+                              child: Text('추천', style: TextStyle(color: Colors.white),),
                             ),
                           ),
                         ),
@@ -81,7 +82,7 @@ class _HomeState extends State<Home> {
                           child: Container(
                             child: Align(
                               alignment: Alignment.centerLeft,
-                              child: Text('팔로잉'),
+                              child: Text('팔로잉', style: TextStyle(color: Colors.white),),
                             ),
                           ),
                         ),
@@ -97,6 +98,7 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
+            extendBodyBehindAppBar: true,
           body: Container(
             constraints: BoxConstraints(maxWidth: 500), // 최대넓이제한
             child: _isSearchVisible
@@ -105,7 +107,7 @@ class _HomeState extends State<Home> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: '전시 검색',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Icon(Icons.search, color: Colors.white,),
                   contentPadding: EdgeInsets.all(8.0),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),

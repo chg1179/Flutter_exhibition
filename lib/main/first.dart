@@ -16,43 +16,96 @@ void main() {
 class FirstPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(13.0),
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance.collection('exhibition').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return CircularProgressIndicator(); // 데이터를 가져올 때까지 로딩 표시
+        }
+
+        final exhibitions = snapshot.data?.docs; // 전시 정보 문서 목록
+
+        return Container(
+          color: Colors.white, // 전체 배경색
           child: ListView(
             children: [
-              Text('오늘의 전시🔥', style: TextStyle(fontWeight: FontWeight.bold)),
-              Container(child: MainList(),height: 400,),
-              Text('지금 인기있는 전시🔥', style: TextStyle(fontWeight: FontWeight.bold)),
-              Container(child: ImageList(),height: 250,),
-              Text('요즘 많이 찾는 지역🔥', style: TextStyle(fontWeight: FontWeight.bold)),
-              Text('최신 공간 소식을 받아세요🔥', style: TextStyle(fontSize:10,color:Colors.grey,fontWeight: FontWeight.bold)),
-              Container(child: UserList(),height: 110,),
+              Container(
+                color: Color(0xff464D40),// "오늘의 전시"와 "MainList" 부분에 배경색 설정
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(13.0),
+                      child: Text('오늘의 전시🔥', style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
+                    ),
+                    Center(
+                      child: Container(
+                        child: MainList(), // MainList에 전시 정보 전달
+                        height: 400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Text('지금 인기있는 전시🔥', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              Container(
+                child: ImageList(), // ImageList에 전시 정보 전달
+                height: 250,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Text('요즘 많이 찾는 지역🔥', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Text('최신 공간 소식을 받아세요🔥',
+                  style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Container(
+                child: UserList(),
+                height: 110,
+              ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트와 버튼을 오른쪽 정렬
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('어떤 전시회가 좋을지 고민된다면?🤔', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Padding(
+                    padding: const EdgeInsets.all(13.0),
+                    child: Text('어떤 전시회가 좋을지 고민된다면?🤔', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => AddView())
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => AddView()));
                     },
-                    child: Text('더보기', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),),
+                    child: Text(
+                      '더보기',
+                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
-              Container(child: ImageList(),height: 260,),
-              Text('곧 종료되는 전시🏁', style: TextStyle(fontWeight: FontWeight.bold)),
-              ImageList(),
+              Container(
+                child: ImageList(), // ImageList에 전시 정보 전달
+                height: 260,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(13.0),
+                child: Text('곧 종료되는 전시🏁', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              ImageList(), // ImageList에 전시 정보 전달
             ],
           ),
-        )
+        );
+
+      },
     );
   }
 }
 class ImageList extends StatefulWidget {
+  List<Map<String, String>> images2 = [];
   final List<Map<String, String>> images = [
     { // 리스트는 6개만 뽑기! 아니면 자동슬라이드 에러뜸
       'name': '전시1.png',
@@ -89,6 +142,113 @@ class ImageList extends StatefulWidget {
   @override
   _ImageListState createState() => _ImageListState();
 }
+class _ImageListState extends State<ImageList> {
+  final PageController _controller = PageController(viewportFraction: 0.9);
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoScroll();
+    _fetchFirestoreData(); // Firestore 데이터 가져오기
+
+  }
+  void _fetchFirestoreData() {
+    FirebaseFirestore.instance.collection('exhibition').get().then((querySnapshot) {
+      final fetchedData = querySnapshot.docs.map((exhibition) {
+        final data = exhibition.data() as Map<String, dynamic>;
+        return {
+          'name': data['exTitle'] as String, // 'name'과 값은 String 타입으로 강제 변환
+          'title': data['exTitle'] as String, // 'title'과 값은 String 타입으로 강제 변환
+          'description': data['exDescription'] as String, // 'description'과 값은 String 타입으로 강제 변환
+        };
+      }).toList();
+
+      // setState 호출로 화면을 업데이트
+      setState(() {
+        widget.images2 = fetchedData;
+      });
+    });
+  }
+
+  void _startAutoScroll() {
+    Future.delayed(Duration(seconds: 5)).then((_) {
+      if (mounted) {
+        int nextPage = (_currentPage + 3) % widget.images.length;
+        _controller.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+        );
+        _startAutoScroll();
+      }
+    });
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 300,
+      child: PageView.builder(
+        controller: _controller,
+        itemCount: widget.images.length,
+        onPageChanged: (int page) {
+          setState(() {
+            _currentPage = page;
+          });
+        },
+        itemBuilder: (context, index) {
+          final start = (index * 3) % widget.images.length;
+          final end = (start + 2) % widget.images.length;
+          final imageGroup = widget.images.getRange(start, end + 1).toList();
+
+          return Row(
+            children: imageGroup.map((imageName) {
+              return Expanded(
+                child: InkWell( // Wrap each image with InkWell for click functionality
+                  onTap: () {
+                    _onImageClicked(imageName);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Image.asset('assets/main/${imageName['name']}'),
+                        Text(
+                          imageName['title']!,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          imageName['description']!,
+                          style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
+  }
+
+  void _onImageClicked(Map<String, String> imageInfo) {
+    // Implement the action to be taken when an image is clicked
+    print('지금 인기있는 전시: ${imageInfo['title']}');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
+
+
 class MainList extends StatefulWidget {
   final List<Map<String, String>> images = [
     {
@@ -119,6 +279,24 @@ class _MainListState extends State<MainList> {
   void initState() {
     super.initState();
     _startAutoScroll();
+
+    FirebaseFirestore.instance.collection('exhibition').get().then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final extitle = data['extitle'] as String;
+        final exDescription = data['exDescription'] as String;
+
+        // 데이터를 images 리스트에 추가
+        widget.images.add({
+          'name': extitle, // extitle을 'name'으로 사용
+          'title': extitle,
+          'description': exDescription,
+        });
+
+        // setState 호출로 화면을 업데이트
+        setState(() {});
+      });
+    });
   }
 
   void _startAutoScroll() {
@@ -190,10 +368,9 @@ class _MainListState extends State<MainList> {
     );
   }
 
-  void _onImageClicked(Map<String, String> imageInfo) {
+  void _onImageClicked(Map<String, dynamic> exhibitionData) {
     // Implement the action to be taken when an image is clicked
-    // You can use imageInfo to access information about the clicked image.
-    print('Image clicked: ${imageInfo['title']}');
+    print('Image clicked: ${exhibitionData['exTitle']}');
   }
 
   @override
@@ -202,94 +379,6 @@ class _MainListState extends State<MainList> {
     super.dispose();
   }
 }
-class _ImageListState extends State<ImageList> {
-  final PageController _controller = PageController(viewportFraction: 0.9);
-  int _currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _startAutoScroll();
-  }
-
-  void _startAutoScroll() {
-    Future.delayed(Duration(seconds: 5)).then((_) {
-      if (mounted) {
-        int nextPage = (_currentPage + 3) % widget.images.length;
-        _controller.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeOut,
-        );
-        _startAutoScroll();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      child: PageView.builder(
-        controller: _controller,
-        itemCount: widget.images.length,
-        onPageChanged: (int page) {
-          setState(() {
-            _currentPage = page;
-          });
-        },
-        itemBuilder: (context, index) {
-          final start = (index * 3) % widget.images.length;
-          final end = (start + 2) % widget.images.length;
-          final imageGroup = widget.images.getRange(start, end + 1).toList();
-
-          return Row(
-            children: imageGroup.map((imageName) {
-              return Expanded(
-                child: InkWell( // Wrap each image with InkWell for click functionality
-                  onTap: () {
-                    _onImageClicked(imageName);
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Image.asset('assets/main/${imageName['name']}'),
-                        Text(
-                          imageName['title']!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          imageName['description']!,
-                          style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          );
-        },
-      ),
-    );
-  }
-
-  void _onImageClicked(Map<String, String> imageInfo) {
-    // Implement the action to be taken when an image is clicked
-    print('Image clicked: ${imageInfo['title']}');
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-}
-
 
 class UserList extends StatefulWidget {
   final List<Map<String, String>> users = [
