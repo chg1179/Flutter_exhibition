@@ -48,6 +48,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _exhibitionFee = [];
 
   @override
   void initState() {
@@ -61,6 +63,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       if (documentSnapshot.exists) {
         setState(() {
           _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
+          _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
         });
       } else {
         print('전시회 정보를 찾을 수 없습니다.');
@@ -84,6 +87,26 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     }
   }
 
+  Widget _exFee(QuerySnapshot<Object?> data) {
+    if (_exhibitionFee.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 50),
+        child: Column(
+          children: _exhibitionFee.map((exFeeData) {
+            final exKind = exFeeData['exKind'];
+            final exFee = exFeeData['exFee'];
+
+            return ListTile(
+              title: Text(exKind, style: TextStyle(fontSize: 15)),
+            );
+          }).toList(),
+        ),
+      );
+    } else {
+      return Text('무료');
+    }
+  }
+
   Future<void> openURL(String url) async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
 
@@ -96,10 +119,43 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
 
   @override
   Widget build(BuildContext context) {
-    String _ongoing = getExhibitionStatus();
     final double appBarHeight = AppBar().preferredSize.height;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double totalHeight = appBarHeight + statusBarHeight;
+
+    Widget _onGoing(){
+      String _ongoing = getExhibitionStatus();
+      return Container(
+        width: 60,
+        height: 30,
+        decoration: BoxDecoration(
+          color: _ongoing == "진행중"
+              ? Color(0xff464D40)
+              : _ongoing == "예정"
+              ? Colors.white
+              : Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          border: _ongoing == "진행중"
+              ? null
+              : _ongoing == "예정"
+              ? Border.all(color: Colors.red)
+              : Border.all(color: Colors.black),
+        ),
+        child: Center(
+          child: Text(
+            _ongoing,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _ongoing == "진행중"
+                  ? Colors.white
+                  : _ongoing == "예정"
+                  ? Colors.red
+                  : Colors.black,
+            ),
+          ),
+        ),
+      );
+    }
 
     Widget _TabBar() {
       return Container(
@@ -183,36 +239,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               ),
                             ),
                             Spacer(),
-                            Container(
-                              width: 60,
-                              height: 30,
-                              decoration: BoxDecoration(
-                                color: _ongoing == "진행중"
-                                    ? Color(0xff464D40)
-                                    : _ongoing == "예정"
-                                    ? Colors.white
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                border: _ongoing == "진행중"
-                                    ? null
-                                    : _ongoing == "예정"
-                                    ? Border.all(color: Colors.red)
-                                    : Border.all(color: Colors.black),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _ongoing,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: _ongoing == "진행중"
-                                        ? Colors.white
-                                        : _ongoing == "예정"
-                                        ? Colors.red
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            _onGoing(),
                           ],
                         ),
                         SizedBox(height: 20),
@@ -224,7 +251,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                         ),
                         Row(
                           children: [
-                            Text("${DateFormat('yyyy.MM.dd').format(_exDetailData?['startDate'].toDate())} ~ ${DateFormat('yyyy.MM.dd').format(_exDetailData?['endDate'].toDate())}",style: TextStyle(fontSize: 16)),
+                           Text("${DateFormat('yyyy.MM.dd').format(_exDetailData?['startDate'].toDate())} ~ ${DateFormat('yyyy.MM.dd').format(_exDetailData?['endDate'].toDate())}",style: TextStyle(fontSize: 16)),
                             Spacer(),
                             Container(
                               height: 40, // 아이콘 버튼의 높이 조절
@@ -364,9 +391,37 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   child: Text("입장료", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
                               Container(
-                                  width: 250,
-                                  child: Text("일반 15,000원 \n청소년, 경로 7,500원\n단체(20인 이상) 12,000원\n문화가 있는날(매월 마지막 수요일) 2,000원 할인(중복할인 불가)", style: TextStyle())
+                                width: 250,
+                                child: StreamBuilder<QuerySnapshot>(
+                                  stream: FirebaseFirestore.instance
+                                      .collection('exhibition')
+                                      .doc(widget.document)
+                                      .collection('exhibition_fee')
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    }
+                                    if (snapshot.hasError) {
+                                      return Text('불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                                    }
+                                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                      return Text('무료');
+                                    }
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: snapshot.data!.docs.map((exFeeData) {
+                                        String exKind = exFeeData['exKind'];
+                                        String exFee = exFeeData['exFee'];
+
+                                        return Text('${exKind} / ${exFee}');
+                                      }).toList(),
+                                    );
+                                  },
+                                ),
                               )
+
                             ],
                           ),
                         ),
