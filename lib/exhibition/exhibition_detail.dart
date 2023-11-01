@@ -1,3 +1,4 @@
+import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
@@ -610,29 +611,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     ),
                                   ),
                                   onPressed: (){
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text("한줄평 작성", style: TextStyle(fontSize: 15),),
-                                          content: TextField(controller: _expReview),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('취소', style: TextStyle(color: Colors.black),),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: Text('작성', style: TextStyle(color: Color(0xff55693e)),),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview()));
                                   },
                                   child: Text("한줄평 작성")
                               ),
