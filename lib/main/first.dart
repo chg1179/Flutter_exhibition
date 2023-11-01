@@ -279,24 +279,6 @@ class _MainListState extends State<MainList> {
   void initState() {
     super.initState();
     _startAutoScroll();
-
-    FirebaseFirestore.instance.collection('exhibition').get().then((querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final extitle = data['extitle'] as String;
-        final exDescription = data['exDescription'] as String;
-
-        // 데이터를 images 리스트에 추가
-        widget.images.add({
-          'name': extitle, // extitle을 'name'으로 사용
-          'title': extitle,
-          'description': exDescription,
-        });
-
-        // setState 호출로 화면을 업데이트
-        setState(() {});
-      });
-    });
   }
 
   void _startAutoScroll() {
@@ -307,88 +289,89 @@ class _MainListState extends State<MainList> {
           nextPage,
           duration: Duration(milliseconds: 1000),
           curve: Curves.easeOut,
-        );
-        _startAutoScroll();
+        ).then((_) {
+          _currentPage = nextPage;
+          _startAutoScroll(); // 슬라이드가 완료된 후 다음 슬라이드 시작
+        });
       }
-      print('Auto scroll started to page ');
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-      stream: FirebaseFirestore.instance
-        .collection('exhibition')
-        .orderBy('postDate', descending: true)
-        .limit(3)
-        .snapshots(),
-      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (snap.hasError) {
-          return Center(child: Text('에러 발생: ${snap.error}'));
-        }
-        if (!snap.hasData) {
-          return Center(child: Text('데이터 없음'));
-        }
-        return Container(
-          constraints: BoxConstraints(maxHeight: 400),
-          child: PageView.builder(
-            controller: _controller,
-            //itemCount: widget.images.length,
-            itemCount: snap.data!.docs.length,
-            // onPageChanged: (int page) {
-            //   setState(() {
-            //     _currentPage = page;
-            //   });
-            // }, // 이자식때문에 슬라이드가 안됌
-            itemBuilder: (context, index) {
-              DocumentSnapshot doc = snap.data!.docs[index];
-              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-              final imageInfo = widget.images[index];
+        stream: FirebaseFirestore.instance
+            .collection('exhibition')
+            .orderBy('postDate', descending: true)
+            .limit(3)
+            .snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return Center(child: Text('에러 발생: ${snap.error}'));
+          }
+          if (!snap.hasData) {
+            return Center(child: Text('데이터 없음'));
+          }
+          return Container(
+            constraints: BoxConstraints(maxHeight: 400),
+            child: PageView.builder(
+              controller: _controller,
+              //itemCount: widget.images.length,
+              itemCount: snap.data!.docs.length,
+              // onPageChanged: (int page) {
+              //   setState(() {
+              //     _currentPage = page;
+              //   });
+              // }, // 이자식때문에 슬라이드가 안됌
+              itemBuilder: (context, index) {
+                DocumentSnapshot doc = snap.data!.docs[index];
+                Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                final imageInfo = widget.images[index];
 
-              // Wrap each image with InkWell for click functionality
-              return InkWell(
-                onTap: () {
-                  _onImageClicked(imageInfo);
-                },
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.asset(
-                              'assets/main/${imageInfo['name']}',
-                              width: MediaQuery.of(context).size.width * 0.5,
-                              height: 300,
-                            ),
-                            Text(
-                              '${data['exTitle']}',
-                              style: TextStyle(
-                                color: Color(0xffD4D8C8),
-                                fontWeight: FontWeight.bold,
+                // Wrap each image with InkWell for click functionality
+                return InkWell(
+                  onTap: () {
+                    _onImageClicked(imageInfo);
+                  },
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Image.asset(
+                                'assets/main/${imageInfo['name']}',
+                                width: MediaQuery.of(context).size.width * 0.5,
+                                height: 300,
                               ),
-                            ),
-                            Text(
-                              //갤러리 장소 조인해야함...ㅠ
-                              imageInfo['description']!,
-                              style: TextStyle(fontSize: 10 , color: Colors.grey, fontWeight: FontWeight.bold),
-                            ),
-                          ],
+                              Text(
+                                '${data['exTitle']}',
+                                style: TextStyle(
+                                  color: Color(0xffD4D8C8),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                //갤러리 장소 조인해야함...ㅠ
+                                imageInfo['description']!,
+                                style: TextStyle(fontSize: 10 , color: Colors.grey, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      }
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        }
     );
   }
 
@@ -465,7 +448,7 @@ class _UserListState extends State<UserList> {
       height: 300,
       child: PageView.builder(
         controller: _controller,
-        itemCount: snap.data!.docs.length,
+        itemCount: widget.users.length,
         onPageChanged: (int page) {
           setState(() {
             _currentPage = page;
