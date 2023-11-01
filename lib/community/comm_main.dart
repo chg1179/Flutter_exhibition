@@ -54,6 +54,11 @@ class _CommMainState extends State<CommMain> {
     });
   }
 
+  void _updateSelectedTag(int index) {
+    selectedButtonIndex = index;
+    selectedTag = _tagList[index];
+  }
+
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
       minimumSize: MaterialStateProperty.all(Size(0, 30)),
@@ -118,10 +123,7 @@ class _CommMainState extends State<CommMain> {
               return ElevatedButton(
                 child: Text(tagText),
                 onPressed: () {
-                  setState(() {
-                    selectedButtonIndex = index;
-                    selectedTag = tag;
-                  });
+                  _updateSelectedTag(index);
                 },
                 style: selectedButtonIndex == index ? _pushBtnStyle() : _unPushBtnStyle(),
               );
@@ -148,7 +150,64 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  Widget buildIcons() {
+  Map<String, int> commentCounts = {};
+
+  @override
+  void initState() {
+    super.initState();
+    loadCommentCounts();
+    _updateSelectedTag(selectedButtonIndex);
+  }
+
+  Future<List<String>> getPostDocumentIds() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      return documentIds;
+    } catch (e) {
+      print('게시물 ID를 불러오는 동안 오류 발생: $e');
+      return [];
+    }
+  }
+
+  Future<int> getCommentCount(String docId) async {
+    try {
+      final QuerySnapshot commentQuery = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(docId)
+          .collection('comment')
+          .get();
+      return commentQuery.docs.length;
+    } catch (e) {
+      print('댓글 수 조회 중 오류 발생: $e');
+      return 0;
+    }
+  }
+
+  Future<void> calculateCommentCounts(List<String> documentIds) async {
+    for (String documentId in documentIds) {
+      try {
+        final QuerySnapshot commentQuery = await FirebaseFirestore.instance
+            .collection('post')
+            .doc(documentId)
+            .collection('comment')
+            .get();
+        int commentCount = commentQuery.docs.length;
+        commentCounts[documentId] = commentCount;
+        setState(() {});
+      } catch (e) {
+        print('댓글 수 조회 중 오류 발생: $e');
+        commentCounts[documentId] = 0;
+      }
+    }
+  }
+
+  Future<void> loadCommentCounts() async {
+    List<String> documentIds = await getPostDocumentIds();
+    await calculateCommentCounts(documentIds);
+  }
+
+  Widget buildIcons(String docId, int commentCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -158,21 +217,23 @@ class _CommMainState extends State<CommMain> {
             children: [
               buildIconsItem(Icons.visibility, '0'),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, '0'),
+              buildIconsItem(
+                Icons.chat_bubble_rounded,
+                commentCount.toString(),
+              ),
               SizedBox(width: 5),
             ],
           ),
           GestureDetector(
             onTap: () {
-              // 좋아요 토글 기능
               setState(() {
                 isLiked = !isLiked;
               });
             },
             child: buildIconsItem(
-              isLiked ? Icons.favorite : Icons.favorite_border, // 아이콘 변경
+              isLiked ? Icons.favorite : Icons.favorite_border,
               '0',
-              isLiked ? Colors.red : null, // 아이콘 색상 변경
+              isLiked ? Colors.red : null,
             ),
           ),
         ],
@@ -180,7 +241,7 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) { // [Color?]로 변경
+  Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) {
     return Container(
       padding: EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -189,7 +250,7 @@ class _CommMainState extends State<CommMain> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 13, color: iconColor ?? Colors.white), // 색상 선택 기능 추가
+          Icon(icon, size: 13, color: iconColor ?? Colors.white),
           SizedBox(width: 2),
           Text(text, style: TextStyle(color: Colors.white)),
         ],
@@ -223,17 +284,19 @@ class _CommMainState extends State<CommMain> {
             final doc = snap.data!.docs[index];
             final title = doc['title'] as String;
             final content = doc['content'] as String;
+
             Timestamp timestamp = doc['write_date'] as Timestamp;
             DateTime dateTime = timestamp.toDate();
 
-            String? imagePath;
+            String docId = doc.id;
 
+            String? imagePath;
             final data = doc.data() as Map<String, dynamic>;
+
             if (data.containsKey('imagePath')) {
               imagePath = data['imagePath'] as String;
             } else {
-              // 'imagePath' 필드가 문서 데이터에 존재하지 않는 경우, 이곳에서 처리할 수 있습니다
-              imagePath = null;
+              imagePath = '';
             }
 
             return GestureDetector(
@@ -257,7 +320,6 @@ class _CommMainState extends State<CommMain> {
                         children: [
                           CircleAvatar(
                             radius: 10,
-                            // 사용자 프로필 이미지를 여기에 표시할 수 있습니다.
                           ),
                           SizedBox(width: 5),
                           Text('userNickname', style: TextStyle(fontSize: 13)),
@@ -285,7 +347,7 @@ class _CommMainState extends State<CommMain> {
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
-                    if (imagePath != null)
+                    if (imagePath != null && imagePath.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: ClipRRect(
@@ -298,7 +360,7 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons()
+                    buildIcons(docId, commentCounts[docId] ?? 0),
                   ],
                 ),
               ),
@@ -308,7 +370,6 @@ class _CommMainState extends State<CommMain> {
       },
     );
   }
-
 
 
   @override
@@ -361,7 +422,6 @@ class _CommMainState extends State<CommMain> {
             ),
           ],
         ),
-
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => CommAdd()));
@@ -370,7 +430,6 @@ class _CommMainState extends State<CommMain> {
           backgroundColor: Color(0xff464D40),
           mini: true,
         ),
-
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
@@ -414,7 +473,6 @@ class _CommMainState extends State<CommMain> {
               ),
               label: '',
             ),
-
             BottomNavigationBarItem(
               icon: IconButton(
                   onPressed: (){

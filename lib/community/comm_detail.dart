@@ -202,7 +202,7 @@ class _CommDetailState extends State<CommDetail> {
     String? imagePath = _postData?['imagePath'] as String?;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: imagePath != null
+      child: imagePath != null && imagePath.isNotEmpty
           ? Image.file(
         File(imagePath),
         width: 400,
@@ -381,7 +381,23 @@ class _CommDetailState extends State<CommDetail> {
   }
 
   void _deletePost(String documentId) async {
-    await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
+    try {
+      // 해당 게시글의 댓글 컬렉션 참조를 가져옵니다.
+      final commentCollection = FirebaseFirestore.instance.collection("post").doc(documentId).collection("comment");
+
+      // 게시글의 댓글 컬렉션에 속한 모든 댓글 문서를 삭제합니다.
+      final commentQuerySnapshot = await commentCollection.get();
+      for (var commentDoc in commentQuerySnapshot.docs) {
+        await commentDoc.reference.delete();
+      }
+
+      // 게시글 문서를 삭제합니다.
+      await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
+
+
+    } catch (e) {
+      print('게시글 삭제 중 오류 발생: $e');
+    }
   }
 
   Widget _commentsList(QuerySnapshot<Object?> data) {

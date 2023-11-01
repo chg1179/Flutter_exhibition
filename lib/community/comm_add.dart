@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-
 import 'comm_main.dart';
 
 class CommAdd extends StatefulWidget {
@@ -23,7 +22,7 @@ class _CommAddState extends State<CommAdd> {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
       CollectionReference post = FirebaseFirestore.instance.collection("post");
 
-      String imagePath = '';
+      String imagePath = ''; // 기본값 설정
 
       if (_imageFile != null) {
         imagePath = await _saveImage(_imageFile!);
@@ -32,7 +31,7 @@ class _CommAddState extends State<CommAdd> {
       await post.add({
         'title': _titleCtr.text,
         'content': _contentCtr.text,
-        'write_date' : DateTime.now(),
+        'write_date': DateTime.now(),
         'imagePath': imagePath,
       });
 
@@ -149,9 +148,9 @@ class _CommAddState extends State<CommAdd> {
 
   Widget _buildSelectedImage() {
     if (_imageFile != null) {
-      return Image.file(_imageFile!);
+      return Image.file(_imageFile!); // 이미지가 있을 때만 이미지를 출력
     } else {
-      return Container();
+      return Container(); // 이미지가 없을 때는 아무것도 출력하지 않음
     }
   }
 
@@ -175,7 +174,7 @@ class _CommAddState extends State<CommAdd> {
         ),
         actions: [
           TextButton(
-            onPressed: (){
+            onPressed: () {
               _addPost();
               Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
             },
