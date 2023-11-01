@@ -38,41 +38,36 @@ class ArtistEditProfile extends StatefulWidget {
 
 class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Map<String, String> formData = {};  // 다음 탭으로 값을 보내는 맵
-  final picker = ImagePicker();
+  final ImageSelector selector = ImageSelector();
+  late ImageUploader uploader;
+
   XFile? _imageFile;
 
-  Future<void> getImage() async {
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  @override
+  void initState() {
+    super.initState();
+    uploader = ImageUploader('artist_images'); // Providing folderName here
+  }
 
+  Future<void> getImage() async {
+    XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
       setState(() {
         _imageFile = pickedFile;
       });
     } else {
-      print('이미지가 선택되지 않았습니다.');
+      print('No image selected.');
     }
   }
 
   Future<void> uploadImage() async {
     if (_imageFile != null) {
-      Uint8List? imageBytes = await _imageFile!.readAsBytes();
-
-      FirebaseStorage storage = FirebaseStorage.instance;
-      String folderName = 'artist_images/';
-      String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      Reference storageReference = storage.ref().child('$folderName/$fileName.jpg');
-      UploadTask uploadTask = storageReference.putData(imageBytes);
-
-      await uploadTask.whenComplete(() async {
-        String downloadURL = await storageReference.getDownloadURL();
-        print('Firebase Storage에 이미지 업로드 완료: $downloadURL');
-      });
+      String downloadURL = await uploader.uploadImage(_imageFile!);
+      print('Uploaded to Firebase Storage: $downloadURL');
     } else {
-      print('이미지를 선택하지 않았습니다.');
+      print('No image selected.');
     }
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
