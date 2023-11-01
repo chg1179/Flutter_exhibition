@@ -136,9 +136,65 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                   Center(
                     child: Column(
                       children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundImage: AssetImage('assets/main/가로1.jpg'),
+                        //프로필사진
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundImage: AssetImage('assets/main/가로1.jpg'),
+                            ),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  children: [
+                                    SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // 첫 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                        _showFollowersDialog(context, '후기글', 7);
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text('7', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          Text('후기글', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                        _showFollowersDialog(context, '팔로워', 100);
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          Text('팔로워', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                        _showFollowersDialog(context, '팔로잉', 100);
+                                      },
+                                      child: Column(
+                                        children: [
+                                          Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          Text('팔로잉', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            )
+
+                          ],
                         ),
                         SizedBox(height: 20),
                         Row(
@@ -376,6 +432,31 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
         )
       )
       );
+  }
+
+  void _showFollowersDialog(BuildContext context, String title, int count) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            children: <Widget>[
+              Text('팔로잉: $count'),
+              Text('팔로워: $count'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('닫기'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 
