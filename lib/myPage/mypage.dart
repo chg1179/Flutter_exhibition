@@ -2,6 +2,7 @@ import 'package:exhibition_project/community/comm_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/myPage/be_back_ex.dart';
+import 'package:exhibition_project/myPage/isNotification.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
 import 'package:exhibition_project/myPage/like_ex.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
@@ -100,7 +101,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                 ),
                 actions: [
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => IsNotification()));
+                    },
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: Image.asset(
