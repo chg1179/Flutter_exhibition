@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+ButtonStyle greenButtonStyle() {
+  return ButtonStyle(
+    backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(70, 77, 64, 1.0)), // 버튼 색상(진한 그린)
+  );
+}
 ButtonStyle fullGreenButtonStyle() {
   return ButtonStyle(
     backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(70, 77, 64, 1.0)), // 버튼 색상(진한 그린)

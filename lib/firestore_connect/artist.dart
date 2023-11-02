@@ -4,11 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //${widget.formData['name']}')
 
-// 작가 정보만 추가
+// 작가 정보 추가.
 Future<String> addArtist(String collectionStr, Map<String, String> formData) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
-  // 작가 정보 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
+  // DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
   DocumentReference artist = await _fs.collection(collectionStr).add({
     'artistName': formData['name'],
     'artistEnglishName': formData['englishName'],
@@ -21,57 +21,29 @@ Future<String> addArtist(String collectionStr, Map<String, String> formData) asy
   return artist.id;
 }
 
-// 작가 정보 및 추가
+// 작가 이미지 추가
 Future<void> addArtistImg(String parentCollection, String childCollection, String documentId, String downloadURL, String folderName) async {
-  // 작가 이미지 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
   await FirebaseFirestore.instance
       .collection(parentCollection)
       .doc(documentId)
       .collection(childCollection)
       .add({
-        'downloadURL' : downloadURL,
-        'folderName' : '$folderName',
+        'imageURL' : downloadURL,
+        'folderName' : folderName,
         'artistImagePostdate': FieldValue.serverTimestamp(),
         'artistImageUpdatedate': FieldValue.serverTimestamp()
   });
 }
 
-Future<void> addArtistFirestore(String collectionStr, String artistName, String artistEnglishName, String artistNationality, String education, String history, String awards, String expertise, String artistIntroduce, String imagePath) async {
-  final FirebaseFirestore _fs = FirebaseFirestore.instance;
-
-  // 작가 정보 추가. DocumentReference : 개별 문서를 가리켜 해당 문서를 읽고 수정할 수 있는 참조 유형
-  DocumentReference artist = await _fs.collection(collectionStr).add({
-    'artistName': artistName,
-    'artistEnglishName': artistEnglishName,
-    'artistNationality': artistNationality,
-    'expertise': expertise,
-    'artistIntroduce': artistIntroduce,
-  });
-
-  // 하위 컬렉션 추가
-  // 작가 학력
-  await artist.collection("artist_education").add({
-    'educationYear': FieldValue.serverTimestamp(),
-    'educationContent': imagePath
-  });
-
-  // 작가 이력
-  await artist.collection("artist_history").add({
-    'historyYear': imagePath,
-    'educationContent': FieldValue.serverTimestamp(),
-  });
-
-  // 수상 경력
-  await artist.collection("artist_awards").add({
-    'awardYear': imagePath,
-    'awardContent': FieldValue.serverTimestamp(),
-  });
-
-  // 작가 이미지
-
-  await artist.collection("artist_image").add({
-    'artistImagePath': imagePath,
-    'timestamp': FieldValue.serverTimestamp(),
+// 하위 컬렉션(추가 정보: 학력/활동/이력) 추가
+Future<void> addArtistDetails(String parentCollection, String childCollection, String? documentId, String year, String content) async {
+  await FirebaseFirestore.instance
+      .collection(parentCollection)
+      .doc(documentId)
+      .collection(childCollection)
+      .add({
+    'year' : year,
+    'content' : content
   });
 }
 
@@ -115,9 +87,18 @@ void removeArtist(BuildContext context, Map<String, bool> checkedList, String co
         }
       });
       // 삭제 작업을 수행한 후, 확인을 표시할 수 있습니다.
-      showMessageDialog(context, '선택한 항목이 삭제되었습니다.');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('선택한 항목이 삭제되었습니다.'))
+      );
     }
   } else {
     showMessageDialog(context , '삭제할 항목을 선택해 주세요.');
   }
+}
+
+// 작가 컬렉션의 갯수를 리턴
+Future<int> getTotalCount(String collectionStr) async {
+  QuerySnapshot snapshot = await FirebaseFirestore.instance.collection(collectionStr).get();
+  int totalDataCount = snapshot.docs.length;
+  return totalDataCount;
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
@@ -5,6 +6,7 @@ import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:country_calling_code_picker/picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,7 +43,8 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   final ImageSelector selector = ImageSelector();//이미지
   late ImageUploader uploader;
   XFile? _imageFile;
-  String? downloadURL;
+  String? imageURL;
+  String? imgPath;
   bool _saving = false; // 저장 로딩
 
   @override
@@ -51,27 +54,30 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
     uploader = ImageUploader('artist_images');
   }
 
+  // 이미지 가져오기
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
       setState(() {
         _imageFile = pickedFile;
+        imgPath = pickedFile.path;
       });
     } else {
       print('No image selected.');
     }
   }
 
+  // 이미지 추가
   Future<void> uploadImage() async {
     if (_imageFile != null) {
-      downloadURL = await uploader.uploadImage(_imageFile!);
-      print('Uploaded to Firebase Storage: $downloadURL');
+      imageURL = await uploader.uploadImage(_imageFile!);
+      print('Uploaded to Firebase Storage: $imageURL');
     } else {
       print('No image selected.');
     }
   }
 
-  //동기 맞추기
+  // 동기 맞추기
   void _init() async{
     final country = await getDefaultCountry(context);
     setState(() {
@@ -83,34 +89,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       _introduceController.addListener(updateButtonState);
     });
   }
-
-  // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트
-  void updateButtonState() async {
-    setState(() {
-      allFieldsFilled = _nameController.text.isNotEmpty &&
-          _englishNameController.text.isNotEmpty &&
-          _nationalityController.text.isNotEmpty &&
-          _expertiseController.text.isNotEmpty &&
-          _introduceController.text.isNotEmpty;
-    });
-  }
-
-  void _countrySelect() async { //국가 선택
-    final selectedCountry = await showCountryPickerSheet(
-      context,
-      cancelWidget: Center(
-        child: Container(),
-      ),
-    );
-
-    if (selectedCountry != null) {
-      setState(() {
-        _country = selectedCountry;
-        _nationalityController.text = _country!.name; // 국가의 이름 표시
-      });
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -133,10 +111,15 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ElevatedButton(
-                            onPressed : getImage,
-                            child: Text('이미지 선택'),
+                          _buildImageWidget(),
+                          SizedBox(height: 10),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed : getImage,
+                              child: Text('이미지 선택'),
+                            ),
                           ),
+                          SizedBox(height: 30),
                           textAndTextField('작가명', _nameController, 'name'),
                           SizedBox(height: 30),
                           textAndTextField('영어명', _englishNameController, 'englishName'),
@@ -155,11 +138,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                       margin: EdgeInsets.all(20),
                       child: submitButton()
                   ),
-                  if (_saving) // 저장 중일 때 로딩 표시를 보여줌
-                    Container(
-                      color: Colors.black.withOpacity(0.3),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
                 ],
               ),
             ),
@@ -167,6 +145,59 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         ),
       ),
     );
+  }
+
+  // 이미지 미리보기
+  Widget _buildImageWidget() {
+    if (imgPath != null) {
+      if (kIsWeb) {
+        // 웹 플랫폼에서는 Image.network 사용
+        return Center(
+          child: CircleAvatar(
+            radius: 40,
+            backgroundImage: NetworkImage(imgPath!),
+          ),
+        );
+      } else {
+        // 앱에서는 Image.file 사용
+        return Center(
+          child: CircleAvatar(
+            radius: 40,
+            backgroundImage: FileImage(File(imgPath!)),
+          ),
+        );
+      }
+    } else {
+      return SizedBox(); // 이미지가 없을 때 빈 SizedBox 반환 또는 다른 대체 위젯
+    }
+  }
+
+  // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트
+  void updateButtonState() async {
+    setState(() {
+      allFieldsFilled = _nameController.text.isNotEmpty &&
+          _englishNameController.text.isNotEmpty &&
+          _nationalityController.text.isNotEmpty &&
+          _expertiseController.text.isNotEmpty &&
+          _introduceController.text.isNotEmpty;
+    });
+  }
+
+  // 국가 선택
+  void _countrySelect() async {
+    final selectedCountry = await showCountryPickerSheet(
+      context,
+      cancelWidget: Center(
+        child: Container(),
+      ),
+    );
+
+    if (selectedCountry != null) {
+      setState(() {
+        _country = selectedCountry;
+        _nationalityController.text = _country!.name; // 국가의 이름 표시
+      });
+    }
   }
 
   Widget textAndTextField(String txt, final ctr, String kind){
@@ -239,14 +270,14 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           String documentId = await addArtist('artist',formData);
           if (_imageFile != null) {
             await uploadImage();
-            await addArtistImg('artist', 'artist_image', documentId, downloadURL!, 'artist_images');
+            await addArtistImg('artist', 'artist_image', documentId, imageURL!, 'artist_images');
           }
 
           // 저장 완료 후 로딩 표시 비활성화 및 페이지 전환
           setState(() {
             _saving = false;
           });
-          widget.moveToNextTab(); // 다음 탭으로 이동
+          widget.moveToNextTab(documentId); // 다음 탭으로 이동
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {

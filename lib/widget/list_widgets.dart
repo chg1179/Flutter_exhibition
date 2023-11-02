@@ -1,4 +1,5 @@
 import 'package:exhibition_project/firestore_connect/artist.dart';
+import 'package:exhibition_project/style/button_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

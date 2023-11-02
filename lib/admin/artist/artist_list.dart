@@ -48,9 +48,9 @@ class _ArtistListState extends State<ArtistList> {
               'artist',
               'artistName',
               'assets/ex/ex1.png',
-              (DocumentSnapshot document) => ArtistView(document: document),
+                  (DocumentSnapshot document) => ArtistView(document: document),
               checkedList,
-              (Map<String, bool> newCheckedList) {
+                  (Map<String, bool> newCheckedList) {
                 setState(() {
                   checkedList = newCheckedList;
                   print(checkedList);
@@ -85,5 +85,4 @@ class _ArtistListState extends State<ArtistList> {
       ),
     );
   }
-
 }
