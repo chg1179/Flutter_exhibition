@@ -50,6 +50,55 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     });
   }
 
+  Future<void> addOnelineReview() async {
+    try {
+      String userId = 'user123';
+
+      Map<String, dynamic> reviewData = {
+        'content': _review.text,
+        'userNo': userId,
+        'cDateTime': FieldValue.serverTimestamp(),
+        'observationTime': _observationTime,
+        'docent': _docentOr,
+      };
+
+      // Add review data
+      DocumentReference reviewReference = await _firestore.collection('exhibition').doc(widget.document).collection('onelineReview').add(reviewData);
+
+      // Add tags to each review's subcollection
+      CollectionReference tagsCollection = reviewReference.collection('tags');
+      for (String tag in selectedTags) {
+        await tagsCollection.add({'tagName': tag});
+      }
+
+      _review.clear();
+      setState(() {
+        selectedTags.clear();
+      });
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('리뷰가 성공적으로 등록되었습니다.', style: TextStyle(fontSize: 16),),
+            actions: <Widget>[
+              TextButton(
+                child: Text('확인', style: TextStyle(color: Color(0xff464D40)),),
+                onPressed: () {
+                  Navigator.pop(context); // 다이얼로그 닫기
+                  Navigator.pop(context); // 한 번 더 뒤로가기해서 전시회 페이지로 돌아가기
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('리뷰 등록 중 오류 발생: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +144,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               ),
               SizedBox(height: 10,),
               TextFormField(
+                controller: _review,
                 maxLines: 4, // 입력 필드에 표시될 최대 줄 수
                 decoration: InputDecoration(
                     border: OutlineInputBorder(
@@ -343,7 +393,9 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                       elevation: 0,
                       shadowColor: Colors.transparent,
                     ),
-                    onPressed: (){},
+                    onPressed: (){
+                      addOnelineReview();
+                    },
                     child: Text("리뷰 등록", style: TextStyle(fontSize: 18),)
                 ),
               ),

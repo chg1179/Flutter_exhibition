@@ -593,7 +593,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   onPressed: (){
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document,)));
                                   },
-                                  child: Text("한줄평 작성")
+                                  child: Text("한줄평 작성", style: TextStyle(fontSize: 16),)
                               ),
                               SizedBox(height: 20),
                               Column(
