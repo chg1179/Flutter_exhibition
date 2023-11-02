@@ -296,13 +296,13 @@ class _CommMainState extends State<CommMain> {
 
             String docId = doc.id;
 
-            String? imagePath;
+            String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
 
-            if (data.containsKey('imagePath')) {
-              imagePath = data['imagePath'] as String;
+            if (data.containsKey('imageURL')) {
+              imageURL = data['imageURL'] as String;
             } else {
-              imagePath = '';
+              imageURL = '';
             }
 
             return GestureDetector(
@@ -353,13 +353,13 @@ class _CommMainState extends State<CommMain> {
                         style: TextStyle(fontSize: 12),
                       ),
                     ),
-                    if (imagePath != null && imagePath.isNotEmpty)
+                    if (imageURL != null && imageURL.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(imagePath),
+                          child: Image.network(
+                            imageURL,
                             width: 400,
                             height: 200,
                             fit: BoxFit.cover,

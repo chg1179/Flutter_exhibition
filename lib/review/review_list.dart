@@ -132,14 +132,14 @@ class _ReviewListState extends State<ReviewList> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ReviewDetail(document: doc),
+                    builder: (context) => ReviewDetail(document: doc.id),
                   ),
                 );
               },
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(5.0),
-                child: Image.asset(
-                  '',
+                child: Image.network(
+                  data['imageURL'],
                   width: screenWidth,
                   height: 200,
                   fit: BoxFit.cover,
@@ -151,7 +151,7 @@ class _ReviewListState extends State<ReviewList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ReviewDetail(document: doc),
+                  builder: (context) => ReviewDetail(document: doc.id),
                 ),
               );
             },

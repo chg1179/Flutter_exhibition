@@ -1,31 +1,33 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import '../firebase_storage/img_upload.dart';
+import 'comm_detail.dart';
 import 'comm_main.dart';
-
 
 class CommEdit extends StatefulWidget {
   final String? documentId;
 
-  // 생성자에 documentId를 추가하고 null을 허용
   CommEdit({Key? key, this.documentId}) : super(key: key);
 
   @override
-  State<CommEdit> createState() => _CommEditState();
+  _CommEditState createState() => _CommEditState();
 }
 
 class _CommEditState extends State<CommEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
-  String? _imageURL; // 선택한 이미지의 URL을 저장
+  final ImageSelector selector = ImageSelector();
+  late ImageUploader uploader;
+  XFile? _imageFile;
+  String? downloadURL;
 
   @override
   void initState() {
     super.initState();
-    // documentId가 있는 경우 데이터를 불러옴
     if (widget.documentId != null) {
       _loadPostData(widget.documentId!);
     }
@@ -35,15 +37,17 @@ class _CommEditState extends State<CommEdit> {
     try {
       final documentSnapshot =
       await FirebaseFirestore.instance.collection('post').doc(documentId).get();
+
       if (documentSnapshot.exists) {
         final data = documentSnapshot.data() as Map<String, dynamic>;
         final title = data['title'] as String;
         final content = data['content'] as String;
-
+        final imageURL = data['imageURL'] as String?;
 
         setState(() {
           _titleCtr.text = title;
           _contentCtr.text = content;
+          downloadURL = imageURL;
         });
       } else {
         print('게시글을 찾을 수 없습니다.');
@@ -53,73 +57,76 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
-  void _savePost() async {
+  Future<void> _savePost() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
       CollectionReference post = FirebaseFirestore.instance.collection("post");
 
-
-      if (widget.documentId != null) {
-        // documentId가 있는 경우 수정
-        await post.doc(widget.documentId!).update({
-          'title': _titleCtr.text,
-          'content': _contentCtr.text,
-          'write_date': DateTime.now(),
-          'imageURL' : _imageURL
-        });
-      } else {
-        // documentId가 없는 경우 추가
-        await post.add({
-          'title': _titleCtr.text,
-          'content': _contentCtr.text,
-          'write_date': DateTime.now(),
-          'imageURL' : _imageURL
-        });
+      if (_imageFile != null) {
+        try {
+          await uploadImage();
+        } catch (e) {
+          print('이미지 업로드 중 오류 발생: $e');
+        }
       }
 
-      _titleCtr.clear();
-      _contentCtr.clear();
+      try {
+        if (widget.documentId != null) {
+          await post.doc(widget.documentId!).update({
+            'title': _titleCtr.text,
+            'content': _contentCtr.text,
+            'write_date': DateTime.now(),
+            'imageURL': downloadURL,
+          });
+        } else {
+          await post.add({
+            'title': _titleCtr.text,
+            'content': _contentCtr.text,
+            'write_date': DateTime.now(),
+            'imageURL': downloadURL,
+          });
+        }
 
+        _titleCtr.clear();
+        _contentCtr.clear();
+        // 이미지 선택 여부 초기화
+        downloadURL = null;
+        _imageFile = null; // 이미지 선택 여부 초기화
+      } catch (e) {
+        print('데이터 저장 중 오류가 발생했습니다: $e');
+      }
     } else {
       print("제목과 내용을 입력해주세요");
     }
   }
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
+
+  Future<void> getImage() async {
+    XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
-      // 이미지 업로드
-      final imageURL = await _uploadImage(File(pickedFile.path));
-      if (imageURL != null) {
-        // 이미지 업로드가 성공한 경우 URL을 상태에 저장
-        setState(() {
-          _imageURL = imageURL;
-        });
+      setState(() {
+        _imageFile = pickedFile;
+      });
+    } else {
+      print('이미지가 선택되지 않음');
+    }
+  }
+
+  Future<void> uploadImage() async {
+    if (_imageFile != null) {
+      try {
+        final uploader = ImageUploader('post_images');
+        downloadURL = await uploader.uploadImage(_imageFile!);
+        print('Uploaded to Firebase Storage: $downloadURL');
+      } catch (e) {
+        print('이미지 업로드 중 오류 발생: $e');
       }
+    } else {
+      // 이미지를 선택하지 않은 경우
+      print('이미지를 선택하지 않았습니다. 이미지를 선택하지 않은 상태에서 글을 저장합니다.');
+      downloadURL = null;
     }
   }
-
-  Future<String?> _uploadImage(File imageFile) async {
-    try {
-      // 이미지 파일의 이름 생성 (예: 현재 시간을 기반으로)
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-      final storageRef = FirebaseStorage.instance.ref().child('post_images/$fileName.jpg');
-
-      // 이미지를 Firebase Storage에 업로드
-      await storageRef.putFile(imageFile);
-
-      // 업로드한 이미지의 다운로드 URL 획득
-      final downloadURL = await storageRef.getDownloadURL();
-      print(downloadURL);
-      return downloadURL;
-
-    } catch (e) {
-      print('이미지 업로드 중 오류 발생: $e');
-      return null;
-    }
-  }
-
 
   Widget buildCommForm() {
     return SingleChildScrollView(
@@ -132,12 +139,33 @@ class _CommEditState extends State<CommEdit> {
             SizedBox(height: 10),
             _buildImgButton(),
             _buildContentInput(),
+            _buildSelectedImage(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildSelectedImage() {
+    if (_imageFile != null) {
+      return Image.file(
+        File(_imageFile!.path),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else if (downloadURL != null && downloadURL!.isNotEmpty) {
+      return Image.network(
+        downloadURL!,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      // 이미지가 선택되지 않은 경우에는 빈 컨테이너 반환
+      return Container();
+    }
+  }
   Widget _buildTitleInput() {
     return Container(
       child: TextField(
@@ -169,7 +197,7 @@ class _CommEditState extends State<CommEdit> {
     return Container(
       padding: EdgeInsets.only(left: 10),
       child: IconButton(
-        onPressed: _pickImage,
+        onPressed: getImage,
         icon: Icon(Icons.image_rounded, color: Colors.black26),
       ),
     );
@@ -194,17 +222,6 @@ class _CommEditState extends State<CommEdit> {
     );
   }
 
-  // Widget _buildSelectedImage() {
-  //   if (_imageURL != null) {
-  //     return Container(
-  //       padding: EdgeInsets.only(left: 10),
-  //       child: IconButton(
-  //         onPressed: _pickImage,
-  //         icon: Icon(Icons.image_rounded, color: Colors.black26),
-  //       ),
-  //     );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,8 +243,15 @@ class _CommEditState extends State<CommEdit> {
         actions: [
           TextButton(
             onPressed: () {
-              _savePost();
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+              _savePost().then((value) {
+                if (widget.documentId != null) {
+                  // 수정 버튼일 경우
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: widget.documentId!)));
+                } else {
+                  // 등록 버튼일 경우
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                }
+              });
             },
             child: Text(
               widget.documentId != null ? '수정' : '등록',
@@ -245,7 +269,6 @@ class _CommEditState extends State<CommEdit> {
                 padding: const EdgeInsets.all(8.0),
                 child: buildCommForm(),
               ),
-               // _buildSelectedImage(),
             ],
           ),
         ),

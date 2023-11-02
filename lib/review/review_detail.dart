@@ -6,7 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 
 class ReviewDetail extends StatefulWidget {
-  final DocumentSnapshot document;
+  final String? document;
   ReviewDetail({required this.document});
 
   @override
@@ -48,7 +48,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ReviewEdit(documentId: document.id),
+                      builder: (context) => ReviewEdit(documentId: document),
                     ),
                   );
                 },
@@ -57,7 +57,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                 leading: Icon(Icons.delete),
                 title: Text('삭제하기'),
                 onTap: () {
-                  _confirmDelete(document);
+                  _confirmDelete(document as DocumentSnapshot<Object?>);
                 },
               ),
             ],
@@ -110,56 +110,79 @@ class _ReviewDetailState extends State<ReviewDetail> {
   // 리뷰 상세 정보 위젯
   Widget _reviewDetailWidget() {
     final document = widget.document;
-    return SingleChildScrollView(
-        child : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(document['title'], style: TextStyle(fontSize: 25)),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  child: Row(
+    return FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection("review").doc(document).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CircularProgressIndicator(); // 데이터를 가져오는 동안 로딩 표시
+          }
+
+          if (snapshot.hasError) {
+            return Text('에러 발생: ${snapshot.error}');
+          }
+
+          if (!snapshot.hasData) {
+            return Text('데이터 없음');
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final title = data['title'] as String;
+          final content = data['content'] as String;
+          final imageURL = data['imageURL'] as String?;
+
+          return SingleChildScrollView(
+              child : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: TextStyle(fontSize: 25.0)),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: AssetImage('assets/ex/ex1.png'),
+                      Container(
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: AssetImage('assets/ex/ex1.png'),
+                            ),
+                            SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('hj', style: TextStyle(fontSize: 15)),
+                                //Text(document['nickName'], style: TextStyle(fontSize: 13)),
+                                Text('2023. 10. 19. 22:09 · 비공개', style: TextStyle(fontSize: 12, color: Colors.black45)),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('hj', style: TextStyle(fontSize: 15)),
-                          //Text(document['nickName'], style: TextStyle(fontSize: 13)),
-                          Text('2023. 10. 19. 22:09 · 비공개', style: TextStyle(fontSize: 12, color: Colors.black45)),
-                        ],
+                      Container(
+                        child: IconButton(
+                          onPressed: _showMenu,
+                          icon: Icon(Icons.more_vert, size: 20,),
+                          color: Colors.black45,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Container(
-                  child: IconButton(
-                    onPressed: _showMenu,
-                    icon: Icon(Icons.more_vert, size: 20,),
-                    color: Colors.black45,
+                  SizedBox(height: 20),
+                  Container(
+                      height:1.0,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.black12
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Container(
-                height:1.0,
-                width: MediaQuery.of(context).size.width,
-                color: Colors.black12
-            ),
-            SizedBox(height: 20),
-            Image.asset('assets/ex/ex4.jpg', width: MediaQuery.of(context).size.width, height: 400),
-            SizedBox(height: 20),
-            Text(document['content']),
-            SizedBox(height: 30),
-          ],
-        )
+                  SizedBox(height: 20),
+                  if (imageURL != null && imageURL.isNotEmpty)
+                    Image.network(imageURL),
+                  SizedBox(height: 20),
+                  Text(content),
+                  SizedBox(height: 30),
+                ],
+              )
+          );
+      }
     );
   }
 

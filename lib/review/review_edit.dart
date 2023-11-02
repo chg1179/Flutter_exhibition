@@ -1,33 +1,34 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/review/review_detail.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import '../firebase_storage/img_upload.dart'; // 필요에 따라 경로를 수정해야 할 수 있습니다.
 
 class ReviewEdit extends StatefulWidget {
   final String? documentId;
-
-  // 생성자에 documentId를 추가하고 null을 허용합니다.
   ReviewEdit({Key? key, this.documentId}) : super(key: key);
 
   @override
-  State<ReviewEdit> createState() => _ReviewEditState();
+  _ReviewEditState createState() => _ReviewEditState();
 }
 
 class _ReviewEditState extends State<ReviewEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
-  File? _imageFile;
+  final ImageSelector selector = ImageSelector();
+  late ImageUploader uploader;
+  XFile? _imageFile;
+  String? downloadURL;
 
   @override
   void initState() {
     super.initState();
-    // documentId가 있는 경우 데이터를 불러옵니다.
     if (widget.documentId != null) {
       _loadReviewData(widget.documentId!);
-      print(_titleCtr);
-      print(_contentCtr);
     }
   }
 
@@ -35,18 +36,17 @@ class _ReviewEditState extends State<ReviewEdit> {
     try {
       final documentSnapshot =
       await FirebaseFirestore.instance.collection('review').doc(documentId).get();
+
       if (documentSnapshot.exists) {
         final data = documentSnapshot.data() as Map<String, dynamic>;
         final title = data['title'] as String;
         final content = data['content'] as String;
-        final imagePath = data['imagePath'] as String?;
-
-        File? imageFile = imagePath != null ? File(imagePath) : null;
+        final imageURL = data['imageURL'] as String?;
 
         setState(() {
           _titleCtr.text = title;
           _contentCtr.text = content;
-          _imageFile = imageFile;
+          downloadURL = imageURL;
         });
       } else {
         print('리뷰를 찾을 수 없습니다.');
@@ -56,67 +56,74 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
-  void _saveReview() async {
+  Future<void> _saveReview() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty) {
       CollectionReference review = FirebaseFirestore.instance.collection("review");
 
-      String imagePath = '';
-
       if (_imageFile != null) {
-        imagePath = await _saveImage(_imageFile!);
+        try {
+          await uploadImage();
+        } catch (e) {
+          print('이미지 업로드 중 오류 발생: $e');
+        }
       }
 
-      if (widget.documentId != null) {
-        // documentId가 있는 경우 수정합니다.
-        await review.doc(widget.documentId!).update({
-          'title': _titleCtr.text,
-          'content': _contentCtr.text,
-          'write_date': DateTime.now(),
-          'imagePath': imagePath,
-        });
-      } else {
-        // documentId가 없는 경우 추가합니다.
-        await review.add({
-          'title': _titleCtr.text,
-          'content': _contentCtr.text,
-          'write_date': DateTime.now(),
-          'imagePath': imagePath,
-        });
-      }
+      try {
+        if (widget.documentId != null) {
+          await review.doc(widget.documentId!).update({
+            'title': _titleCtr.text,
+            'content': _contentCtr.text,
+            'write_date': DateTime.now(),
+            'imageURL': downloadURL,
+          });
+        } else {
+          await review.add({
+            'title': _titleCtr.text,
+            'content': _contentCtr.text,
+            'write_date': DateTime.now(),
+            'imageURL': downloadURL,
+          });
+        }
 
-      _titleCtr.clear();
-      _contentCtr.clear();
-      setState(() {
-        _imageFile = null;
-      });
+        _titleCtr.clear();
+        _contentCtr.clear();
+        // 이미지 선택 여부 초기화
+        downloadURL = null;
+        _imageFile = null; // 이미지 선택 여부 초기화
+      } catch (e) {
+        print('데이터 저장 중 오류가 발생했습니다: $e');
+      }
     } else {
       print("제목과 내용을 입력해주세요");
     }
   }
 
-  Future<String> _saveImage(File imageFile) async {
-    Directory dir = await getApplicationDocumentsDirectory();
-    Directory buskingDir = Directory('${dir.path}/busking');
 
-    if (!await buskingDir.exists()) {
-      await buskingDir.create(recursive: true);
-    }
 
-    final name = DateTime.now().millisecondsSinceEpoch.toString();
-    File targetFile = File('${buskingDir.path}/$name.png');
-    await imageFile.copy(targetFile.path);
-
-    return targetFile.path;
-  }
-
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
+  Future<void> getImage() async {
+    XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _imageFile = pickedFile;
       });
+    } else {
+      print('이미지가 선택되지 않음');
+    }
+  }
+
+  Future<void> uploadImage() async {
+    if (_imageFile != null) {
+      try {
+        final uploader = ImageUploader('review_images');
+        downloadURL = await uploader.uploadImage(_imageFile!);
+        print('Uploaded to Firebase Storage: $downloadURL');
+      } catch (e) {
+        print('이미지 업로드 중 오류 발생: $e');
+      }
+    } else {
+      // 이미지를 선택하지 않은 경우
+      print('이미지를 선택하지 않았습니다. 이미지를 선택하지 않은 상태에서 글을 저장합니다.');
+      downloadURL = null;
     }
   }
 
@@ -131,12 +138,33 @@ class _ReviewEditState extends State<ReviewEdit> {
             SizedBox(height: 10),
             _buildImgButton(),
             _buildContentInput(),
+            _buildSelectedImage(),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildSelectedImage() {
+    if (_imageFile != null) {
+      return Image.file(
+        File(_imageFile!.path),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else if (downloadURL != null && downloadURL!.isNotEmpty) {
+      return Image.network(
+        downloadURL!,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+      );
+    } else {
+      // 이미지가 선택되지 않은 경우에는 빈 컨테이너 반환
+      return Container();
+    }
+  }
   Widget _buildTitleInput() {
     return Container(
       child: TextField(
@@ -157,10 +185,10 @@ class _ReviewEditState extends State<ReviewEdit> {
 
   Widget _buildDivider() {
     return Container(
-        margin: EdgeInsets.only(right: 20, left: 20),
-    height: 2.0,
-    width: MediaQuery.of(context).size.width,
-    color: Colors.black12,
+      margin: EdgeInsets.only(right: 20, left: 20),
+      height: 2.0,
+      width: MediaQuery.of(context).size.width,
+      color: Colors.black12,
     );
   }
 
@@ -168,7 +196,7 @@ class _ReviewEditState extends State<ReviewEdit> {
     return Container(
       padding: EdgeInsets.only(left: 10),
       child: IconButton(
-        onPressed: _pickImage,
+        onPressed: getImage,
         icon: Icon(Icons.image_rounded, color: Colors.black26),
       ),
     );
@@ -178,8 +206,8 @@ class _ReviewEditState extends State<ReviewEdit> {
     return Container(
       padding: const EdgeInsets.only(left: 20, right: 10),
       child: TextField(
-        maxLines: 20,
-        maxLength: 1000,
+        maxLines: 10,
+        maxLength: 300,
         controller: _contentCtr,
         decoration: InputDecoration(
           hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
@@ -191,17 +219,6 @@ class _ReviewEditState extends State<ReviewEdit> {
         ),
       ),
     );
-  }
-
-  Widget _buildSelectedImage() {
-    if (_imageFile != null) {
-      return Container(
-        child: Image.file(_imageFile!, width: 100, height: 100, fit: BoxFit.cover,),
-        alignment: Alignment.topLeft,
-      );
-    } else {
-      return Container();
-    }
   }
 
   @override
@@ -225,8 +242,15 @@ class _ReviewEditState extends State<ReviewEdit> {
         actions: [
           TextButton(
             onPressed: () {
-              _saveReview();
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+              _saveReview().then((value) {
+                if (widget.documentId != null) {
+                  // 수정 버튼일 경우
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: widget.documentId)));
+                } else {
+                  // 등록 버튼일 경우
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                }
+              });
             },
             child: Text(
               widget.documentId != null ? '수정' : '등록',
@@ -244,7 +268,6 @@ class _ReviewEditState extends State<ReviewEdit> {
                 padding: const EdgeInsets.all(8.0),
                 child: buildCommForm(),
               ),
-              _buildSelectedImage(),
             ],
           ),
         ),

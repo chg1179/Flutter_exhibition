@@ -201,12 +201,12 @@ class _CommDetailState extends State<CommDetail> {
 
 
   Widget buildImage() {
-    String? imagePath = _postData?['imagePath'] as String?;
+    String? imagePath = _postData?['imageURL'] as String?;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: imagePath != null && imagePath.isNotEmpty
-          ? Image.file(
-        File(imagePath),
+          ? Image.network(
+        imagePath,
         width: 400,
         height: 400,
         fit: BoxFit.cover,
