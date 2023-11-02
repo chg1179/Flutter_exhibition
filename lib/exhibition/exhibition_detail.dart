@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class ExhibitionDetail extends StatefulWidget {
   final String imagePath;
@@ -56,6 +57,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   void initState() {
     super.initState();
     _getExDetailData();
+
   }
 
   void _getExDetailData() async {
@@ -96,6 +98,17 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  Stream<QuerySnapshot> getReviewsAndTags() {
+    initializeDateFormatting('ko', null);
+
+    return FirebaseFirestore.instance
+        .collection('exhibition')  // 전시회 컬렉션
+        .doc(widget.document)  // 해당 전시회 문서 ID
+        .collection('onelineReview')  // 한줄평 컬렉션
+        .orderBy('cDateTime', descending: true)
+        .snapshots(); // 이 부분은 한줄평 컬렉션 내의 전체 데이터를 가져오는 스트림입니다
   }
 
   @override
@@ -402,7 +415,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   },
                                 ),
                               )
-
                             ],
                           ),
                         ),
@@ -572,7 +584,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                           child: Column(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(top: 30, bottom: 20),
+                                padding: const EdgeInsets.only(top: 20, bottom: 20),
                                 child: Text("한줄평을 남겨주세요.", style: TextStyle(fontSize: 16)),
                               ),
                               ElevatedButton(
@@ -595,41 +607,156 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   },
                                   child: Text("한줄평 작성", style: TextStyle(fontSize: 16),)
                               ),
-                              SizedBox(height: 20),
-                              Column(
-                                children: _oneLineReview.map((review) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 15),
-                                    child: ListTile(
-                                      title: Row(
-                                        children: [
-                                          Container(
-                                              padding: EdgeInsets.only(bottom: 10),
-                                              width: MediaQuery.of(context).size.width * 0.75,
-                                              child: Text(review['content'])
-                                          ),
-                                          Spacer(),
-                                          TextButton(
-                                            style: ButtonStyle(
-                                              minimumSize: MaterialStateProperty.all<Size>(Size(40, 20)),
+                              SizedBox(height: 10),
+                              StreamBuilder<QuerySnapshot>(
+                                stream: getReviewsAndTags(),
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                  if (!snapshot.hasData) {
+                                    return CircularProgressIndicator(); // 데이터를 기다리는 동안 로딩 표시
+                                  }
+
+                                  List<Widget> reviewWidgets = [];
+
+                                  snapshot.data!.docs.forEach((review) {
+                                    // 리뷰 데이터 가져오기
+                                    Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
+                                    String reviewText = reviewData['content'];
+                                    String userNick = reviewData['userNo'];
+                                    DateTime cDateTime = reviewData['cDateTime'].toDate();
+                                    String docent = reviewData['docent'];
+                                    String observationTime = reviewData['observationTime'];
+
+                                    // 태그 데이터 가져오기
+                                    Stream<QuerySnapshot> tagsStream = review.reference.collection('tags').snapshots();
+
+                                    reviewWidgets.add(
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 15, left: 15, top: 10),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Divider(
+                                              thickness: 1,
                                             ),
-                                            onPressed: () {},
-                                            child: Text(
-                                              "신고",
-                                              style: TextStyle(color: Color(0xff55693e)),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 18,
+                                                          backgroundImage: AssetImage("assets/${widget.imagePath}"),
+                                                        ),
+                                                        SizedBox(width: 10,),
+                                                        Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text("${userNick}", style: TextStyle(fontSize: 16, fontWeight:FontWeight.bold, color: Colors.grey[800]),),
+                                                            Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),)
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+
+                                                  ],
+                                                ),
+                                                Spacer(),
+                                                InkWell(
+                                                  onTap: (){},
+                                                  child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
+                                                ),
+                                                Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
+                                                InkWell(
+                                                  onTap: (){},
+                                                  child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
+                                                ),
+                                                SizedBox(width: 15,)
+                                              ],
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(height: 15,),
+                                            InkWell(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return Dialog(
+                                                      child: Container(
+                                                        child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: Container(
+                                                width: MediaQuery.of(context).size.width - 40,
+                                                height: 150,
+                                                child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(5),
+                                                    child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover,)
+                                                )
+                                              ),
+                                            ),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.access_time, color: Colors.grey[800], size: 16,),
+                                                Text(" 관람시간 ${observationTime}  ·  ", style: TextStyle(fontSize: 13, color: Colors.grey[800]),),
+                                                Icon(Icons.headset, color: Colors.grey[800], size: 16,),
+                                                Text(" 도슨트 ${docent}", style: TextStyle(fontSize: 13, color: Colors.grey[800]),),
+                                              ],
+                                            ),
+                                            SizedBox(height: 20,),
+                                            Text(reviewText, style: TextStyle(fontSize: 15, color: Colors.grey[900]),),
+                                            SizedBox(height: 20,),
+                                            StreamBuilder<QuerySnapshot>(
+                                              stream: tagsStream,
+                                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> tagSnapshot) {
+                                                if (!tagSnapshot.hasData) {
+                                                  return CircularProgressIndicator(); // 태그 데이터 로딩 중 로딩 표시
+                                                }
+
+                                                List<Widget> tagWidgets = [];
+
+                                                tagSnapshot.data!.docs.forEach((tag) {
+                                                  String tagName = tag['tagName'];
+                                                  tagWidgets.add(
+                                                    Container(
+                                                      padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        border: Border.all(color: Color(0xffd1d3cd), width: 1),
+                                                        borderRadius: BorderRadius.circular(5.0),
+                                                      ),
+                                                      child: Text(tagName, style: TextStyle(fontSize: 13, color: Colors.black)),
+                                                    ),
+                                                  );
+                                                });
+
+                                                return Wrap(
+                                                  spacing: 5.0,
+                                                  runSpacing: 5.0,
+                                                  children: tagWidgets, // 태그 표시
+                                                );
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      subtitle: Row(
-                                        children: [
-                                          Text("${review['nick']} │ ${review['er_cDateTime']}"),
-                                        ],
-                                      ),
+                                    );
+                                  });
+                                  return SingleChildScrollView(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: reviewWidgets, // 화면에 출력할 리뷰 리스트
                                     ),
                                   );
-                                }).toList(),
-                              )
+                                },
+                              ),
+                              SizedBox(height: 20)
                             ],
                           ),
                         ),

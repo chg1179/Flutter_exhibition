@@ -18,6 +18,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   String _docentOr = "없음";
   List<String> selectedTags = [];
   List<String> allTags = ["📚 유익한", "‍😆️ 즐거운", "🏔 웅장한", "😎 멋진", "👑 럭셔리한", "✨ 아름다운", "📸 사진찍기 좋은", "🌍 대규모", "🌱 소규모", "💡 독특한", "🌟 트렌디한", "👧 어린이를 위한", "👨‍🦳 어른을 위한", "🤸‍♂️ 동적인", "👀 정적인"];
+  int _selectedValue = 0; // 0이면 없음, 1이면 있음
 
   void _getExDetailData() async {
     try {
@@ -99,6 +100,23 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     }
   }
 
+  Widget buildToggleButton(int value, String text) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        primary: _selectedValue == value ? Color(0xff464D40) : Colors.white,
+        onPrimary: _selectedValue == value ? Colors.white : Colors.black,
+        side: BorderSide(width: 1, color: Color(0xff464D40)),
+      ),
+      onPressed: () {
+        setState(() {
+          _selectedValue = value;
+          _docentOr = _selectedValue == 0 ? "없음" : "있음";
+        });
+      },
+      child: Text(text),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,7 +185,13 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                 children: [
                   Container(
                       width: 110,
-                      child: Text("관람 시간", style: TextStyle(fontSize: 17),)
+                      child: Row(
+                        children: [
+                          Icon(Icons.access_time, size: 18,),
+                          SizedBox(width: 5,),
+                          Text("관람 시간", style: TextStyle(fontSize: 17),),
+                        ],
+                      )
                   ),
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -323,30 +347,21 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               Row(
                 children: [
                   Container(
-                      width: 110,
-                      child: Text("도슨트 유무", style: TextStyle(fontSize: 17),)
+                    width: 110,
+                    child: Row(
+                      children: [
+                        Icon(Icons.headset, size: 16,),
+                        SizedBox(width: 5,),
+                        Text("도슨트", style: TextStyle(fontSize: 17),),
+                      ],
+                    ),
                   ),
-                  ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: _docentOr == "있음" ? Colors.white : Colors.black,
-                        backgroundColor: _docentOr == "있음" ? Color(0xff464D40) : Colors.white,
-                        side: BorderSide(width: 1, color: Color(0xff464D40)),
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                      ),
-                      onPressed: (){
-                        setState(() {
-                          if(_docentOr=="있음"){
-                            _docentOr = "없음";
-                          }else{
-                            _docentOr = "있음";
-                          }
-                        });
-                      },
-                      child : Text(_docentOr)
-                  )
+                  buildToggleButton(0, "없음"),
+                  SizedBox(width: 10,),
+                  buildToggleButton(1, "있음"),
                 ],
               ),
+              Text("* 음성 작품 해설", style: TextStyle(color: Colors.grey[500])),
               SizedBox(height: 40,),
               Text("태그 선택", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
               SizedBox(height: 10,),
