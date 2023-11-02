@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 
@@ -20,6 +21,32 @@ Map<String, dynamic> _galleryInfo = {
 };
 
 class _GalleryInfoState extends State<GalleryInfo> {
+  final _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? _galleryData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _getGalleryData();
+  }
+
+  void _getGalleryData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('gallery').doc(widget.document).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _galleryData = documentSnapshot.data() as Map<String, dynamic>;
+          _isLoading = false;
+        });
+      } else {
+        print('전시회 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      _isLoading = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +71,9 @@ class _GalleryInfoState extends State<GalleryInfo> {
           SizedBox(width: 10,)
         ],
       ),
-      body: CustomScrollView(
+      body:
+      _isLoading ? Center(child: CircularProgressIndicator())
+      : CustomScrollView(
           slivers: <Widget>[
             SliverList(
               delegate: SliverChildListDelegate(
@@ -68,7 +97,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                               Container(
                                 width: MediaQuery.of(context).size.width * 0.7,
                                 child: Text(
-                                  _galleryInfo['gallery_name'],
+                                  "${_galleryData?['galleryName']} / ${_galleryData?['region']}",
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -98,7 +127,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                     width: 100,
                                     child: Text("주소", style: TextStyle(fontWeight: FontWeight.bold),)
                                 ),
-                                Text(_galleryInfo['address'], style: TextStyle())
+                                Text(_galleryData?['addr'], style: TextStyle())
                               ],
                             ),
                           ),
@@ -112,7 +141,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                                 Container(
                                     width: 250,
-                                    child: Text("${_galleryInfo['start_time']} ~ ${_galleryInfo['end_time']}")
+                                    child: Text("${_galleryData?['startTime']} ~ ${_galleryData?['endTime']}")
                                 )
                               ],
                             ),
@@ -125,7 +154,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                     width: 100,
                                     child: Text("휴관일", style: TextStyle( fontWeight: FontWeight.bold),)
                                 ),
-                                Text(_galleryInfo['gallery_close'])
+                                Text(_galleryData?['galleryClose'])
                               ],
                             ),
                           ),
@@ -139,7 +168,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                                 Container(
                                     width: 250,
-                                    child: Text(_galleryInfo['gallery_phone'])
+                                    child: Text(_galleryData?['galleryPhone'])
                                 )
                               ],
                             ),
@@ -154,7 +183,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                                 Container(
                                     width: 250,
-                                    child: Text(_galleryInfo['gallery_email'])
+                                    child: Text(_galleryData?['galleryEmail'] == null ? "-" : _galleryData?['galleryEmail'])
                                 )
                               ],
                             ),
@@ -195,7 +224,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                     ),
                     Padding(
                       padding: const EdgeInsets.all(15),
-                      child: Text("국립아시아문화전당은 전 세계인들이 공감할 수 있는 동시대 주요 주제와 이슈, 아시아를 비롯한 세계 역사와 문화에 대한 다학제적 연구와 창제작을 기반으로 한 다양한 전시를 선보이고 있습니다. 교류에서 시작하여 창조와 연구, 교육으로 직접 순환되는 아시아 문화의 발전소가 되어 다양한 시각에서 문화예술 콘텐츠를 생산하고, 이를 전시로 시민들에게 선보임으로써 함께 참여하고, 공감하는 자리를 마련하고자 합니다."),
+                      child: Text(_galleryData?['galleryIntroduce'] == null ? "" : _galleryData?['galleryIntroduce']),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 15),

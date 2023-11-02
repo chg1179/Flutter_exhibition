@@ -26,20 +26,13 @@ List<Map<String, dynamic>> _expectationReview = [
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
 ];
 
-Map<String, dynamic> _selectEx = {
-  'title': '차승언 개인전 <<Your love is better than life>>',
-  'place': '씨알콜렉티브/서울',
-  'startDate': '2023-10-26', // 날짜 형식 변경
-  'lastDate': '2023-11-29', // 날짜 형식 변경
-  'posterPath': 'ex/ex1.png'
-};
-
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
   Map<String, dynamic>? _galleryData;
+  Map<String, dynamic>? _exImageData;
   bool _isLoading = true;
   List<Map<String, dynamic>> _exhibitionFee = [];
   int onelineReviewCount = 0;
@@ -49,6 +42,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   void initState() {
     super.initState();
     getOnelineReviewCount();
+    getExhibitionImages();
     _getExDetailData();
     _getGalleryInfo();
   }
@@ -69,6 +63,31 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       setState(() {
         _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
       });
+    }
+  }
+
+  void getExhibitionImages() async {
+    try {
+      QuerySnapshot imageSnapshot = await _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('exhibition_image')
+          .get();
+
+      if (imageSnapshot.docs.isNotEmpty) {
+        List<Map<String, dynamic>> images = imageSnapshot.docs
+            .map((DocumentSnapshot doc) => doc.data() as Map<String, dynamic>)
+            .toList();
+
+        _exImageData = images[0];
+
+        // 가져온 이미지 정보를 사용하거나 반환하거나 원하는 방식으로 처리
+        print('Exhibition Images: $images');
+      } else {
+        print('해당하는 이미지를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('이미지를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
@@ -94,10 +113,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         String galleryId = documentSnapshot.data()?['galleryNo'];
 
         if (galleryId != null) {
-          // 갤러리 정보 가져오기
           final galleryDocument = await _firestore.collection('gallery').doc(galleryId).get();
           if (galleryDocument.exists) {
-            // 가져온 갤러리 정보 사용
             _galleryData = galleryDocument.data() as Map<String, dynamic>?;
             print('Gallery Info: $_galleryData');
             setState(() {
@@ -250,8 +267,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   Container(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: Image.asset(
-                        "assets/${widget.imagePath}",
+                      child: Image.network(
+                        _exImageData?['imageURL'],
                         fit: BoxFit.fitWidth,
                       ),
                     ),
@@ -515,19 +532,13 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(10),
-                                child: Image.asset(
-                                  "assets/${widget.imagePath}",
+                                child: Image.network(
+                                  _exImageData?['imageURL'],
                                 ),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(10),
                                 child: Text("전시 소개다"),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Image.asset(
-                                  "assets/${widget.imagePath}",
-                                ),
                               ),
                             ],
                           ),
