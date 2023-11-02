@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/admin/artist/artist_edit.dart';
+import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
+import 'package:exhibition_project/admin/artist/artist_list.dart';
+import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +73,7 @@ class _ArtistViewState extends State<ArtistView> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ArtistEditPage()),
+                      MaterialPageRoute(builder: (context) => ArtistEditProfilePage(moveToNextTab: moveToNextTab, document: widget.document)),
                     );
                   },
                   child: Text("작가 수정"),
@@ -82,5 +84,8 @@ class _ArtistViewState extends State<ArtistView> {
         ),
       ),
     );
+  }
+  void moveToNextTab(docId) {
+    showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
   }
 }

@@ -38,6 +38,17 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
+        title: Center(
+          child: Text(
+            '작가 상세 정보',
+            style: TextStyle(
+                color: Color.fromRGBO(70, 77, 64, 1.0),
+                fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
       body: Container(
         margin: EdgeInsets.all(30),
         padding: EdgeInsets.all(15),
@@ -117,7 +128,8 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
           if (year.isNotEmpty && content.isNotEmpty)
             await addArtistDetails('artist', 'artist_awards', widget.documentId!, year, content);
         }
-        await showMoveDialog(context, '작가가 성공적으로 추가되었습니다.', () => ArtistList());
+        Navigator.of(context).pop();
+        await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
       },
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Colors.green)

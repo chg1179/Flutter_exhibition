@@ -58,9 +58,16 @@ class ImageTextItem extends StatelessWidget {
 }
 
 // Firestore 데이터를 받아 리스트 목록을 출력하는 위젯
-Widget setImgTextList(String collectionName, String name, String path,
-    Widget Function(DocumentSnapshot) pageBuilder, Map<String, bool> checkedList,
-    void Function(Map<String, bool>) onChecked) {
+Widget setImgTextList(
+    String collectionName,
+    String name,
+    String path,
+    Widget Function(DocumentSnapshot) pageBuilder,
+    Map<String, bool> checkedList,
+    void Function(Map<String, bool>) onChecked,
+    void Function() loadMoreItems,
+    int displayLimit,
+    ) {
   return StreamBuilder(
     stream: getArtistStreamData(collectionName, name, false),
     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
@@ -68,43 +75,57 @@ Widget setImgTextList(String collectionName, String name, String path,
         return Center(child: CircularProgressIndicator());
       }
 
-      return SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(15, 0, 0, 15),
-        child: ListView.builder(
-          physics: NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: snap.data!.docs.length,
-          itemBuilder: (context, index) {
-            DocumentSnapshot document = snap.data!.docs[index];
-            Map<String, dynamic> data = getArtistMapData(document);
-            if (data[name] == null) return Container();
-            return Row(
-              children: [
-                CheckBoxItem(
-                  value: checkedList[document.id] ?? false, // 현재 Document의 ID의 체크 상태
-                  onChanged: (bool? value) {
-                    onChecked(
-                        {...checkedList, document.id: value ?? false}
-                    ); // 해당 Document의 ID의 상태를 업데이트
-                  },
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: ImageTextItem(
-                    imagePath: path,
-                    text: '${data[name]}',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => pageBuilder(document)),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+      int itemsToShow = displayLimit < snap.data!.docs.length
+          ? displayLimit
+          : snap.data!.docs.length;
+
+      return Column(
+        children: [
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(15, 0, 0, 15),
+            child: ListView.builder(
+              physics: NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: itemsToShow,
+              itemBuilder: (context, index) {
+                DocumentSnapshot document = snap.data!.docs[index];
+                Map<String, dynamic> data = getArtistMapData(document);
+                if (data[name] == null) return Container();
+                return Row(
+                  children: [
+                    CheckBoxItem(
+                      value: checkedList[document.id] ?? false,
+                      onChanged: (bool? value) {
+                        onChecked({
+                          ...checkedList,
+                          document.id: value ?? false,
+                        });
+                      },
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: ImageTextItem(
+                        imagePath: path,
+                        text: '${data[name]}',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => pageBuilder(document)),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          if (displayLimit < snap.data!.docs.length)
+            ElevatedButton(
+              onPressed: loadMoreItems,
+              child: Text("더 보기"),
+            ),
+        ],
       );
     },
   );

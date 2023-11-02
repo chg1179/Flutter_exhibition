@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
@@ -13,18 +14,20 @@ import 'package:image_picker/image_picker.dart';
 
 class ArtistEditProfilePage extends StatelessWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
-  const ArtistEditProfilePage({Key? key, required this.moveToNextTab});
+  final DocumentSnapshot? document; // 생성자를 통해 데이터를 전달받음
+  const ArtistEditProfilePage({Key? key, required this.moveToNextTab, required this.document});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ArtistEditProfile(moveToNextTab: moveToNextTab)
+        home: ArtistEditProfile(moveToNextTab: moveToNextTab, document: document)
     );
   }
 }
 
 class ArtistEditProfile extends StatefulWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
-  const ArtistEditProfile({Key? key, required this.moveToNextTab});
+  final DocumentSnapshot? document;
+  const ArtistEditProfile({Key? key, required this.moveToNextTab, required this.document});
 
   @override
   _ArtistEditProfileState createState() => _ArtistEditProfileState();
@@ -52,6 +55,19 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
     super.initState();
     _init();
     uploader = ImageUploader('artist_images');
+    settingText();
+  }
+
+  Future<void> settingText() async {
+    if(widget.document != null){
+      Map<String, dynamic> artistData = getArtistMapData(widget.document!);
+      _nameController.text = artistData['artistName'];
+      _englishNameController.text = artistData['artistEnglishName'];
+      _nationalityController.text = artistData['artistNationality'];
+      _expertiseController.text = artistData['expertise'];
+      _introduceController.text = artistData['artistIntroduce'];
+      allFieldsFilled = true;
+    }
   }
 
   // 이미지 가져오기
@@ -94,6 +110,17 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
+      appBar: AppBar(
+        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
+        title: Center(
+          child: Text(
+            '작가 정보',
+            style: TextStyle(
+                color: Color.fromRGBO(70, 77, 64, 1.0),
+                fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
       body: Container(
         margin: EdgeInsets.all(20),
         padding: EdgeInsets.all(15),
@@ -273,7 +300,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
             await addArtistImg('artist', 'artist_image', documentId, imageURL!, 'artist_images');
           }
 
-          // 저장 완료 후 로딩 표시 비활성화 및 페이지 전환
+          // 저장 완료 후 페이지 전환
           setState(() {
             _saving = false;
           });

@@ -1,8 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_addition.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ArtistEditPage extends StatelessWidget {
   const ArtistEditPage({super.key});
@@ -24,7 +23,7 @@ class ArtistEdit extends StatefulWidget {
 
 class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  FilePickerResult? file; // 이미지 파일의 정보
+  DocumentSnapshot? document; // 받아온 값
   String? documentId; // 저장된 값
 
   @override
@@ -55,17 +54,6 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
       home: DefaultTabController(
         length: 3,
         child: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-            title: Center(
-              child: Text(
-                '작가',
-                style: TextStyle(
-                    color: Color.fromRGBO(70, 77, 64, 1.0),
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
           body: Column(
             children: [
               Expanded(
@@ -73,7 +61,7 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
                   controller: _tabController,
                   children: [
                     // 탭에 해당하는 페이지
-                    ArtistEditProfilePage(moveToNextTab: moveToNextTab), // 다음 인덱스로 이동할 함수를 보냄
+                    ArtistEditProfilePage(moveToNextTab: moveToNextTab, document: document), // 다음 인덱스로 이동할 함수를 보냄
                     ArtistEditAdditionPage(documentId: documentId),
                   ],
                 ),

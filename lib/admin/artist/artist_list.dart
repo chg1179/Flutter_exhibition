@@ -25,7 +25,7 @@ class ArtistList extends StatefulWidget {
 
 class _ArtistListState extends State<ArtistList> {
   Map<String, bool> checkedList = {}; // 각 문서의 체크 상태를 저장하는 맵. 체크시 true 상태가 됨.
-
+  int displayLimit = 10;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,6 +56,8 @@ class _ArtistListState extends State<ArtistList> {
                   print(checkedList);
                 });
               },
+              loadMoreItems,
+              displayLimit,
             ),
             Center(
               child: Row(
@@ -84,5 +86,11 @@ class _ArtistListState extends State<ArtistList> {
         ),
       ),
     );
+  }
+
+  void loadMoreItems() {
+    setState(() {
+      displayLimit += 10; // "더 보기" 버튼을 누를 때마다 10개씩 추가로 출력
+    });
   }
 }
