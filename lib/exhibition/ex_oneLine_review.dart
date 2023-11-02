@@ -121,7 +121,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${_exDetailData?['exTitle']} 한줄평 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
+        title: Text("${_exDetailData?['exTitle']} 리뷰 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
         backgroundColor: Colors.white,
         elevation: 1.0,
         leading: IconButton(

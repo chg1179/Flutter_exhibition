@@ -2,8 +2,8 @@ import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 
 class GalleryInfo extends StatefulWidget {
-  final String imagePath;
-  const GalleryInfo({required this.imagePath});
+  final String document;
+  const GalleryInfo({required this.document});
 
   @override
   State<GalleryInfo> createState() => _GalleryInfoState();
@@ -53,7 +53,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: Image.asset(
-                          "assets/${widget.imagePath}",
+                          "assets/main/가로1.jpg",
                           fit: BoxFit.fitWidth,
                         ),
                       ),

@@ -24,15 +24,6 @@ List<Map<String, dynamic>> _expectationReview = [
   {'nick' : '소금빵', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당'},
   {'nick' : '고구마', 'er_cDateTime' : '2023-10-24', 'content' : '완죤 기대중'},
   {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
-  {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
-  {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
-  {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
-];
-
-List<Map<String, dynamic>> _oneLineReview = [
-  {'nick' : '망치', 'er_cDateTime' : '2023-10-25', 'content' : '잼썻음'},
-  {'nick' : '감자', 'er_cDateTime' : '2023-10-25', 'content' : '생각보단 별루'},
-  {'nick' : '고구마', 'er_cDateTime' : '2023-10-25', 'content' : '굿굿'},
 ];
 
 Map<String, dynamic> _selectEx = {
@@ -43,21 +34,23 @@ Map<String, dynamic> _selectEx = {
   'posterPath': 'ex/ex1.png'
 };
 
-
-
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final _expReview = TextEditingController();
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
+  Map<String, dynamic>? _galleryData;
   bool _isLoading = true;
   List<Map<String, dynamic>> _exhibitionFee = [];
+  int onelineReviewCount = 0;
+  bool _galleryLoading = true;
 
   @override
   void initState() {
     super.initState();
+    getOnelineReviewCount();
     _getExDetailData();
-
+    _getGalleryInfo();
   }
 
   void _getExDetailData() async {
@@ -73,6 +66,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+        _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
+      });
     }
   }
 
@@ -90,6 +86,38 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     }
   }
 
+  void _getGalleryInfo() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).get();
+      if (documentSnapshot.exists) {
+        // 전시회 문서에서 갤러리 ID 가져오기
+        String galleryId = documentSnapshot.data()?['galleryNo'];
+
+        if (galleryId != null) {
+          // 갤러리 정보 가져오기
+          final galleryDocument = await _firestore.collection('gallery').doc(galleryId).get();
+          if (galleryDocument.exists) {
+            // 가져온 갤러리 정보 사용
+            _galleryData = galleryDocument.data() as Map<String, dynamic>?;
+            print('Gallery Info: $_galleryData');
+            setState(() {
+              _galleryLoading = false; // 갤러리 데이터 로딩이 완료됨을 나타내는 플래그
+            });
+
+          } else {
+            print('갤러리 정보를 찾을 수 없습니다.');
+          }
+        } else {
+          print('전시회 문서에 갤러리 ID가 없습니다.');
+        }
+      } else {
+        print('전시회 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
   Future<void> openURL(String url) async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
 
@@ -104,11 +132,21 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     initializeDateFormatting('ko', null);
 
     return FirebaseFirestore.instance
-        .collection('exhibition')  // 전시회 컬렉션
-        .doc(widget.document)  // 해당 전시회 문서 ID
-        .collection('onelineReview')  // 한줄평 컬렉션
+        .collection('exhibition')
+        .doc(widget.document)
+        .collection('onelineReview')
         .orderBy('cDateTime', descending: true)
-        .snapshots(); // 이 부분은 한줄평 컬렉션 내의 전체 데이터를 가져오는 스트림입니다
+        .snapshots();
+  }
+
+  void getOnelineReviewCount() async {
+    QuerySnapshot onelineReviewSnapshot = await FirebaseFirestore.instance
+        .collection('exhibition')
+        .doc(widget.document)
+        .collection('onelineReview')
+        .get();
+
+    onelineReviewCount = onelineReviewSnapshot.docs.length;
   }
 
   @override
@@ -171,7 +209,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           tabs: [
             Tab(child: Text("전시소개", style: TextStyle(fontSize: 15))),
             Tab(child: Text("기대평", style: TextStyle(fontSize: 15))),
-            Tab(child: Text("한줄평", style: TextStyle(fontSize: 15))),
+            Tab(child: Text("리뷰 ${onelineReviewCount}", style: TextStyle(fontSize: 15))),
           ],
         ),
       );
@@ -201,7 +239,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           ],
         ),
         body:
-        _exDetailData == null
+        _galleryLoading
           ? Center(child: CircularProgressIndicator())
           :CustomScrollView(
             slivers: <Widget>[
@@ -239,9 +277,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                         SizedBox(height: 20),
                         InkWell(
                             onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(imagePath: _selectEx['posterPath'])));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(document: _exDetailData?['galleryNo'])));
                             },
-                            child: Text(_selectEx['place'], style: TextStyle(fontSize: 16),)
+                            child: Text("${_galleryData?['galleryName']} / ${_galleryData?['region']}", style: TextStyle(fontSize: 16),)
                         ),
                         Row(
                           children: [
@@ -345,7 +383,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   width: 100,
                                   child: Text("관람시간", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
-                              Text("10:00 ~ 18:00", style: TextStyle())
+
+                              Text("${_galleryData?['startTime']} ~ ${_galleryData?['endTime']}", style: TextStyle())
                             ],
                           ),
                         ),
@@ -359,7 +398,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               ),
                               Container(
                                   width: 250,
-                                  child: Text("월요일, 1월 1일, 설날, 추석 연휴")
+                                  child: Text("${_galleryData?['galleryClose']}")
                               )
                             ],
                           ),
@@ -426,7 +465,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   width: 100,
                                   child: Text("주소", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
-                              Text("서울 용산구 독서당로", style: TextStyle())
+                              Text("${_galleryData?['addr']}", style: TextStyle())
                             ],
                           ),
                         ),
@@ -585,7 +624,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(top: 20, bottom: 20),
-                                child: Text("한줄평을 남겨주세요.", style: TextStyle(fontSize: 16)),
+                                child: Text("전시회에 다녀온 리뷰를 남겨주세요.", style: TextStyle(fontSize: 16)),
                               ),
                               ElevatedButton(
                                   style: ButtonStyle(
@@ -605,7 +644,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   onPressed: (){
                                     Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document,)));
                                   },
-                                  child: Text("한줄평 작성", style: TextStyle(fontSize: 16),)
+                                  child: Text("리뷰 작성", style: TextStyle(fontSize: 16),)
                               ),
                               SizedBox(height: 10),
                               StreamBuilder<QuerySnapshot>(
@@ -661,7 +700,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                         ),
                                                       ],
                                                     ),
-
                                                   ],
                                                 ),
                                                 Spacer(),

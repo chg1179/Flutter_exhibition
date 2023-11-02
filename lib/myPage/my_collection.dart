@@ -270,7 +270,7 @@ class _ExhibitionPageState extends State<ExhibitionPage> {
           final gallery = gallerys[index];
           return InkWell(
             onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(imagePath: gallery.imageUrl)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery.imageUrl)));
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
