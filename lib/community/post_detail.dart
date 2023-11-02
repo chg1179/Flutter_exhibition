@@ -6,6 +6,7 @@ import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 
+
 class CommDetail extends StatefulWidget {
   final String document;
   CommDetail({required this.document});
@@ -18,7 +19,6 @@ class _CommDetailState extends State<CommDetail> {
   bool isLiked = false;
 
   final _commentCtr = TextEditingController();
-  final _replyCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
 
   ScrollController _scrollController = ScrollController();
@@ -63,6 +63,93 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+  Future<List<String>> getCommentIds() async {
+    try {
+      final QuerySnapshot commentQuerySnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(widget.document)
+          .collection('comment')
+          .get();
+      final List<String> commentIds = commentQuerySnapshot.docs.map((doc) => doc.id).toList();
+      return commentIds;
+    } catch (e) {
+      print('댓글 ID를 불러오는 동안 오류 발생: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>?> getRepliesForComment(String commentId) async {
+    try {
+      final QuerySnapshot replyQuerySnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(widget.document)
+          .collection('comment')
+          .doc(commentId)
+          .collection('reply')
+          .orderBy('write_date', descending: false)
+          .get();
+
+      final replies = replyQuerySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+
+        if (data != null) {
+          final reply = data['reply'] as String;
+          final writeDate = data['write_date'] as Timestamp;
+          // 나머지 코드
+        }
+        return {
+          'reply': data?['reply'] as String,
+          'write_date': data?['write_date'] as Timestamp,
+        };
+      }).toList();
+
+      return replies;
+    } catch (e) {
+      print('댓글의 답글을 불러오는 동안 오류 발생: $e');
+      return null;
+    }
+  }
+
+  Widget buildCommentWithReplies(Map<String, dynamic> commentData) {
+    final commentId = commentData['documentId'];
+    final commentText = commentData['comment'] as String;
+
+    return Column(
+      children: [
+        // 댓글 내용 표시
+        Text(commentText),
+        // 해당 댓글의 답글을 표시
+        FutureBuilder(
+          future: getRepliesForComment(commentId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+            } else if (snapshot.hasData) {
+              final replies = snapshot.data as List<Map<String, dynamic>>?;
+              if (replies != null && replies.isNotEmpty) {
+                return Column(
+                  children: replies.map((replyData) {
+                    final replyText = replyData['reply'] as String;
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 20),
+                      child: Text(replyText),
+                    );
+                  }).toList(),
+                );
+              } else {
+                return SizedBox(); // 답글이 없을 경우 빈 공간을 반환
+              }
+            }
+            return SizedBox(); // 데이터가 없을 경우 빈 공간을 반환
+          },
+        ),
+      ],
+    );
+  }
+
+
   Future<void> _loadComments() async {
     try {
       final querySnapshot = await _firestore
@@ -73,13 +160,14 @@ class _CommDetailState extends State<CommDetail> {
           .get();
       final comments = querySnapshot.docs.map((doc) {
         final data = doc.data();
+        final documentId = doc.id;
         return {
-          'commentId': doc.id, // 댓글의 Firestore 문서 ID 추가
+          'documentId' : documentId,
           'comment': data['comment'] as String,
           'write_date': data['write_date'] as Timestamp,
         };
       }).toList();
-
+      print(comments);
       setState(() {
         _comments = comments;
       });
@@ -440,23 +528,34 @@ class _CommDetailState extends State<CommDetail> {
 
   void _deletePost(String documentId) async {
     try {
+      final postRef = FirebaseFirestore.instance.collection("post").doc(documentId);
+
       // 해당 게시글의 댓글 컬렉션 참조 가져오기
-      final commentCollection = FirebaseFirestore.instance.collection("post").doc(documentId).collection("comment");
+      final commentCollection = postRef.collection("comment");
 
       // 게시글의 댓글 컬렉션에 속한 모든 댓글 문서 삭제
       final commentQuerySnapshot = await commentCollection.get();
       for (var commentDoc in commentQuerySnapshot.docs) {
+        // 해당 댓글의 답글 컬렉션 참조 가져오기
+        final replyCollection = commentCollection.doc(commentDoc.id).collection("reply");
+
+        // 댓글의 답글 컬렉션에 속한 모든 답글 문서 삭제
+        final replyQuerySnapshot = await replyCollection.get();
+        for (var replyDoc in replyQuerySnapshot.docs) {
+          await replyDoc.reference.delete();
+        }
+
+        // 댓글 문서 삭제
         await commentDoc.reference.delete();
       }
 
       // 게시글 문서 삭제
-      await FirebaseFirestore.instance.collection("post").doc(documentId).delete();
-
-
+      await postRef.delete();
     } catch (e) {
       print('게시글 삭제 중 오류 발생: $e');
     }
   }
+
 
 
 
@@ -487,30 +586,24 @@ class _CommDetailState extends State<CommDetail> {
           final commentText = commentData['comment'] as String;
           final timestamp = commentData['write_date'] as Timestamp;
           final commentDate = timestamp.toDate();
+          String documentId = commentData['documentId'];
 
           return Container(
             margin: EdgeInsets.only(right: 10, left: 10),
             padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!, width: 1.0),
-              ),
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('hj',style: TextStyle(fontSize: 13)),
-                    GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          // _showCommentMenu();
-                        });
-                      },
-                      child: Icon(Icons.more_vert, size: 15)
-                    ),
+              Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('hj',style: TextStyle(fontSize: 13)),
+                GestureDetector(
+                  onTap: () {
+
+                  },
+                  child: Icon(Icons.more_vert, size: 15)
+                )
                   ],
                 ),
                 SizedBox(height: 5),
@@ -522,19 +615,47 @@ class _CommDetailState extends State<CommDetail> {
                   _addLineBreaks(commentText, MediaQuery.of(context).size.width),
                   style: TextStyle(fontSize: 13),
                 ),
-                TextButton(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(document: _postData?['commentId'])));
-                  },
-                  child: Text(
-                      '답글쓰기',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                        decoration: TextDecoration.underline
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(
+                          commentId: documentId,
+                          postId: widget.document
+                        )
                       )
+                      );
+                    },
+                    child: Text(
+                        '답글쓰기',
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                            decoration: TextDecoration.underline
+                        )
+                    ),
                   ),
-                )
+                ),
+                StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('post')
+                      .doc(widget.document)
+                      .collection('comment')
+                      .doc(documentId)
+                      .collection('reply')
+                      .orderBy('write_date', descending: false)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    }
+                    if (snapshot.hasError) {
+                      return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                    }
+                    // 변경된 부분: 답글 리스트를 출력하는 _repliesList 함수를 호출합니다.
+                    return _repliesList(snapshot.data as QuerySnapshot);
+                  },
+                ),
               ],
             ),
           );
@@ -695,6 +816,53 @@ class _CommDetailState extends State<CommDetail> {
       _loadComments();
     } catch (e) {
       print('댓글 삭제 오류: $e');
+    }
+  }
+
+
+  Widget _repliesList(QuerySnapshot<Object?> data) {
+    if (data.docs.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: data.docs.map((doc) {
+          final replyData = doc.data() as Map<String, dynamic>;
+          final replyText = replyData['reply'] as String;
+          final timestamp = replyData['write_date'] as Timestamp;
+          final replyDate = timestamp.toDate();
+
+          return Container(
+            padding: EdgeInsets.only(top: 10, bottom: 10, left:30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('hj', style: TextStyle(fontSize: 13)),
+                    GestureDetector(
+                      onTap: () {
+                        // Implement your action when the more button is tapped
+                      },
+                      child: Icon(Icons.more_vert, size: 15),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 5),
+                Text(
+                  replyDate.toString(),
+                  style: TextStyle(fontSize: 10),
+                ),
+                Text(
+                  replyText,
+                  style: TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      );
+    } else {
+      return Container();
     }
   }
 
