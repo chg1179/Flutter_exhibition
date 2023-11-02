@@ -54,10 +54,8 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
-      String downloadUrl = await uploader.uploadImage(pickedFile); // 변경된 부분: 다운로드 URL을 받습니다.
       setState(() {
         _imageFile = pickedFile;
-        print(downloadUrl); // 다운로드 URL을 출력합니다.
       });
     } else {
       print('No image selected.');
@@ -67,7 +65,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Future<void> uploadImage() async {
     if (_imageFile != null) {
       downloadURL = await uploader.uploadImage(_imageFile!);
-      print('Uploaded to Firebase Storage file name: $downloadURL');
+      print('Uploaded to Firebase Storage: $downloadURL');
     } else {
       print('No image selected.');
     }

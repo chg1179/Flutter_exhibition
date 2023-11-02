@@ -25,7 +25,13 @@ class ImageUploader {
     String folder = '$folderName/';
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
     Reference storageReference = storage.ref().child('$folder$fileName.jpg');
-    UploadTask uploadTask = storageReference.putData(imageBytes);
+
+    // SettableMetadata를 사용하여 이미지에 메타데이터 추가
+    SettableMetadata metadata = SettableMetadata(
+      contentType: 'image/jpeg', // 이미지 유형에 맞게 content type 설정
+    );
+
+    UploadTask uploadTask = storageReference.putData(imageBytes, metadata);
 
     try {
       await uploadTask;
