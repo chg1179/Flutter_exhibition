@@ -99,7 +99,6 @@ class FirstPage extends StatelessWidget {
             ],
           ),
         );
-
       },
     );
   }
@@ -274,7 +273,8 @@ class MainList extends StatefulWidget {
 class _MainListState extends State<MainList> {
   final PageController _controller = PageController(viewportFraction: 0.8);
   int _currentPage = 0;
-
+  String? region;
+  String? galleryName;
   @override
   void initState() {
     super.initState();
@@ -300,78 +300,124 @@ class _MainListState extends State<MainList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('exhibition')
-            .orderBy('postDate', descending: true)
-            .limit(3)
-            .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(child: Text('에러 발생: ${snap.error}'));
-          }
-          if (!snap.hasData) {
-            return Center(child: Text('데이터 없음'));
-          }
-          return Container(
-            constraints: BoxConstraints(maxHeight: 400),
-            child: PageView.builder(
-              controller: _controller,
-              //itemCount: widget.images.length,
-              itemCount: snap.data!.docs.length,
-              // onPageChanged: (int page) {
-              //   setState(() {
-              //     _currentPage = page;
-              //   });
-              // }, // 이자식때문에 슬라이드가 안됌
-              itemBuilder: (context, index) {
-                DocumentSnapshot doc = snap.data!.docs[index];
-                Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-                final imageInfo = widget.images[index];
+      stream: FirebaseFirestore.instance
+          .collection('exhibition')
+          .orderBy('postDate', descending: true)
+          .limit(3)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+        return Container(
+          constraints: BoxConstraints(maxHeight: 400),
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: snap.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              final imageInfo = widget.images[index];
 
-                // Wrap each image with InkWell for click functionality
-                return InkWell(
-                  onTap: () {
-                    _onImageClicked(imageInfo);
-                  },
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              // 'exhibition_image' 서브컬렉션에서 데이터를 가져오기
+              String imageURL = '';
+
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection('exhibition')
+                    .doc(doc.id)
+                    .collection('exhibition_image')
+                    .get(),
+                builder: (context, subSnapshot) {
+                  if (subSnapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (subSnapshot.hasData) {
+                    // 서브컬렉션의 이미지 데이터를 가져옵니다.
+                    QuerySnapshot subQuerySnapshot = subSnapshot.data as QuerySnapshot;
+                    List<Map<String, dynamic>> images = subQuerySnapshot.docs.map((subDoc) {
+                      return {
+                        'imageURL': (subDoc.data() as Map<String, dynamic>)['imageURL'] as String,
+                        // 다른 서브컬렉션 필드도 추가
+                      };
+                    }).toList();
+                    // images 목록에서 이미지 URL을 가져와 사용할 수 있습니다.
+                    if (images.isNotEmpty) {
+                      imageURL = images[0]['imageURL']; // 여기서는 첫 번째 이미지를 가져옴
+                    }
+                  }
+                  final galleryNo = doc['galleryNo'] as String;
+                  return StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('gallery')
+                        .doc(galleryNo)
+                        .snapshots(),
+                    builder: (context, gallerySnapshot) {
+                      if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+                      if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
+                      /// 갤러리 정보 갯또다제
+                        final galleryName = gallerySnapshot.data!['galleryName'] as String;
+                        final galleryRegion = gallerySnapshot.data!['region'] as String;
+                        final place = galleryName; // 갤러리 이름을 가져와서 place 변수에 할당
+                        
+                        return InkWell(
+                          onTap: () {
+                            _onImageClicked(data);
+                          },
+                          child: Row(
                             children: [
-                              Image.asset(
-                                'assets/main/${imageInfo['name']}',
-                                width: MediaQuery.of(context).size.width * 0.5,
-                                height: 300,
-                              ),
-                              Text(
-                                '${data['exTitle']}',
-                                style: TextStyle(
-                                  color: Color(0xffD4D8C8),
-                                  fontWeight: FontWeight.bold,
+                              Expanded(
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Image.network(
+                                        imageURL,
+                                        width: MediaQuery.of(context).size.width * 0.5,
+                                        height: 300,
+                                      ),
+                                      Text(
+                                        '${data['exTitle']}',
+                                        style: TextStyle(
+                                          color: Color(0xffD4D8C8),
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${galleryName}/${galleryRegion}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                //갤러리 장소 조인해야함...ㅠ
-                                imageInfo['description']!,
-                                style: TextStyle(fontSize: 10 , color: Colors.grey, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        }
+                        );
+                      } else {
+                        return CircularProgressIndicator();
+                      }
+                    },
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -418,9 +464,12 @@ class UserList extends StatefulWidget {
   @override
   _UserListState createState() => _UserListState();
 }
+
 class _UserListState extends State<UserList> {
   final PageController _controller = PageController(viewportFraction: 0.9);
   int _currentPage = 0;
+  String? region;
+  String? galleryName;
 
   @override
   void initState() {
@@ -429,9 +478,9 @@ class _UserListState extends State<UserList> {
   }
 
   void _startAutoScroll() {
-    Future.delayed(Duration(seconds: 4)).then((_) {
+    Future.delayed(Duration(seconds: 5)).then((_) {
       if (mounted) {
-        int nextPage = (_currentPage + 3) % widget.users.length;
+        int nextPage = (_currentPage + 3) % 6;
         _controller.animateToPage(
           nextPage,
           duration: Duration(milliseconds: 500),
@@ -444,53 +493,131 @@ class _UserListState extends State<UserList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      child: PageView.builder(
-        controller: _controller,
-        itemCount: widget.users.length,
-        onPageChanged: (int page) {
-          setState(() {
-            _currentPage = page;
-          });
-        },
-        itemBuilder: (context, index) {
-          final start = (index * 3) % widget.users.length;
-          final end = (start + 2) % widget.users.length;
-          final userGroup = widget.users.getRange(start, end + 1).toList();
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('exhibition')
+          .orderBy('startDate', descending: true)
+          .limit(6)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+        return Container(
+          height: 300,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: snap.data!.docs.length,
+            onPageChanged: (int page) {
+              setState(() {
+                _currentPage = page;
+              });
+            },
+            itemBuilder: (context, index) {
+              final start = (index * 3) % widget.users.length;
+              final end = (start + 2) % widget.users.length;
+              final userGroup = widget.users.getRange(start, end + 1).toList();
 
-          return Row(
-            children: userGroup.map((user) {
-              return Expanded(
-                child: InkWell( // Wrap each user with InkWell for click functionality
-                  onTap: () {
-                    _onUserClicked(user);
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundImage: AssetImage(user['profileImage']!),
-                        ),
-                        Text(
-                          user['nickname']!,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              DocumentSnapshot doc = snap.data!.docs[index];
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              String imageURL = '';
+
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection('exhibition')
+                    .doc(doc.id)
+                    .collection('exhibition_image')
+                    .get(),
+                builder: (context, subSnapshot) {
+                  if (subSnapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (subSnapshot.hasData) {
+                    // 서브컬렉션의 이미지 데이터를 가져옵니다.
+                    QuerySnapshot subQuerySnapshot =
+                    subSnapshot.data as QuerySnapshot;
+                    List<Map<String, dynamic>> images = subQuerySnapshot.docs
+                        .map((subDoc) {
+                      return {
+                        'imageURL':
+                        (subDoc.data() as Map<String, dynamic>)['imageURL']
+                        as String,
+                        // 다른 서브컬렉션 필드도 추가
+                      };
+                    }).toList();
+                    // images 목록에서 이미지 URL을 가져와 사용할 수 있습니다.
+                    if (images.isNotEmpty) {
+                      imageURL = images[0]['imageURL']; // 여기서는 첫 번째 이미지를 가져옴
+                    }
+                  }
+                  final galleryNo = doc['galleryNo'] as String;
+
+                  return StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('gallery')
+                        .doc(galleryNo)
+                        .snapshots(),
+                    builder: (context, gallerySnapshot) {
+                      if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+                      if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
+                        /// 갤러리 정보 갯또다제
+                        final galleryName =
+                        gallerySnapshot.data!['galleryName'] as String;
+                        final galleryRegion =
+                        gallerySnapshot.data!['region'] as String;
+                        final place = galleryName; // 갤러리 이름을 가져와서 place 변수에 할당
+
+                        return Row(
+                          children: userGroup.map((user) {
+                            return Expanded(
+                              child: InkWell( // Wrap each user with InkWell for click functionality
+                                onTap: () {
+                                  _onUserClicked(user);
+                                },
+                                child: Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage: Image.network(imageURL).image,
+                                      ),
+                                      Text(
+                                        galleryRegion,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }
+                      else {
+                        return CircularProgressIndicator();
+                      }
+                    },
+
+                  );
+                },
               );
-            }).toList(),
-          );
-        },
-      ),
+            },
+          ),
+        );
+      },
     );
   }
 
