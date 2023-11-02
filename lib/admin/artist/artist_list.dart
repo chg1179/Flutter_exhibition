@@ -67,7 +67,7 @@ class _ArtistListState extends State<ArtistList> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ArtistEditPage()),
+                        MaterialPageRoute(builder: (context) => ArtistEditPage(document: null)),
                       );
                     },
                     child: Text("작가 추가"),

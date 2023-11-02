@@ -58,15 +58,21 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
     settingText();
   }
 
+  // 수정하는 경우에 저장된 값을 필드에 출력
   Future<void> settingText() async {
-    if(widget.document != null){
+    if (widget.document != null) {
       Map<String, dynamic> artistData = getArtistMapData(widget.document!);
-      _nameController.text = artistData['artistName'];
-      _englishNameController.text = artistData['artistEnglishName'];
-      _nationalityController.text = artistData['artistNationality'];
-      _expertiseController.text = artistData['expertise'];
-      _introduceController.text = artistData['artistIntroduce'];
-      allFieldsFilled = true;
+      if (widget.document!.exists) {
+        _nameController.text = artistData['artistName'];
+        _englishNameController.text = artistData['artistEnglishName'];
+        _nationalityController.text = artistData['artistNationality'];
+        _expertiseController.text = artistData['expertise'];
+        _introduceController.text = artistData['artistIntroduce'];
+        allFieldsFilled = true;
+      } else {
+        // Handle the case where the document doesn't exist
+        // or further error handling if required
+      }
     }
   }
 
@@ -287,6 +293,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           setState(() {
             _saving = true;
           });
+
           formData['name'] = _nameController.text;
           formData['englishName'] = _englishNameController.text;
           formData['expertise'] = _expertiseController.text;
@@ -294,17 +301,26 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           formData['introduce'] = _introduceController.text;
 
           // 파이어베이스에 정보 및 이미지 저장
-          String documentId = await addArtist('artist',formData);
-          if (_imageFile != null) {
-            await uploadImage();
-            await addArtistImg('artist', 'artist_image', documentId, imageURL!, 'artist_images');
+          if (widget.document != null && widget.document!.exists) { // 수정
+            await updateArtist('artist', widget.document!, formData);
+            if (_imageFile != null) {
+              await uploadImage();
+              await updateArtistImg('artist', 'artist_image', widget.document!, imageURL!, 'artist_images');
+            }
+            widget.moveToNextTab(widget.document!.id, 'update'); // 다음 탭으로 이동
+          } else { // 추가
+            String documentId = await addArtist('artist', formData);
+            if (_imageFile != null) {
+              await uploadImage();
+              await addArtistImg('artist', 'artist_image', documentId, imageURL!, 'artist_images');
+            }
+            widget.moveToNextTab(documentId, 'add'); // 다음 탭으로 이동
           }
 
           // 저장 완료 후 페이지 전환
           setState(() {
             _saving = false;
           });
-          widget.moveToNextTab(documentId); // 다음 탭으로 이동
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {

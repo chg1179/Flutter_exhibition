@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //${widget.formData['name']}')
 
-// 작가 정보 추가.
+// 작가 정보 추가
 Future<String> addArtist(String collectionStr, Map<String, String> formData) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
@@ -21,6 +21,22 @@ Future<String> addArtist(String collectionStr, Map<String, String> formData) asy
   return artist.id;
 }
 
+// 작가 정보 수정
+Future<void> updateArtist(String collectionStr, DocumentSnapshot<Object?> document, Map<String, String> formData) async {
+  final FirebaseFirestore _fs = FirebaseFirestore.instance;
+  CollectionReference artist = _fs.collection(collectionStr);
+
+  String documentId = document.id;
+
+  await artist.doc(documentId).update({
+    'artistName': formData['name'],
+    'artistEnglishName': formData['englishName'],
+    'artistNationality': formData['nationality'],
+    'expertise': formData['expertise'],
+    'artistIntroduce': formData['introduce'],
+  });
+}
+
 // 작가 이미지 추가
 Future<void> addArtistImg(String parentCollection, String childCollection, String documentId, String downloadURL, String folderName) async {
   await FirebaseFirestore.instance
@@ -33,6 +49,31 @@ Future<void> addArtistImg(String parentCollection, String childCollection, Strin
         'artistImagePostdate': FieldValue.serverTimestamp(),
         'artistImageUpdatedate': FieldValue.serverTimestamp()
   });
+}
+// 작가 이미지 수정
+Future<void> updateArtistImg(String parentCollection, String childCollection, DocumentSnapshot document, String downloadURL, String folderName) async {
+  String? childDocumentId = await getFirstDocumentID(document);
+  await FirebaseFirestore.instance
+      .collection(parentCollection)
+      .doc(document.id)
+      .collection(childCollection)
+      .doc(childDocumentId)
+      .update({
+    'imageURL' : downloadURL,
+    'folderName' : folderName,
+    'artistImageUpdatedate': FieldValue.serverTimestamp()
+  });
+}
+
+// 작가 이미지 컬렉션의 문서 id 값을 반환
+Future<String?> getFirstDocumentID(DocumentSnapshot<Object?>? document) async {
+  if (document != null) {
+    QuerySnapshot snapshot = await document.reference.collection('artist_image').get();
+    if (snapshot.docs.isNotEmpty) {
+      return snapshot.docs[0].id; // 첫 번째 문서의 ID 반환
+    }
+  }
+  return null; // 문서가 없을 경우 null 반환
 }
 
 // 하위 컬렉션(추가 정보: 학력/활동/이력) 추가

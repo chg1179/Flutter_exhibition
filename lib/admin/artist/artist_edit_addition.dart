@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
@@ -8,18 +9,20 @@ import 'package:image_picker/image_picker.dart';
 
 class ArtistEditAdditionPage extends StatelessWidget {
   String? documentId;
-  ArtistEditAdditionPage({Key? key, required this.documentId});
+  String editKind;
+  ArtistEditAdditionPage({Key? key, required this.documentId, required this.editKind});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: ArtistEditAddition(documentId: documentId),
+      home: ArtistEditAddition(documentId: documentId, editKind: editKind),
     );
   }
 }
 
 class ArtistEditAddition extends StatefulWidget {
   String? documentId;
-  ArtistEditAddition({Key? key, required this.documentId});
+  String editKind;
+  ArtistEditAddition({Key? key, required this.documentId, required this.editKind});
   @override
   _ArtistEditAdditionState createState() => _ArtistEditAdditionState();
 }
@@ -34,6 +37,37 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   List<List<TextEditingController>> awardsControllers = [
     [TextEditingController(), TextEditingController()]
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    settingText();
+  }
+
+  Future<void> settingText() async {
+    print("Document ID: ${widget.documentId}");
+    if (widget.editKind == 'update') {
+      QuerySnapshot artistAwards = await FirebaseFirestore.instance
+          .collection('artist')
+          .doc(widget.documentId)
+          .collection('artist_awards')
+          .get();
+
+      if (artistAwards.docs.isNotEmpty) {
+        awardsControllers.clear();
+
+        for (var award in artistAwards.docs) {
+          var year = award['year'];
+          var content = award['content'];
+          awardsControllers.add([
+            TextEditingController(text: year),
+            TextEditingController(text: content)
+          ]);
+        }
+        print('Awards controllers length: ${awardsControllers.length}');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +94,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text('id : ${widget.documentId}'),
+                  Text('kind : ${widget.editKind}'),
                   // 항목, 컨트롤러, 생성, 삭제
                   textControllerBtn('학력', educationControllers, () {
                       setState(() {

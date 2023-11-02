@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/admin/artist/artist_edit.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
@@ -28,6 +29,7 @@ class ArtistView extends StatefulWidget {
 
 class _ArtistViewState extends State<ArtistView> {
   Map<int, bool> checkBoxState = {}; // 예시로 상태를 유지하기 위한 Map
+  String? documentId; // 저장된 값
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +75,7 @@ class _ArtistViewState extends State<ArtistView> {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ArtistEditProfilePage(moveToNextTab: moveToNextTab, document: widget.document)),
+                      MaterialPageRoute(builder: (context) => ArtistEditPage(document: widget.document)),
                     );
                   },
                   child: Text("작가 수정"),
@@ -84,8 +86,5 @@ class _ArtistViewState extends State<ArtistView> {
         ),
       ),
     );
-  }
-  void moveToNextTab(docId) {
-    showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
   }
 }
