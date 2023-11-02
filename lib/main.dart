@@ -50,7 +50,7 @@ class _HomeState extends State<Home> {
         length: 2, // 탭 수
         child: Scaffold(
           appBar: AppBar(
-            leading: Image.asset('main/logo_green.png'),
+            leading: Image.asset('assets/main/logo_green.png'),
             elevation: 0,
             backgroundColor:Color(0xff464D40),
             title: null, // title 숨기기

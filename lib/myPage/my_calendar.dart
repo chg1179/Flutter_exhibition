@@ -1,11 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 void main() async {
-  await initializeDateFormatting('ko_KR');
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Firebase 초기화
+
   runApp(MaterialApp(
     home: MyCalendar(),
   ));
@@ -22,6 +25,8 @@ class _MyCalendarState extends State<MyCalendar> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
+
+  ///일정 내용이 담기는 맵
   Map<DateTime, List<Event>> _events = {};
 
   TextEditingController _eventController = TextEditingController();
@@ -32,11 +37,8 @@ class _MyCalendarState extends State<MyCalendar> {
   void initState() {
     super.initState();
     _events = {
-      DateTime(2023, 10, 25): [
-        Event("일정 1", 'assets/ex/ex1.png', '메모 1', DateTime.now()),
-      ],
-      DateTime(2023, 10, 28): [
-        Event("일정 2", 'assets/ex/ex1.png', '메모 2', DateTime.now()),
+      DateTime(2023, 11, 1): [
+        Event("더미 이벤트", 'assets/ex/dummy.png', '이벤트 설명', DateTime.now()),
       ],
     };
     print(_events);
@@ -77,7 +79,7 @@ class _MyCalendarState extends State<MyCalendar> {
           TableCalendar(
             calendarFormat: _calendarFormat,
             focusedDay: _focusedDay,
-            firstDay: DateTime.utc(2021, 10, 16),
+            firstDay: DateTime.utc(2023, 10, 16),
             lastDay: DateTime.utc(2030, 3, 14),
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
@@ -124,7 +126,8 @@ class _MyCalendarState extends State<MyCalendar> {
             },
           ),
 
-          // 이벤트 목록을 표시합니다.
+
+          ///일정등록 표시목록///////////////////////////////
       Expanded(
         child: _events[_selectedDay] != null && _events[_selectedDay]!.isNotEmpty
             ? ListView(
@@ -143,7 +146,13 @@ class _MyCalendarState extends State<MyCalendar> {
                   DateFormat('yyyy-MM-dd HH:mm').format(event.date),
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
-              ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete), // 휴지통 아이콘
+                  onPressed: () {
+                    _deleteEvent(event); // 일정 삭제 함수 호출
+                  },
+                ),
+              )
             );
           }).toList(),
         )
@@ -212,8 +221,12 @@ class _MyCalendarState extends State<MyCalendar> {
                   _events[_selectedDay] = events;
                   setState(() {
                     _updateEventList(_selectedDay);
+                    _eventController.clear();
+                    _imagePathController.clear();
+                    _memoController.clear();
                   });
                 }
+                print('selectDay ==> ${_selectedDay}');
                 Navigator.of(context).pop();
               },
               child: Text('저장'),
@@ -222,7 +235,56 @@ class _MyCalendarState extends State<MyCalendar> {
         );
       },
     );
+
+    /// Firestore 인스턴스 얻기 /// 파이어베이스 일정 insert 부분
+    final firestore = FirebaseFirestore.instance;
+
+    if (eventText.isNotEmpty) {
+      final events = _events[_selectedDay] ?? [];
+      events.add(Event(eventText, imagePath, memo, DateTime.now())); // 현재 날짜로 설정
+      _events[_selectedDay] = events;
+      setState(() {
+        _updateEventList(_selectedDay);
+      });
+
+      /// Firestore에 데이터 추가  /// 수정할 부분
+      firestore.collection('events').add({/// 컬렉션명
+        'title': eventText, /// 전시명
+        'imagePath': imagePath, /// 사진 경로
+        'memo': memo, /// 한줄 메모
+        'date': DateTime.now(), /// 현재 날짜로 설정
+      });
+    }
   }
+  /// 일정 삭제
+  void _deleteEvent(Event event) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('나의 전시기록을 지울까요?'),
+      action: SnackBarAction(
+        label: '삭제',
+        onPressed: () {
+          _confirmDelete(event);
+        },
+      ),
+    ));
+  }
+
+  void _confirmDelete(Event event) {
+    final events = _events[_selectedDay] ?? [];
+    events.remove(event); // 선택한 일정 삭제
+    _events[_selectedDay] = events;
+    setState(() {
+      _updateEventList(_selectedDay); // 화면 갱신
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('나의 전시기록을 지웠어요!'),
+      action: SnackBarAction(
+        label: '확인',
+        onPressed: (){},
+      ),
+    ));
+  }
+
 }
 class Event {
   final String title;
@@ -232,3 +294,5 @@ class Event {
 
   Event(this.title, this.imagePath, this.memo, this.date);
 }
+
+

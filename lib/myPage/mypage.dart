@@ -1,6 +1,7 @@
 import 'package:exhibition_project/community/comm_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main.dart';
+import 'package:exhibition_project/myPage/JTBI/my_jtbi_result.dart';
 import 'package:exhibition_project/myPage/be_back_ex.dart';
 import 'package:exhibition_project/myPage/isNotification.dart';
 import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
@@ -316,6 +317,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                   onPressed: (){
                                     //취향분석 상세페이지로 이동
                                     //취향분석 상세페이지로 이동
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => JtbiResult()));
                                   },
                                   icon: Icon(Icons.arrow_forward_ios)
                               ),
