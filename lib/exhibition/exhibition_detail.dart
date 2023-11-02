@@ -88,26 +88,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     }
   }
 
-  Widget _exFee(QuerySnapshot<Object?> data) {
-    if (_exhibitionFee.isNotEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 50),
-        child: Column(
-          children: _exhibitionFee.map((exFeeData) {
-            final exKind = exFeeData['exKind'];
-            final exFee = exFeeData['exFee'];
-
-            return ListTile(
-              title: Text(exKind, style: TextStyle(fontSize: 15)),
-            );
-          }).toList(),
-        ),
-      );
-    } else {
-      return Text('무료');
-    }
-  }
-
   Future<void> openURL(String url) async {
     const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
 
@@ -611,7 +591,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     ),
                                   ),
                                   onPressed: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview()));
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document,)));
                                   },
                                   child: Text("한줄평 작성")
                               ),

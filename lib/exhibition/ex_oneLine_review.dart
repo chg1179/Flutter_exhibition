@@ -1,21 +1,60 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ExOneLineReview extends StatefulWidget {
-  const ExOneLineReview({super.key});
+  final String document;
+
+  const ExOneLineReview({required this.document});
 
   @override
   State<ExOneLineReview> createState() => _ExOneLineReviewState();
 }
 
 class _ExOneLineReviewState extends State<ExOneLineReview> {
+  final _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? _exDetailData;
   final _review = TextEditingController();
-  final String observationTime = "30분";
+  String _observationTime = "1시간";
+  String _docentOr = "없음";
+  List<String> selectedTags = [];
+  List<String> allTags = ["📚 유익한", "‍😆️ 즐거운", "🏔 웅장한", "😎 멋진", "👑 럭셔리한", "✨ 아름다운", "📸 사진찍기 좋은", "🌍 대규모", "🌱 소규모", "💡 독특한", "🌟 트렌디한", "👧 어린이를 위한", "👨‍🦳 어른을 위한", "🤸‍♂️ 동적인", "👀 정적인"];
+
+  void _getExDetailData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
+        });
+      } else {
+        print('전시회 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getExDetailData();
+  }
+
+  void handleTagSelection(String tag) {
+    setState(() {
+      if (selectedTags.contains(tag)) {
+        selectedTags.remove(tag);
+      } else {
+        selectedTags.add(tag);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("전시회명", style: TextStyle(color: Colors.black, fontSize: 19),),
+        title: Text("${_exDetailData?['exTitle']} 한줄평 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
         backgroundColor: Colors.white,
         elevation: 1.0,
         leading: IconButton(
@@ -31,7 +70,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("사진 업로드", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),),
+              Text("사진 업로드", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
               Text("전시와 관련된 사진을 업로드 해주세요.", style: TextStyle(color: Colors.grey, fontSize: 13),),
               SizedBox(height: 20),
               InkWell(
@@ -50,8 +89,8 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               SizedBox(height: 40),
               Row(
                 children: [
-                  Text("리뷰 작성", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),),
-                  Text(" *", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Color(0xff464D40))),
+                  Text("리뷰 작성", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                  Text(" *", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff464D40))),
                 ],
               ),
               SizedBox(height: 10,),
@@ -76,8 +115,10 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               SizedBox(height: 10,),
               Row(
                 children: [
-                  Text("관람 시간 선택", style: TextStyle(fontSize: 17),),
-                  SizedBox(width: 20,),
+                  Container(
+                      width: 110,
+                      child: Text("관람 시간", style: TextStyle(fontSize: 17),)
+                  ),
                   ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.black,
@@ -87,17 +128,226 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                         shadowColor: Colors.transparent,
                       ),
                       onPressed: (){
+                        showModalBottomSheet(
+                          enableDrag : true,
+                          isScrollControlled: true,
+                          shape : RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15))),
+                          context: context,
+                          builder: (context) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.remove, size: 35,),
+                                Text("관람 시간 선택", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                SizedBox(height: 20,),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "30분";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("30분", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "1시간";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("1시간", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "1시간 30분";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("1시간 30분", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "2시간";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("2시간", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "2시간 30분";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("2시간 30분", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                TextButton(
+                                    style: ButtonStyle(
+                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        _observationTime = "3시간";
+                                        Navigator.pop(context);
+                                      });
+                                    },
+                                    child: Text("3시간", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                ),
+                                SizedBox(
+                                  width: 130,
+                                  child: Divider(
+                                    color: Colors.black,
+                                    thickness: 0.1,
+                                  ),
+                                ),
+                                SizedBox(height: 20,)
+                              ],
+                            );
+                          },
+                        );
                       },
                       child: Row(
                         children: [
-                          Text(observationTime),
+                          Text(_observationTime),
                           SizedBox(width: 20,),
                           Icon(Icons.expand_more)
                         ],
                       )
                   ),
                 ],
-              )
+              ),
+              Row(
+                children: [
+                  Container(
+                      width: 110,
+                      child: Text("도슨트 유무", style: TextStyle(fontSize: 17),)
+                  ),
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: _docentOr == "있음" ? Colors.white : Colors.black,
+                        backgroundColor: _docentOr == "있음" ? Color(0xff464D40) : Colors.white,
+                        side: BorderSide(width: 1, color: Color(0xff464D40)),
+                        elevation: 0,
+                        shadowColor: Colors.transparent,
+                      ),
+                      onPressed: (){
+                        setState(() {
+                          if(_docentOr=="있음"){
+                            _docentOr = "없음";
+                          }else{
+                            _docentOr = "있음";
+                          }
+                        });
+                      },
+                      child : Text(_docentOr)
+                  )
+                ],
+              ),
+              SizedBox(height: 40,),
+              Text("태그 선택", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+              SizedBox(height: 10,),
+              Wrap(
+                children: allTags.map((tag) {
+                  bool isSelected = selectedTags.contains(tag);
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 5, right: 5),
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(isSelected ? Color(0xff464D40) : Colors.white),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all<double>(1.3), // 그림자 높이 설정
+                      ),
+                      onPressed: () {
+                        handleTagSelection(tag);
+                      },
+                      child: Text(tag, style: TextStyle(fontSize: 15, color: isSelected ? Colors.white : Colors.black)),
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: 50,),
+              Row(
+                children: [
+                  Text("내 손안의 전시회 리뷰 정책", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  Icon(Icons.chevron_right, color: Colors.grey, size: 18,)
+                ],
+              ),
+              SizedBox(height: 5,),
+              Text("전시회 이용과 무관한 내용이나 허위 및 과장, 저작물 무단 도용, 초상권 및 사생활 침해, 비방 등이 포함된 내용은 삭제될 수 있습니다.", style: TextStyle(fontSize: 13, color: Colors.grey)),
+              SizedBox(height: 45,),
+              Container(
+                width: MediaQuery.of(context).size.width - 25,
+                height: 50,
+                child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Color(0xffD4D8C8),
+                      backgroundColor: Color(0xff464D40),
+                      elevation: 0,
+                      shadowColor: Colors.transparent,
+                    ),
+                    onPressed: (){},
+                    child: Text("리뷰 등록", style: TextStyle(fontSize: 18),)
+                ),
+              ),
+              SizedBox(height: 30,)
             ],
           ),
         ),
