@@ -1,4 +1,4 @@
-import 'package:exhibition_project/community/comm_main.dart';
+import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/myPage/JTBI/my_jtbi_result.dart';

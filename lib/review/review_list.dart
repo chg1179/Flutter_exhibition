@@ -4,7 +4,7 @@ import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import '../community/comm_main.dart';
+import '../community/post_main.dart';
 import '../exhibition/ex_list.dart';
 import '../firebase_options.dart';
 import '../myPage/mypage.dart';

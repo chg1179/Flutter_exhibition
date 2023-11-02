@@ -1,4 +1,4 @@
-import 'package:exhibition_project/community/comm_main.dart';
+import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';

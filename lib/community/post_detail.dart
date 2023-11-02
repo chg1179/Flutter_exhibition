@@ -1,7 +1,9 @@
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/community/comm_edit.dart';
-import 'package:exhibition_project/community/comm_main.dart';
+import 'package:exhibition_project/community/comment_detail.dart';
+import 'package:exhibition_project/community/post_edit.dart';
+import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 
 class CommDetail extends StatefulWidget {
@@ -16,12 +18,15 @@ class _CommDetailState extends State<CommDetail> {
   bool isLiked = false;
 
   final _commentCtr = TextEditingController();
+  final _replyCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
 
   ScrollController _scrollController = ScrollController();
   bool _showFloatingButton = false;
   Map<String, dynamic>? _postData;
   List<Map<String, dynamic>> _comments = [];
+  List<Map<String, dynamic>> _replies = [];
+
 
   @override
   void initState() {
@@ -69,6 +74,7 @@ class _CommDetailState extends State<CommDetail> {
       final comments = querySnapshot.docs.map((doc) {
         final data = doc.data();
         return {
+          'commentId': doc.id, // 댓글의 Firestore 문서 ID 추가
           'comment': data['comment'] as String,
           'write_date': data['write_date'] as Timestamp,
         };
@@ -81,6 +87,7 @@ class _CommDetailState extends State<CommDetail> {
       print('댓글을 불러오는 중 오류가 발생했습니다: $e');
     }
   }
+
 
   void _addComment() async {
     String commentText = _commentCtr.text;
@@ -310,6 +317,7 @@ class _CommDetailState extends State<CommDetail> {
         Expanded(
           child: TextField(
             controller: _commentCtr,
+            maxLines: null, // 댓글이 여러 줄로 나타날 수 있도록 함
             decoration: InputDecoration(
               hintText: '댓글을 작성해주세요',
               contentPadding: EdgeInsets.all(10),
@@ -324,6 +332,7 @@ class _CommDetailState extends State<CommDetail> {
       ],
     );
   }
+
 
   void _showMenu() {
     final document = widget.document;
@@ -449,6 +458,27 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+
+
+  // 댓글수 일정 수 이상 넘어가면 줄바꿈
+  String _addLineBreaks(String text, double maxLineLength) {
+    final buffer = StringBuffer();
+    double currentLineLength = 0;
+
+    for (var i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+      currentLineLength++;
+
+      if (currentLineLength >= maxLineLength) {
+        buffer.write('\n'); // 글자 수가 일정 수 이상이면 줄바꿈 추가
+        currentLineLength = 0;
+      }
+    }
+
+    return buffer.toString();
+  }
+
+
   Widget _commentsList(QuerySnapshot<Object?> data) {
     if (_comments.isNotEmpty) {
       return Column(
@@ -458,25 +488,55 @@ class _CommDetailState extends State<CommDetail> {
           final timestamp = commentData['write_date'] as Timestamp;
           final commentDate = timestamp.toDate();
 
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Container(
-                width: 300,
-                child: ListTile(
-                  title: Text(commentText, style: TextStyle(fontSize: 13)),
-                  subtitle: Text(commentDate.toString(),style: TextStyle(fontSize: 10)),
+          return Container(
+            margin: EdgeInsets.only(right: 10, left: 10),
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Colors.grey[300]!, width: 1.0),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('hj',style: TextStyle(fontSize: 13)),
+                    GestureDetector(
+                      onTap: (){
+                        setState(() {
+                          // _showCommentMenu();
+                        });
+                      },
+                      child: Icon(Icons.more_vert, size: 15)
+                    ),
+                  ],
                 ),
-              ),
-              IconButton(
-                onPressed: () {
-                  _showCommentMenu(commentData, widget.document);
-                },
-                icon: Icon(Icons.more_vert, size: 15),
-                color: Color(0xff464D40),
-              ),
-            ],
+                SizedBox(height: 5),
+                Text(
+                  commentDate.toString(),
+                  style: TextStyle(fontSize: 10),
+                ),
+                Text(
+                  _addLineBreaks(commentText, MediaQuery.of(context).size.width),
+                  style: TextStyle(fontSize: 13),
+                ),
+                TextButton(
+                  onPressed: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(document: _postData?['commentId'])));
+                  },
+                  child: Text(
+                      '답글쓰기',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        decoration: TextDecoration.underline
+                      )
+                  ),
+                )
+              ],
+            ),
           );
         }).toList(),
       );
@@ -484,6 +544,7 @@ class _CommDetailState extends State<CommDetail> {
       return Center(child: Text('댓글이 없습니다.'));
     }
   }
+
 
   void _showCommentMenu(Map<String, dynamic> commentData, String documentId) {
     final commentId = commentData['reference'].id;

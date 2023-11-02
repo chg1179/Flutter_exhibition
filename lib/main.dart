@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/community/comm_main.dart';
+import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';

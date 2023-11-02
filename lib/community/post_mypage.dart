@@ -1,4 +1,4 @@
-import 'package:exhibition_project/community/comm_edit.dart';
+import 'package:exhibition_project/community/post_edit.dart';
 import 'package:flutter/material.dart';
 
 class CommMyPage extends StatefulWidget {

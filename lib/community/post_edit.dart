@@ -5,8 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import '../firebase_storage/img_upload.dart';
-import 'comm_detail.dart';
-import 'comm_main.dart';
+import 'post_detail.dart';
+import 'post_main.dart';
 
 class CommEdit extends StatefulWidget {
   final String? documentId;

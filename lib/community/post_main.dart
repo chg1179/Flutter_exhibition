@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/community/comm_detail.dart';
-import 'package:exhibition_project/community/comm_edit.dart';
+import 'package:exhibition_project/community/post_detail.dart';
+import 'package:exhibition_project/community/post_edit.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +11,7 @@ import '../firebase_options.dart';
 import '../main.dart';
 import '../myPage/mypage.dart';
 import '../review/review_list.dart';
-import 'comm_mypage.dart';
+import 'post_mypage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
