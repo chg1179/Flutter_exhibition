@@ -25,26 +25,30 @@ class JTBI extends StatefulWidget {
 
 class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late ScrollController _scrollController;
-  List<int> selectedAnswerIndices = List.generate(9, (index) => -1);
+  List<int> selectedAnswerIndices = List.generate(12, (index) => -1);
 
   final List<String> questions = [
-    '여러 각도에서 관찰할 수 있는 전시가 더 끌린다.',
-    '전시를 가만히 바라보며 생각에 잠기는 것이 좋다.',
-    '옛 것을 탐구하는 것 보다 새로운 걸 습득하는 것이 좋다.',
-    '캔버스란 제한적인 곳에서 표현하는 것이 더 대단하고 멋지다고 생각한다.',
-    '이것 저것 체험을 하며 경험하는 것에 흥미를 느낀다.',
-    '‘구관이 명관이다.’ 라는 말에 동의한다.',
-    '눈을 확 사로잡는 입체적인 전시가 더 좋다.',
-    '동적인 것이 정적인 것 보다 낫다고 느낀다.',
-    '기존엔 없던 새롭고 컨셉츄얼한 것에 끌린다.',
+    'a vs b',
+    'a vs b',
+    'a vs b',
+
+    'c vs d',
+    'c vs d',
+    'c vs d',
+
+    'e vs f',
+    'e vs f',
+    'e vs f',
+
+    'g vs h',
+    'g vs h',
+    'g vs h',
   ];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 9, vsync: this);
-    _scrollController = ScrollController();
   }
 
   void onAnswerSelected(int questionIndex, int answerIndex) {
@@ -53,13 +57,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
 
       if (_tabController.index < _tabController.length - 1) {
         _tabController.animateTo(_tabController.index + 1);
-
-        _scrollController.animateTo(
-          (_tabController.index + 1) * (MediaQuery.of(context).size.height / 9) -
-              (MediaQuery.of(context).size.height / 2),
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-        );
       }
     });
   }
@@ -88,7 +85,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
       ),
       body: Container(
         child: SingleChildScrollView(
-          controller: _scrollController,
           child: Column(
             children: [
 
@@ -119,7 +115,9 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                   },
                   child: Text('나의 전시유형 보러가기'),
                 ),
-              SizedBox(height: 20,)
+              SizedBox(height: 20,),
+              if (calculateProgress() * 100 == 100)
+                ResultGraph(selectedAnswerIndices: selectedAnswerIndices),
             ],
           ),
         ),
@@ -148,7 +146,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
 
   double calculateProgress() {
     int answeredCount = selectedAnswerIndices.where((index) => index >= 0).length;
-    return answeredCount / 9;
+    return answeredCount / 12;
   }
 }
 
@@ -252,7 +250,13 @@ class AnswerOption extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            isSelected ? (answerIndex == 0 ? '동의' : (answerIndex == 4 ? '비동의' : '')) : text,
+            isSelected ?
+            (answerIndex == 0 ? '5점' :
+            (answerIndex == 1 ? '4점' :
+            (answerIndex == 2 ? '3점' :
+            (answerIndex == 3 ? '4점' :
+            (answerIndex == 4 ? '5점' : '')))))
+            : text,
             style: TextStyle(color: isSelected ? Colors.white : borderColor),
           ),
         ),

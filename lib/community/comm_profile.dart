@@ -9,38 +9,61 @@ void main() {
 class CommProfile extends StatelessWidget {
   CommProfile({Key? key}) : super(key: key);
 
-  List<String> path = ['assets/comm_profile/5su.jpg', 'assets/comm_profile/5su.jpg', 'assets/comm_profile/5su.jpg'];
+
+  List<Map<String, String>> _imgList = [
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+    {'image': 'assets/ex/ex1.png'},
+  ];
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-          appBar: AppBar(
-            title: Text(
-              "프로필",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+        appBar: AppBar(
+          title: Text(
+            "프로필",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
-            backgroundColor: Colors.white,
-            iconTheme: IconThemeData(color: Colors.black),
-            elevation: 0,
-            actions: [
-              IconButton(
-                onPressed: () {
-                  // 물음표 아이콘 클릭 시 수행할 동작
-                },
-                icon: Icon(Icons.search_outlined, size: 35),
-              ),
-              IconButton(
-                onPressed: () {
-                  // 프로필 아이콘 클릭 시 수행할 동작
-                },
-                icon: Icon(Icons.account_circle, size: 35),
-              ),
-            ],
           ),
+          backgroundColor: Colors.white,
+          iconTheme: IconThemeData(color: Colors.black),
+          elevation: 0,
+          actions: [
+            IconButton(
+              onPressed: () {
+                // 물음표 아이콘 클릭 시 수행할 동작
+              },
+              icon: Icon(Icons.search_outlined, size: 35),
+            ),
+            IconButton(
+              onPressed: () {
+                // 프로필 아이콘 클릭 시 수행할 동작
+              },
+              icon: Icon(Icons.account_circle, size: 35),
+            ),
+          ],
+        ),
         body: Column(
           children: [
             Row(
@@ -87,7 +110,6 @@ class CommProfile extends StatelessWidget {
                 ),
               ],
             ),
-
             Align(
               alignment: Alignment.topLeft,
               child: Container(
@@ -179,11 +201,11 @@ class CommProfile extends StatelessWidget {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
-                  itemCount: path.length,
+                  itemCount: _imgList.length,
                   itemBuilder: (context, index) {
                     return Container(
                       child: Image.asset(
-                        path[index],
+                        _imgList[index]['image']!,
                         fit: BoxFit.contain,
                       ),
                     );
