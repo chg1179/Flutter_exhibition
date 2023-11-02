@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class ExhibitionDetail extends StatefulWidget {
-  final String imagePath;
   final String document;
 
-  ExhibitionDetail({required this.imagePath, required this.document});
+  ExhibitionDetail({required this.document});
 
   @override
   State<ExhibitionDetail> createState() => _ExhibitionDetailState();
@@ -506,7 +504,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                             children: [
                               CircleAvatar(
                                 radius: 40, // 반지름 크기 조절
-                                backgroundImage: AssetImage("assets/${widget.imagePath}"),
+                                backgroundImage: AssetImage("assets/"),
                               ),
                               SizedBox(height: 8,),
                               Text("차승언")
@@ -699,7 +697,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                       children: [
                                                         CircleAvatar(
                                                           radius: 18,
-                                                          backgroundImage: AssetImage("assets/${widget.imagePath}"),
+                                                          backgroundImage: AssetImage("assets"),
                                                         ),
                                                         SizedBox(width: 10,),
                                                         Column(

@@ -153,9 +153,7 @@ class _Ex_listState extends State<Ex_list> {
                               onTap: () {
                                 Navigator.push(context, MaterialPageRoute(
                                     builder: (context) =>
-                                        ExhibitionDetail(
-                                            imagePath: "ex/ex1.png",
-                                            document: doc.id)));
+                                        ExhibitionDetail(document: doc.id)));
                               },
                               child: Card(
                                 margin: const EdgeInsets.all(5.0),
@@ -198,8 +196,7 @@ class _Ex_listState extends State<Ex_list> {
                                               overflow: TextOverflow.ellipsis)
                                       ),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment
-                                            .start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Padding(
                                             padding: const EdgeInsets.only(
