@@ -1,3 +1,4 @@
+import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
@@ -17,29 +18,22 @@ class ExhibitionDetail extends StatefulWidget {
   State<ExhibitionDetail> createState() => _ExhibitionDetailState();
 }
 
-List<Map<String, dynamic>> _expectationReview = [
-  {'nick' : '꿀호떡', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당'},
-  {'nick' : '소금빵', 'er_cDateTime' : '2023-10-25', 'content' : '넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당넘 기대된당'},
-  {'nick' : '고구마', 'er_cDateTime' : '2023-10-24', 'content' : '완죤 기대중'},
-  {'nick' : '감자', 'er_cDateTime' : '2023-10-23', 'content' : '재밋을까요?'},
-];
-
 class _ExhibitionDetailState extends State<ExhibitionDetail> {
-  final _expReview = TextEditingController();
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
   Map<String, dynamic>? _galleryData;
   Map<String, dynamic>? _exImageData;
   bool _isLoading = true;
-  List<Map<String, dynamic>> _exhibitionFee = [];
   int onelineReviewCount = 0;
+  int expactationReviewCount = 0;
   bool _galleryLoading = true;
 
   @override
   void initState() {
     super.initState();
     getOnelineReviewCount();
+    getExpactationReviewCount();
     getExhibitionImages();
     _getExDetailData();
     _getGalleryInfo();
@@ -154,6 +148,17 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         .snapshots();
   }
 
+  Stream<QuerySnapshot> getExpactationReviews() {
+    initializeDateFormatting('ko', null);
+
+    return FirebaseFirestore.instance
+        .collection('exhibition')
+        .doc(widget.document)
+        .collection('expactationReview')
+        .orderBy('cDateTime', descending: true)
+        .snapshots();
+  }
+
   void getOnelineReviewCount() async {
     QuerySnapshot onelineReviewSnapshot = await FirebaseFirestore.instance
         .collection('exhibition')
@@ -162,6 +167,16 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         .get();
 
     onelineReviewCount = onelineReviewSnapshot.docs.length;
+  }
+
+  void getExpactationReviewCount() async {
+    QuerySnapshot expactationReviewSnapshot = await FirebaseFirestore.instance
+        .collection('exhibition')
+        .doc(widget.document)
+        .collection('expactationReview')
+        .get();
+
+    expactationReviewCount = expactationReviewSnapshot.docs.length;
   }
 
   @override
@@ -223,7 +238,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           tabs: [
             Tab(child: Text("전시소개", style: TextStyle(fontSize: 15))),
-            Tab(child: Text("기대평", style: TextStyle(fontSize: 15))),
+            Tab(child: Text("기대평 ${expactationReviewCount}", style: TextStyle(fontSize: 15))),
             Tab(child: Text("리뷰 ${onelineReviewCount}", style: TextStyle(fontSize: 15))),
           ],
         ),
@@ -545,7 +560,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                           child: Column(
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(top: 30, bottom: 20),
+                                padding: const EdgeInsets.only(top: 20, bottom: 20),
                                 child: Text("두근두근 설레는 기대평을 남겨주세요.", style: TextStyle(fontSize: 16)),
                               ),
                               ElevatedButton(
@@ -564,67 +579,91 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     ),
                                   ),
                                   onPressed: (){
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text("기대평 작성", style: TextStyle(fontSize: 16),),
-                                          content: TextField(controller: _expReview),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('취소', style: TextStyle(color: Colors.black),),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                            TextButton(
-                                              child: Text('작성', style: TextStyle(color: Color(0xff55693e)),),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
+                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document,)));
                                   },
                                   child: Text("기대평 작성", style: TextStyle(fontSize: 16),)
                               ),
-                              SizedBox(height: 20),
-                              Column(
-                                children: _expectationReview.map((review) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 15),
-                                    child: ListTile(
-                                      title: Row(
-                                        children: [
-                                          Container(
-                                              padding: EdgeInsets.only(bottom: 10),
-                                              width: MediaQuery.of(context).size.width * 0.75,
-                                              child: Text(review['content'])
-                                          ),
-                                          Spacer(),
-                                          TextButton(
-                                            style: ButtonStyle(
-                                              minimumSize: MaterialStateProperty.all<Size>(Size(40, 20)), // 버튼의 최소 크기
+                              SizedBox(height: 10),
+                              StreamBuilder<QuerySnapshot>(
+                                stream: getExpactationReviews(),
+                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                  if (!snapshot.hasData) {
+                                    return CircularProgressIndicator(); // 데이터를 기다리는 동안 로딩 표시
+                                  }
+
+                                  List<Widget> ExpactationReviewWidgets = [];
+
+                                  snapshot.data!.docs.forEach((review) {
+                                    // 리뷰 데이터 가져오기
+                                    Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
+                                    String reviewText = reviewData['content'];
+                                    String userNick = reviewData['userNo'];
+                                    DateTime cDateTime = reviewData['cDateTime'].toDate();
+
+                                    ExpactationReviewWidgets.add(
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 15, left: 15, top: 10),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Divider(
+                                              thickness: 1,
                                             ),
-                                            onPressed: () {},
-                                            child: Text(
-                                              "신고",
-                                              style: TextStyle(color: Color(0xff55693e)),
+                                            SizedBox(height: 10,),
+                                            Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        CircleAvatar(
+                                                          radius: 18,
+                                                          backgroundImage: AssetImage("assets"),
+                                                        ),
+                                                        SizedBox(width: 10,),
+                                                        Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Text("${userNick}", style: TextStyle(fontSize: 16, fontWeight:FontWeight.bold, color: Colors.grey[800]),),
+                                                            Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),)
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                Spacer(),
+                                                InkWell(
+                                                  onTap: (){},
+                                                  child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
+                                                ),
+                                                Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
+                                                InkWell(
+                                                  onTap: (){},
+                                                  child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
+                                                ),
+                                                SizedBox(width: 15,)
+                                              ],
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(height: 20,),
+                                            Text(reviewText, style: TextStyle(fontSize: 15, color: Colors.grey[900]),),
+                                            SizedBox(height: 20,),
+                                          ],
+                                        ),
                                       ),
-                                      subtitle: Row(
-                                        children: [
-                                          Text("${review['nick']} │ ${review['er_cDateTime']}"),
-                                        ],
-                                      ),
+                                    );
+                                  });
+                                  return SingleChildScrollView(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: ExpactationReviewWidgets, // 화면에 출력할 리뷰 리스트
                                     ),
                                   );
-                                }).toList(),
-                              )
+                                },
+                              ),
+                              SizedBox(height: 20)
                             ],
                           ),
                         ),
@@ -650,8 +689,16 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ),
                                     ),
                                   ),
-                                  onPressed: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document,)));
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document)),
+                                    );
+                                    // 이전 화면으로 돌아왔을 때 데이터를 업데이트
+                                    setState(() {
+                                      // 데이터 업데이트 로직이 있어야 함
+                                      initState();
+                                    });
                                   },
                                   child: Text("리뷰 작성", style: TextStyle(fontSize: 16),)
                               ),
@@ -713,13 +760,13 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 ),
                                                 Spacer(),
                                                 InkWell(
-                                                  onTap: (){},
-                                                  child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
+                                                    onTap: (){},
+                                                    child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
-                                                  onTap: (){},
-                                                  child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
+                                                    onTap: (){},
+                                                    child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 SizedBox(width: 15,)
                                               ],
@@ -739,12 +786,12 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 );
                                               },
                                               child: Container(
-                                                width: MediaQuery.of(context).size.width - 40,
-                                                height: 150,
-                                                child: ClipRRect(
-                                                    borderRadius: BorderRadius.circular(5),
-                                                    child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover,)
-                                                )
+                                                  width: MediaQuery.of(context).size.width - 40,
+                                                  height: 150,
+                                                  child: ClipRRect(
+                                                      borderRadius: BorderRadius.circular(5),
+                                                      child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover,)
+                                                  )
                                               ),
                                             ),
                                             SizedBox(height: 10,),
