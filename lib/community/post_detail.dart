@@ -156,34 +156,8 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  Widget buildTitleButton(BuildContext context) {
-    return TextButton(
-      onPressed: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
-      },
-      child: Container(
-        alignment: Alignment.center,
-        width: 80,
-        height: 30,
-        decoration: BoxDecoration(
-          border: Border.all(color: Color(0xff464D40), width: 1),
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.home, color: Color(0xff464D40), size: 20),
-            Text(
-              '커뮤니티',
-              style: TextStyle(color: Color(0xff464D40), fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget buildDetailContent(String title, String content) {
+  Widget buildDetailContent(String title, String content, int viewCount) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
@@ -193,7 +167,7 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
-          buildIcons(widget.document, commentCounts[widget.document] ?? 0),
+          buildIcons(widget.document, commentCounts[widget.document] ?? 0, viewCount),
         ],
       ),
     );
@@ -294,7 +268,7 @@ class _CommDetailState extends State<CommDetail> {
     await calculateCommentCounts(documentIds);
   }
 
-  Widget buildIcons(String docId, int commentCount) {
+  Widget buildIcons(String docId, int commentCount, int viewCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -302,7 +276,7 @@ class _CommDetailState extends State<CommDetail> {
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, '0'),
+              buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
                 Icons.chat_bubble_rounded,
@@ -898,17 +872,28 @@ class _CommDetailState extends State<CommDetail> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Icon(Icons.arrow_back),
+          color: Colors.black,
+        ),
         elevation: 0,
-        title: buildTitleButton(context),
+        title: Center(child: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 15,fontWeight: FontWeight.bold),)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.share, color: Color(0xff464D40))),
-          IconButton(
-            onPressed: _showMenu,
-            icon: Icon(Icons.more_vert),
-            color: Color(0xff464D40),
+          GestureDetector(
+              onTap: (){},
+              child: Icon(Icons.share, color: Color(0xff464D40),size: 20,)
           ),
+          SizedBox(width: 15),
+          GestureDetector(
+            onTap: _showMenu,
+            child: Icon(Icons.more_vert, color: Color(0xff464D40),size: 20),
+          ),
+          SizedBox(width: 15,)
         ],
       ),
       body: CustomScrollView(
@@ -919,7 +904,7 @@ class _CommDetailState extends State<CommDetail> {
               ? CircularProgressIndicator()
               : Column(
                 children: [
-                  buildDetailContent(_postData!['title'] as String, _postData!['content'] as String),
+                  buildDetailContent(_postData!['title'] as String, _postData!['content'] as String, _postData!['viewCount']),
                   StreamBuilder(
                     stream: FirebaseFirestore.instance
                         .collection('post')

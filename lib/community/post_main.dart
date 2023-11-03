@@ -264,6 +264,7 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
+
   Widget _commList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
@@ -296,7 +297,8 @@ class _CommMainState extends State<CommMain> {
 
             String docId = doc.id;
 
-            int viewCount = doc['viewCount'] ?? 0;
+            int viewCount = doc['viewCount'] as int? ?? 0;
+
 
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
@@ -311,7 +313,7 @@ class _CommMainState extends State<CommMain> {
               onTap: () {
                 // 조회수 증가
                 FirebaseFirestore.instance.collection('post').doc(docId).update({
-                  'viewCount': viewCount + 1,
+                  'viewCount': (viewCount+ 1),
                 });
 
                 Navigator.push(
@@ -373,7 +375,128 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount),
+                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount!),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _commListPopular() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('post')
+          .orderBy('viewCount', descending: true)
+          .snapshots(),
+      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (snap.hasError) {
+          return Center(child: Text('에러 발생: ${snap.error}'));
+        }
+        if (!snap.hasData) {
+          return Center(child: Text('데이터 없음'));
+        }
+
+        return ListView.separated(
+          itemCount: snap.data!.docs.length,
+          separatorBuilder: (context, index) {
+            return Divider(color: Colors.grey, thickness: 0.8);
+          },
+          itemBuilder: (context, index) {
+            final doc = snap.data!.docs[index];
+            final title = doc['title'] as String;
+            final content = doc['content'] as String;
+
+            Timestamp timestamp = doc['write_date'] as Timestamp;
+            DateTime dateTime = timestamp.toDate();
+
+            String docId = doc.id;
+
+            int viewCount = doc['viewCount'] as int? ?? 0;
+
+
+            String? imageURL;
+            final data = doc.data() as Map<String, dynamic>;
+
+            if (data.containsKey('imageURL')) {
+              imageURL = data['imageURL'];
+            } else {
+              imageURL = '';
+            }
+
+            return GestureDetector(
+              onTap: () {
+                // 조회수 증가
+                FirebaseFirestore.instance.collection('post').doc(docId).update({
+                  'viewCount': (viewCount+ 1),
+                });
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CommDetail(document: doc.id),
+                  ),
+                );
+              },
+              child: Container(
+                margin: EdgeInsets.all(5),
+                padding: EdgeInsets.all(5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 10,
+                          ),
+                          SizedBox(width: 5),
+                          Text('userNickname', style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        title,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        content,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Text(
+                        DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    if (imageURL != null && imageURL.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageURL,
+                            width: 400,
+                            height: 200,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount!),
                   ],
                 ),
               ),
@@ -429,7 +552,7 @@ class _CommMainState extends State<CommMain> {
               child: TabBarView(
                 children: [
                   Center(child: _commList()),
-                  Center(child: _commList()),
+                  Center(child: _commListPopular()),
                 ],
               ),
             ),
