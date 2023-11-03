@@ -1,8 +1,15 @@
+import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/user/home.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'resultGraph.dart';
-import '../myPageSettings/useTerms.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() {
+import '../../main.dart';
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진과의 연결을 초기화합니다.
+  await Firebase.initializeApp(); // Firebase를 초기화합니다.
   runApp(App());
 }
 
@@ -27,24 +34,57 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<int> selectedAnswerIndices = List.generate(12, (index) => -1);
 
+  List<int> group1Counts = [];
+  List<int> group2Counts = [];
+  List<int> group3Counts = [];
+  List<int> group4Counts = [];
+
+  List<double> weights1 = [5, 4, 2.5, 1, 0];
+  List<double> weights2 = [0, 1, 2.5, 4, 5];
+
+
+  List<int> countSelectedAnswers(List<int> groupIndices) {
+    List<int> counts = [0, 0, 0, 0, 0];
+    for (int i = 0; i < groupIndices.length; i++) {
+      counts[groupIndices[i]]++;
+    }
+    return counts;
+  }
+
+  double calculateGroupScore(List<int> counts, List<double> weights) {
+    return counts[0] * weights[0] +
+        counts[1] * weights[1] +
+        counts[2] * weights[2] +
+        counts[3] * weights[3] +
+        counts[4] * weights[4];
+  }
+
+
+  double totalWeight = 15;
+
+  double group1Score = 0.0;
+  double group1OppositeScore = 0.0;
+  double group2Score = 0.0;
+  double group2OppositeScore = 0.0;
+  double group3Score = 0.0;
+  double group3OppositeScore = 0.0;
+  double group4Score = 0.0;
+  double group4OppositeScore = 0.0;
+
   final List<String> questions = [
     'a vs b',
     'a vs b',
     'a vs b',
-
     'c vs d',
     'c vs d',
     'c vs d',
-
     'e vs f',
     'e vs f',
     'e vs f',
-
     'g vs h',
     'g vs h',
     'g vs h',
   ];
-
   @override
   void initState() {
     super.initState();
@@ -63,6 +103,8 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -78,7 +120,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            // 여기에 뒤로 가기 동작 추가
             Navigator.pop(context);
           },
         ),
@@ -87,7 +128,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         child: SingleChildScrollView(
           child: Column(
             children: [
-
+              // Question Section
               Column(
                 children: List.generate(questions.length, (index) {
                   return Opacity(
@@ -95,54 +136,65 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                     child: QuestionSection(
                       questionIndex: index,
                       question: questions[index],
-                      options: ['1', '2', '3', '4', '5'],
+                      options: ['', '', '보통', '', ''],
                       selectedAnswerIndex: selectedAnswerIndices[index],
                       onAnswerSelected: onAnswerSelected,
                     ),
                   );
                 }),
               ),
-
+              // Save Result Button
               if (calculateProgress() * 100 == 100)
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UseTerms(),
-                      ),
-                    );
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('user')
+                        .doc('LkZ2WsbF9BAwhrOc7HAw.id')
+                        .collection('jbti')
+                        .add({
+                      'a': group1Score,
+                      'b': group1OppositeScore,
+                      'c': group2Score,
+                      'd': group2OppositeScore,
+                      'e': group3Score,
+                      'f': group3OppositeScore,
+                      'g': group4Score,
+                      'h': group4OppositeScore,
+                    });
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                   },
-                  child: Text('나의 전시유형 보러가기'),
-                ),
-              SizedBox(height: 20,),
-              if (calculateProgress() * 100 == 100)
-                ResultGraph(selectedAnswerIndices: selectedAnswerIndices),
+                  child: Text('결과 저장하기'),
+                )
+              ,
+              SizedBox(height: 20),
+              // Progress Indicator
+
+
+
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        height: 50,
-        child: Column(
-          children: [
-            if (calculateProgress() * 100 == 100) Text('완성!'),
-            if (calculateProgress() * 100 != 100)
-              Text('${(calculateProgress() * 100).toInt()}%'),
-            LinearProgressIndicator(
-              value: calculateProgress(),
-              backgroundColor: Colors.grey,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        bottomNavigationBar: BottomAppBar(
+
+            height: 50,
+            child: Column(
+              children: [
+                if (calculateProgress() * 100 == 100) Text('완성!'),
+                if (calculateProgress() * 100 != 100) Text('${(calculateProgress() * 100).toInt()}%'),
+                LinearProgressIndicator(
+                  value: calculateProgress(),
+                  backgroundColor: Colors.grey,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+
+),
+
+
     );
   }
-
-
-
-
 
   double calculateProgress() {
     int answeredCount = selectedAnswerIndices.where((index) => index >= 0).length;
@@ -167,6 +219,7 @@ class QuestionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return Container(
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -176,7 +229,9 @@ class QuestionSection extends StatelessWidget {
       child: Column(
         children: [
           Divider(),
-          SizedBox(height: 20,),
+          SizedBox(
+            height: 20,
+          ),
           Text(
             '${questionIndex + 1}. $question',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -189,8 +244,8 @@ class QuestionSection extends StatelessWidget {
                 '동의',
                 style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
-                SizedBox(width: 10),
-                ...options.asMap().entries.map((entry) {
+              SizedBox(width: 10),
+              ...options.asMap().entries.map((entry) {
                 final int answerIndex = entry.key;
                 final String text = entry.value;
                 return AnswerOption(
@@ -201,7 +256,9 @@ class QuestionSection extends StatelessWidget {
                   onSelected: onAnswerSelected,
                 );
               }).toList(),
-              SizedBox(width: 10,),
+              SizedBox(
+                width: 10,
+              ),
               Text(
                 '비동의',
                 style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
@@ -231,7 +288,7 @@ class AnswerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<double> sizes = [50.0, 40.0, 30.0, 40.0, 50.0];
+    List<double> sizes = [50.0, 45.0, 40.0, 45.0, 50.0];
     double size = sizes[answerIndex];
     Color borderColor = _getBorderColor(answerIndex);
 
@@ -250,13 +307,17 @@ class AnswerOption extends StatelessWidget {
         ),
         child: Center(
           child: Text(
-            isSelected ?
-            (answerIndex == 0 ? '5점' :
-            (answerIndex == 1 ? '4점' :
-            (answerIndex == 2 ? '3점' :
-            (answerIndex == 3 ? '4점' :
-            (answerIndex == 4 ? '5점' : '')))))
-            : text,
+            isSelected
+                ? (answerIndex == 0
+                ? '5점'
+                : (answerIndex == 1
+                ? '4점'
+                : (answerIndex == 2
+                ? '2.5점'
+                : (answerIndex == 3
+                ? '4점'
+                : (answerIndex == 4 ? '5점' : '')))))
+                : text,
             style: TextStyle(color: isSelected ? Colors.white : borderColor),
           ),
         ),
@@ -277,7 +338,7 @@ class AnswerOption extends StatelessWidget {
   }
 
   Color _getAnswerColor(int index) {
-    List<Color> answerColors =[
+    List<Color> answerColors = [
       Color(0xFF2D69FF),
       Color(0xFF1AB1B2),
       Color(0xFF6F8588),

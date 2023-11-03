@@ -19,6 +19,7 @@ Future<void> addUserFirestore(String collectionStr, String email, String hashedP
   });
 }
 
+
 // Firebase 예외 처리 함수
 void firebaseException(FirebaseAuthException e) {
   if (e.code == 'weak-password') {
