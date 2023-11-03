@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:flutter/material.dart';
 
 Widget textFieldLabel(String text) {
@@ -31,13 +33,16 @@ Widget textFieldType(TextEditingController textController, String kind) {
 }
 
 Widget textControllerBtn(
+    BuildContext context,
     String kindText,
     List<List<TextEditingController>> textControllers,
     Function() onAdd,
     Function(int) onRemove,
     ) {
+  double screenWidth = MediaQuery.of(context).size.width;
+  double inkWidth = screenWidth / 12;
   return Container(
-    padding: EdgeInsets.all(10),
+    padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,41 +53,38 @@ Widget textControllerBtn(
             for (var i = 0; i < textControllers.length; i++)
               Row(
                 children: [
-                  Expanded(
-                    flex: 1,
+                  SizedBox(
+                    width: inkWidth * 2,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child:textFieldType(textControllers[i][0], 'year'),
+                      child: textFieldType(textControllers[i][0], 'year'),
                     ),
                   ),
-                  Expanded(
-                    flex: 2,
+                  SizedBox(
+                    width: inkWidth * 5,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child:textFieldType(textControllers[i][1], 'content'),
+                      child: textFieldType(textControllers[i][1], 'content'),
                     ),
                   ),
-                  Expanded(
-                    flex: 1,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: Icon(Icons.dangerous_outlined),
-                            onPressed: () {
-                              onRemove(i);
-                            },
-                          ),
-                          if (i == textControllers.length - 1)
-                            IconButton(
-                              icon: Icon(Icons.add),
-                              onPressed: onAdd,
-                            ),
-                        ],
+                  SizedBox(
+                    width: inkWidth,
+                    child: IconButton(
+                      icon: Icon(Icons.dangerous_outlined, size: 14), // 아이콘 크기를 변경해보세요 (예시로 20으로 변경)
+                      onPressed: () {
+                        onRemove(i);
+                      },
+                    ),
+                  ),
+                  if (i == textControllers.length - 1)
+                    SizedBox(
+                      width: inkWidth,
+                      child: IconButton(
+                        icon: Icon(Icons.add, size: 14), // 아이콘 크기를 변경해보세요 (예시로 20으로 변경)
+                        onPressed: onAdd,
                       ),
                     ),
-                  ),
+
                 ],
               ),
           ],
@@ -97,4 +99,25 @@ Widget textControllerBtn(
       ],
     ),
   );
+}
+
+// 수정 시 입력된 값을 가져옴
+Future<void> settingText(String parentCollection, String childCollection, List<List<TextEditingController>> controllers, String documentId, String editKind) async {
+  if (editKind == 'update') {
+    QuerySnapshot artistDetails = await settingQuery(parentCollection, documentId, childCollection);
+
+    if (artistDetails.docs.isNotEmpty) {
+      controllers.clear();
+      for (var award in artistDetails.docs) {
+        var year = award['year']?.toString() ?? ''; // Null 체크 후 변환 또는 빈 문자열로 초기화
+        var content = award['content']?.toString() ?? ''; // Null 체크 후 변환 또는 빈 문자열로 초기화
+        controllers.add([
+          TextEditingController(text: year),
+          TextEditingController(text: content)
+        ]);
+      }
+    } else {
+      controllers.clear();
+    }
+  }
 }

@@ -3,6 +3,7 @@ import 'package:exhibition_project/admin/artist/artist_edit.dart';
 import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,12 @@ class ArtistView extends StatefulWidget {
 class _ArtistViewState extends State<ArtistView> {
   Map<int, bool> checkBoxState = {}; // 예시로 상태를 유지하기 위한 Map
   String? documentId; // 저장된 값
+  String? imageURL;
+
+  //이미지 받아오기
+  Future<void> settingText() async {
+    imageURL = await getFirstFieldValue(widget!.document, 'artist_image', 'imageURL');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +59,23 @@ class _ArtistViewState extends State<ArtistView> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Column(
+                children: [
+                  ClipOval(
+                    child: imageURL != null
+                        ? SizedBox(height: 50)//Image.network(selectImgURL!) //파일 터짐 방지
+                        : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
+                  ),
+                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
+                ],
+              ),
               Text('작가명 : ${artistData['artistName']}'),
               SizedBox(height: 10),
               Text('영어명 : ${artistData['artistEnglishName']}'),
               SizedBox(height: 10),
               Text('국적 : ${artistData['artistNationality']}'),
               SizedBox(height: 10),
-              Text('소개 : ${artistData['artistIntroduce']}'),
+              Text('전공 : ${artistData['expertise']}'),
               SizedBox(height: 15),
               Text('소개 : ${artistData['artistIntroduce']}'),
               SizedBox(height: 15),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 //${widget.formData['name']}')
@@ -50,9 +51,10 @@ Future<void> addArtistImg(String parentCollection, String childCollection, Strin
         'artistImageUpdatedate': FieldValue.serverTimestamp()
   });
 }
+
 // 작가 이미지 수정
 Future<void> updateArtistImg(String parentCollection, String childCollection, DocumentSnapshot document, String downloadURL, String folderName) async {
-  String? childDocumentId = await getFirstDocumentID(document);
+  String? childDocumentId = await getFirstDocumentID(document, 'artist_image');
   await FirebaseFirestore.instance
       .collection(parentCollection)
       .doc(document.id)
@@ -65,19 +67,8 @@ Future<void> updateArtistImg(String parentCollection, String childCollection, Do
   });
 }
 
-// 작가 이미지 컬렉션의 문서 id 값을 반환
-Future<String?> getFirstDocumentID(DocumentSnapshot<Object?>? document) async {
-  if (document != null) {
-    QuerySnapshot snapshot = await document.reference.collection('artist_image').get();
-    if (snapshot.docs.isNotEmpty) {
-      return snapshot.docs[0].id; // 첫 번째 문서의 ID 반환
-    }
-  }
-  return null; // 문서가 없을 경우 null 반환
-}
-
 // 하위 컬렉션(추가 정보: 학력/활동/이력) 추가
-Future<void> addArtistDetails(String parentCollection, String childCollection, String? documentId, String year, String content) async {
+Future<void> addArtistDetails(String parentCollection, String? documentId, String childCollection, String year, String content) async {
   await FirebaseFirestore.instance
       .collection(parentCollection)
       .doc(documentId)
@@ -87,6 +78,7 @@ Future<void> addArtistDetails(String parentCollection, String childCollection, S
     'content' : content
   });
 }
+
 
 // Map 형식으로 반환
 Map<String, dynamic> getArtistMapData(DocumentSnapshot document) {

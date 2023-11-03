@@ -20,14 +20,22 @@ class ArtistEdit extends StatefulWidget {
   const ArtistEdit({super.key, required this.document});
 
   @override
-  State<ArtistEdit> createState() => _ArtistEditState();
+  State<ArtistEdit> createState() => _ArtistEditState(document: document);
 }
 
 class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   DocumentSnapshot? document; // 받아온 값
   String? documentId; // 저장된 값
-  String editKind = 'add'; // 추가하는지 저장하는지 확인하는 값
+  bool documentSet = false; // document가 설정되었는지 확인하는 플래그
+  String editKind = 'update'; // 추가하는지 저장하는지 확인하는 값. 수정 시 이전 값을 늦게 받아오는 이슈를 막기 위함
+
+  _ArtistEditState({this.document}) {
+    if (document != null) {
+      documentId = document!.id;
+      documentSet = true;
+    }
+  }
 
   @override
   void initState() {
@@ -39,6 +47,9 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
   Future<void> settingdocument() async {
     if(widget.document != null){
       document = widget.document;
+      setState(() {
+        documentSet = true; // document 설정됨
+      });
     }
   }
 

@@ -23,29 +23,37 @@ showMessageDialog(BuildContext context, String message) {
 }
 
 // 버튼을 누르면 다른 페이지로 이동
-showMoveDialog(BuildContext context, String message, Widget Function() pageBuilder){
-  return showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 40),
-        actionsPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
-        content: Text(message, style: TextStyle(fontSize: 18)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => pageBuilder()),
-              );
-            },
-            child: Text('확인', style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)))
-          ),
-        ],
-      );
-    },
-  );
+Future<void> showMoveDialog(BuildContext context, String message, Widget Function() pageBuilder) async {
+  try {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 40),
+          actionsPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
+          content: Text(message, style: TextStyle(fontSize: 18)),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => pageBuilder()),
+                );
+              },
+              child: Text(
+                '확인',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e) {
+    print('이동하는 동안 오류 발생: $e');
+    // 여기에 오류 처리 코드 추가
+  }
 }
 
 // 선택에 따라 true와 false를 반환하는 다이얼로그

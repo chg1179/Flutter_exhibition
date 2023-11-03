@@ -2,27 +2,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ArtistEditAdditionPage extends StatelessWidget {
-  String? documentId;
-  String editKind;
-  ArtistEditAdditionPage({Key? key, required this.documentId, required this.editKind});
+  final String? documentId; // 상위 컬렉션의 문서 id
+  final String editKind; // 수정하는지 추가하는지 구분하기 위한 파라미터
+
+  const ArtistEditAdditionPage({Key? key, required this.documentId, required this.editKind}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: ArtistEditAddition(documentId: documentId, editKind: editKind),
-    );
+    return ArtistEditAddition(documentId: documentId, editKind: editKind);
   }
 }
 
 class ArtistEditAddition extends StatefulWidget {
-  String? documentId;
-  String editKind;
-  ArtistEditAddition({Key? key, required this.documentId, required this.editKind});
+  final String? documentId;
+  final String editKind;
+
+  const ArtistEditAddition({Key? key, required this.documentId, required this.editKind}) : super(key: key);
+
   @override
   _ArtistEditAdditionState createState() => _ArtistEditAdditionState();
 }
@@ -41,31 +44,14 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   @override
   void initState() {
     super.initState();
-    settingText();
+    loadData();
   }
 
-  Future<void> settingText() async {
-    print("Document ID: ${widget.documentId}");
-    if (widget.editKind == 'update') {
-      QuerySnapshot artistAwards = await FirebaseFirestore.instance
-          .collection('artist')
-          .doc(widget.documentId)
-          .collection('artist_awards')
-          .get();
-
-      if (artistAwards.docs.isNotEmpty) {
-        awardsControllers.clear();
-
-        for (var award in artistAwards.docs) {
-          var year = award['year'];
-          var content = award['content'];
-          awardsControllers.add([
-            TextEditingController(text: year),
-            TextEditingController(text: content)
-          ]);
-        }
-        print('Awards controllers length: ${awardsControllers.length}');
-      }
+  void loadData() async {
+    if(widget.documentId != null && widget.editKind != null) {
+      await settingText('artist', 'artist_education', educationControllers, widget.documentId!, widget.editKind);
+      await settingText( 'artist', 'artist_history', historyControllers, widget.documentId!, widget.editKind);
+      await settingText('artist', 'artist_awards', awardsControllers, widget.documentId!, widget.editKind);
     }
   }
 
@@ -93,10 +79,8 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text('id : ${widget.documentId}'),
-                  Text('kind : ${widget.editKind}'),
                   // 항목, 컨트롤러, 생성, 삭제
-                  textControllerBtn('학력', educationControllers, () {
+                  textControllerBtn(context, '학력', educationControllers, () {
                       setState(() {
                         educationControllers.add([TextEditingController(), TextEditingController()]);
                       });
@@ -107,7 +91,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                     },
                   ),
                   SizedBox(height: 10),
-                  textControllerBtn('활동', historyControllers, () {
+                  textControllerBtn(context, '활동', historyControllers, () {
                       setState(() {
                         historyControllers.add([TextEditingController(), TextEditingController()]);
                       });
@@ -118,7 +102,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                     },
                   ),
                   SizedBox(height: 10),
-                  textControllerBtn('이력', awardsControllers, () {
+                  textControllerBtn(context, '이력', awardsControllers, () {
                       setState(() {
                         awardsControllers.add([TextEditingController(), TextEditingController()]);
                       });
@@ -139,32 +123,32 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
     );
   }
 
+  // 입력된 세부 정보 추가
+  Future<void> addDetails(List<List<TextEditingController>> controllers, String parentCollection, String childCollection) async {
+    for (var i = 0; i < controllers.length; i++) {
+      String year = controllers[i][0].text;
+      String content = controllers[i][1].text;
+      if (year.isNotEmpty && content.isNotEmpty) {
+        await addArtistDetails(parentCollection, widget.documentId!, childCollection, year, content);
+      }
+    }
+  }
+
   Widget submitButton() {
     return ElevatedButton(
       onPressed: () async {
+      // 업데이트 하는 경우에 모든 필드를 삭제하고 입력된 정보를 삽입
+        if(widget.editKind == 'update') {
+          await deleteSubCollection('artist', widget.documentId!, 'artist_education');
+          await deleteSubCollection('artist', widget.documentId!, 'artist_history');
+          await deleteSubCollection('artist', widget.documentId!, 'artist_awards');
+        }
         // 입력된 세부 정보 추가
-        String year;
-        String content;
-        for (var i = 0; i < educationControllers.length; i++) {
-          year = educationControllers[i][0].text;
-          content = educationControllers[i][1].text;
-          if (year.isNotEmpty && content.isNotEmpty) // 값이 비어있지 않을 경우
-            await addArtistDetails('artist', 'artist_education', widget.documentId!, year, content);
-        }
-        for (var i = 0; i < historyControllers.length; i++) {
-          year = historyControllers[i][0].text;
-          content = historyControllers[i][1].text;
-          if (year.isNotEmpty && content.isNotEmpty)
-            await addArtistDetails('artist', 'artist_history', widget.documentId!, year, content);
-        }
-        for (var i = 0; i < awardsControllers.length; i++) {
-          year = awardsControllers[i][0].text;
-          content = awardsControllers[i][1].text;
-          if (year.isNotEmpty && content.isNotEmpty)
-            await addArtistDetails('artist', 'artist_awards', widget.documentId!, year, content);
-        }
-        Navigator.of(context).pop();
+        await addDetails(educationControllers, 'artist', 'artist_education');
+        await addDetails(historyControllers, 'artist', 'artist_history');
+        await addDetails(awardsControllers, 'artist', 'artist_awards');
         await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
+        Navigator.of(context).pop();
       },
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(Colors.green)

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
 import 'package:exhibition_project/firestore_connect/artist.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/firestore_connect/user.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
@@ -13,21 +14,22 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ArtistEditProfilePage extends StatelessWidget {
-  final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
-  final DocumentSnapshot? document; // 생성자를 통해 데이터를 전달받음
-  const ArtistEditProfilePage({Key? key, required this.moveToNextTab, required this.document});
+  final Function moveToNextTab; // 다음 인덱스로 이동
+  final DocumentSnapshot? document;
+
+  const ArtistEditProfilePage({Key? key, required this.moveToNextTab, required this.document,}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ArtistEditProfile(moveToNextTab: moveToNextTab, document: document)
-    );
+    return ArtistEditProfile(moveToNextTab: moveToNextTab, document: document);
   }
 }
 
 class ArtistEditProfile extends StatefulWidget {
-  final Function moveToNextTab; // 다음 인덱스로 이동하는 함수
+  final Function moveToNextTab;
   final DocumentSnapshot? document;
-  const ArtistEditProfile({Key? key, required this.moveToNextTab, required this.document});
+
+  const ArtistEditProfile({Key? key, required this.moveToNextTab, required this.document}) : super(key: key);
 
   @override
   _ArtistEditProfileState createState() => _ArtistEditProfileState();
@@ -48,6 +50,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   XFile? _imageFile;
   String? imageURL;
   String? imgPath;
+  String? selectImgURL;
   bool _saving = false; // 저장 로딩
 
   @override
@@ -68,14 +71,18 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         _nationalityController.text = artistData['artistNationality'];
         _expertiseController.text = artistData['expertise'];
         _introduceController.text = artistData['artistIntroduce'];
-        allFieldsFilled = true;
+        selectImgURL = await getFirstFieldValue(widget.document, 'artist_image', 'imageURL');
+        print(selectImgURL);
+        setState(() {
+          allFieldsFilled = true; // 이미 모든 정보를 입력한 사용자를 불러옴
+        });
+        print('기존 정보를 수정합니다.');
       } else {
-        // Handle the case where the document doesn't exist
-        // or further error handling if required
+        print('새로운 정보를 추가합니다.');
       }
     }
   }
-
+  
   // 이미지 가져오기
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
@@ -103,7 +110,9 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   void _init() async{
     final country = await getDefaultCountry(context);
     setState(() {
-      _country = country;
+      // 편리성을 위해 한국으로 국적 초기화. 국가 이름, 이미지, 국가 코드, 다이얼링 코드
+      _country = Country('Korea (Republic of)','assets/flags/kr_flag.png', 'KR', '82');
+      _nationalityController.text = _country!.name; // Null check
       _nameController.addListener(updateButtonState);
       _englishNameController.addListener(updateButtonState);
       _nationalityController.addListener(updateButtonState);
@@ -128,8 +137,8 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         ),
       ),
       body: Container(
-        margin: EdgeInsets.all(20),
-        padding: EdgeInsets.all(15),
+        margin: EdgeInsets.all(10),
+        padding: EdgeInsets.all(10),
         child: Center(
           child: Form(
             key: _key,
@@ -144,12 +153,22 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildImageWidget(),
                           SizedBox(height: 10),
                           Center(
-                            child: ElevatedButton(
-                              onPressed : getImage,
-                              child: Text('이미지 선택'),
+                            child: InkWell(
+                              onTap: getImage, // 이미지를 선택하는 함수 호출
+                              child: Column(
+                                children: [
+                                  ClipOval(
+                                    child: _imageFile != null
+                                        ? _buildImageWidget()
+                                        : (widget.document != null && selectImgURL != null)
+                                          ? SizedBox(height: 50)//Image.network(selectImgURL!) //파일 터짐 방지
+                                          : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
+                                  ),
+                                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
+                                ],
+                              )
                             ),
                           ),
                           SizedBox(height: 30),
@@ -165,7 +184,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                         ],
                       )
                   ),
-
                   // 추가
                   Container(
                       margin: EdgeInsets.all(20),
@@ -187,7 +205,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         // 웹 플랫폼에서는 Image.network 사용
         return Center(
           child: CircleAvatar(
-            radius: 40,
+            radius: 25,
             backgroundImage: NetworkImage(imgPath!),
           ),
         );
@@ -195,7 +213,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         // 앱에서는 Image.file 사용
         return Center(
           child: CircleAvatar(
-            radius: 40,
+            radius: 25,
             backgroundImage: FileImage(File(imgPath!)),
           ),
         );
@@ -224,7 +242,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         child: Container(),
       ),
     );
-
     if (selectedCountry != null) {
       setState(() {
         _country = selectedCountry;
@@ -258,7 +275,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       color: Color.fromRGBO(70, 77, 64, 1.0),
       width: 1.0,
     );
-
     return TextFormField(
         enabled: !isNationality,
         controller: ctr,
@@ -268,7 +284,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           isIntroduce ? LengthLimitingTextInputFormatter(1000) : LengthLimitingTextInputFormatter(30), // 최대 길이 설정
         ],
         decoration: InputDecoration(
-          hintText: isNationality ? '국가를 선택해주세요.' : null,
+          hintText: isNationality ? '국가를 선택' : null,
           labelStyle: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -303,11 +319,12 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           // 파이어베이스에 정보 및 이미지 저장
           if (widget.document != null && widget.document!.exists) { // 수정
             await updateArtist('artist', widget.document!, formData);
+            String documentId = widget.document!.id;
             if (_imageFile != null) {
               await uploadImage();
               await updateArtistImg('artist', 'artist_image', widget.document!, imageURL!, 'artist_images');
             }
-            widget.moveToNextTab(widget.document!.id, 'update'); // 다음 탭으로 이동
+            widget.moveToNextTab(documentId, 'update'); // 다음 탭으로 이동
           } else { // 추가
             String documentId = await addArtist('artist', formData);
             if (_imageFile != null) {

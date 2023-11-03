@@ -40,7 +40,8 @@ class _SignInCheckState extends State<SignInCheck> {
   Widget build(BuildContext context) {
     return Scaffold(
           backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
-          body: Padding(
+    body: SingleChildScrollView( // SingleChildScrollView 추가
+    child: Padding(
             padding: const EdgeInsets.all(50.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -84,6 +85,7 @@ class _SignInCheckState extends State<SignInCheck> {
               ],
             ),
           )
+      )
     );
   }
 
