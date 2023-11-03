@@ -1,5 +1,9 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import '../firebase_storage/img_upload.dart';
 
 class ExOneLineReview extends StatefulWidget {
   final String document;
@@ -19,6 +23,11 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   List<String> selectedTags = [];
   List<String> allTags = ["📚 유익한", "‍😆️ 즐거운", "🏔 웅장한", "😎 멋진", "👑 럭셔리한", "✨ 아름다운", "📸 사진찍기 좋은", "🌍 대규모", "🌱 소규모", "💡 독특한", "🌟 트렌디한", "👧 어린이를 위한", "👨‍🦳 어른을 위한", "🤸‍♂️ 동적인", "👀 정적인"];
   int _selectedValue = 0; // 0이면 없음, 1이면 있음
+  final ImageSelector selector = ImageSelector();//이미지
+  XFile? _imageFile;
+  String? imgPath;
+  String? imageURL;
+  late ImageUploader uploader;
 
   void _getExDetailData() async {
     try {
@@ -38,8 +47,73 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   @override
   void initState() {
     super.initState();
+    uploader = ImageUploader('ex_onelineReview_image');
     _getExDetailData();
   }
+
+  Future<void> getImage() async {
+    XFile? pickedFile = await selector.selectImage();
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = pickedFile;
+        imgPath = pickedFile.path;
+      });
+    } else {
+      print('No image selected.');
+    }
+  }
+
+  // 이미지 추가
+  Future<void> uploadImage() async {
+    if (_imageFile != null) {
+      imageURL = await uploader.uploadImage(_imageFile!);
+      print('Uploaded to Firebase Storage: $imageURL');
+    } else {
+      print('No image selected.');
+    }
+  }
+
+  Widget _buildImageWidget() {
+    if (imgPath != null) {
+      if (kIsWeb) {
+        // 웹 플랫폼에서는 Image.network 사용
+        return Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(5), // 원하는 라디우스 값 적용
+              child: Image.network(
+                imgPath!,
+                fit: BoxFit.cover, // 이미지가 위젯 영역에 맞게 맞추도록 설정
+                width: MediaQuery.of(context).size.width - 20, // 이미지 폭
+                height: MediaQuery.of(context).size.width - 20, // 이미지 높이
+              ),
+            )
+          ],
+        );
+      } else {
+        // 앱에서는 Image.file 사용
+        return Container(
+          width: MediaQuery.of(context).size.width - 20,
+          height: MediaQuery.of(context).size.width - 20,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(5),
+            // 기타 다른 데코레이션 설정 (예: 그림자, 색상 등)
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: Image.file(
+              File(imgPath!),
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      }
+    } else {
+      return SizedBox(); // 이미지가 없을 때 빈 SizedBox 반환 또는 다른 대체 위젯
+    }
+  }
+
+
 
   void handleTagSelection(String tag) {
     setState(() {
@@ -121,7 +195,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${_exDetailData?['exTitle']} 리뷰 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
+        title: Text(_exDetailData?['exTitle'] == null ? "" : "${_exDetailData?['exTitle']} 리뷰 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
         backgroundColor: Colors.white,
         elevation: 1.0,
         leading: IconButton(
@@ -141,16 +215,20 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               Text("전시와 관련된 사진을 업로드 해주세요.", style: TextStyle(color: Colors.grey, fontSize: 13),),
               SizedBox(height: 20),
               InkWell(
-                onTap: (){},
-                child: Container(
-                  width: 150,
-                  height: 150,
+                onTap: (){
+                  getImage();
+                },
+                child:
+                _imageFile != null ? _buildImageWidget() :
+                Container(
+                  width: MediaQuery.of(context).size.width - 20,
+                  height: MediaQuery.of(context).size.width - 20,
                   decoration: BoxDecoration(
                     border: Border.all(color: Color(0xffc0c0c0),width: 1 ),
                     color: Color(0xffececec),
                     borderRadius: BorderRadius.all(Radius.circular(5))
                   ),
-                  child: Icon(Icons.photo_library, color: Color(0xff464D40))
+                  child: Icon(Icons.photo_library, color: Color(0xff464D40), size: 30,)
                 ),
               ),
               SizedBox(height: 40),
@@ -409,6 +487,8 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                       shadowColor: Colors.transparent,
                     ),
                     onPressed: (){
+
+                      uploadImage();
                       addOnelineReview();
                     },
                     child: Text("리뷰 등록", style: TextStyle(fontSize: 18),)
@@ -422,3 +502,4 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     );
   }
 }
+
