@@ -24,12 +24,14 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
+  Map<String, dynamic>? _exArtistData;
   Map<String, dynamic>? _galleryData;
   Map<String, dynamic>? _exImageData;
   bool _isLoading = true;
   int onelineReviewCount = 0;
   int expactationReviewCount = 0;
   bool _galleryLoading = true;
+
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     getExhibitionImages();
     _getExDetailData();
     _getGalleryInfo();
+
   }
 
   void _getExDetailData() async {
@@ -47,6 +50,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       if (documentSnapshot.exists) {
         setState(() {
           _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
+          print("아티스트넘버 : ${_exDetailData?['artistNo']}");
           _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
         });
       } else {
@@ -57,6 +61,22 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       setState(() {
         _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
       });
+    }
+  }
+
+  void _getArtistData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('artist').doc(_exDetailData?['artistNo']).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _exArtistData = documentSnapshot.data() as Map<String, dynamic>;
+          print(_exArtistData);
+        });
+      } else {
+        print('작가 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
@@ -111,6 +131,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           if (galleryDocument.exists) {
             _galleryData = galleryDocument.data() as Map<String, dynamic>?;
             print('Gallery Info: $_galleryData');
+            _getArtistData();
             setState(() {
               _galleryLoading = false; // 갤러리 데이터 로딩이 완료됨을 나타내는 플래그
             });
@@ -313,6 +334,46 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       );
     }
 
+    Widget _profile(){
+      if(_exArtistData!=null){
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Divider(
+              color: Color(0xff989898), // 선의 색상 변경 가능
+              thickness: 0.3, // 선의 두께 변경 가능
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 15),
+              child: Text("작가 프로필", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
+              child: Row(
+                children: [
+                  InkWell(
+                    onTap: (){},
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 40, // 반지름 크기 조절
+                          backgroundImage: AssetImage("assets/"),
+                        ),
+                        SizedBox(height: 8,),
+                        Text(_exArtistData?['artistName'])
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        );
+      }else{
+        return Container();
+      }
+    }
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -497,7 +558,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               ),
                               Container(
                                   width: 250,
-                                  child: Text("${_galleryData?['galleryClose']}")
+                                  child: Text(_galleryData?['galleryClose'] == null ? "-" : "${_galleryData?['galleryClose']}")
                               )
                             ],
                           ),
@@ -571,33 +632,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                       ],
                     ),
                   ),
-                  Divider(
-                    color: Color(0xff989898), // 선의 색상 변경 가능
-                    thickness: 0.3, // 선의 두께 변경 가능
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 15, top: 15, bottom: 15),
-                    child: Text("작가 프로필", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 15, right: 15, bottom: 15),
-                    child: Row(
-                      children: [
-                        InkWell(
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 40, // 반지름 크기 조절
-                                backgroundImage: AssetImage("assets/"),
-                              ),
-                              SizedBox(height: 8,),
-                              Text("차승언")
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  _profile(),
                   _TabBar(),
                   Container(
                     height: MediaQuery.of(context).size.height - (totalHeight+50),
