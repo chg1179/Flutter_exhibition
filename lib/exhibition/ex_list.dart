@@ -44,6 +44,8 @@ class _Ex_listState extends State<Ex_list> {
   bool _categoryFlg = true;
   List<String> _placeSelectedOptions = ["전체"];
   List<String> _categorySelectedOptions = ["전체"];
+  String _order = "startDate";
+  bool _trueOrfalse = true;
 
   void _resetState() {
     setState(() {
@@ -70,10 +72,12 @@ class _Ex_listState extends State<Ex_list> {
     double screenWidth = MediaQuery.of(context).size.width;
     double inkWidth = screenWidth / 2;
 
+    DateTime today = DateTime.now();
+
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection('exhibition')
-          .orderBy('startDate', descending: true)
+          .orderBy(_order, descending: _trueOrfalse)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
@@ -135,6 +139,7 @@ class _Ex_listState extends State<Ex_list> {
                       // 이곳에서 이미지를 표시하거나, 리스트에 추가하는 등의 작업을 수행할 수 있습니다.
 
                       final galleryNo = doc['galleryNo'] as String;
+
                       return StreamBuilder<DocumentSnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('gallery')
@@ -149,79 +154,160 @@ class _Ex_listState extends State<Ex_list> {
                             final galleryRegion = gallerySnapshot.data!['region'] as String;
                             final place = galleryName; // 갤러리 이름을 가져와서 place 변수에 할당
 
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) =>
-                                        ExhibitionDetail(document: doc.id)));
-                              },
-                              child: Card(
-                                margin: const EdgeInsets.all(5.0),
-                                child: Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(5),
-                                        topRight: Radius.circular(5),
-                                      ),
-                                      child: Image.network(imageUrl),
-                                    ),
-                                    Container(
-                                        alignment: Alignment.centerLeft,
-                                        padding: EdgeInsets.only(
-                                            left: 17, top: 15, bottom: 5),
-                                        decoration: BoxDecoration(
+                            bool isAllRegions = _placeSelectedOptions.contains('전체');
+                            bool isWithinSelectedRegion = _placeSelectedOptions.contains(galleryRegion);
+
+                            if(isWithinSelectedRegion){
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) =>
+                                          ExhibitionDetail(document: doc.id)));
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.all(5.0),
+                                  child: Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(5),
+                                          topRight: Radius.circular(5),
                                         ),
-                                        child: Text(
-                                            getOngoing(startDate, endDate),
-                                            style: TextStyle(
-                                              decoration: TextDecoration
-                                                  .underline,
-                                              decorationStyle: TextDecorationStyle
-                                                  .double,
-                                              decorationColor: Color(
-                                                  0xff464D40),
-                                              decorationThickness: 1.5,
-                                            )
-                                        )
-                                    ),
-                                    ListTile(
-                                      title: Padding(
-                                          padding: const EdgeInsets.only(
-                                              top: 5, bottom: 5),
-                                          child: Text(exTitle, style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16),
-                                              maxLines: 3,
-                                              overflow: TextOverflow.ellipsis)
+                                        child: Image.asset("assets/ex/ex1.png"),
                                       ),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Padding(
+                                      Container(
+                                          alignment: Alignment.centerLeft,
+                                          padding: EdgeInsets.only(
+                                              left: 17, top: 15, bottom: 5),
+                                          decoration: BoxDecoration(
+                                          ),
+                                          child: Text(
+                                              getOngoing(startDate, endDate),
+                                              style: TextStyle(
+                                                decoration: TextDecoration
+                                                    .underline,
+                                                decorationStyle: TextDecorationStyle
+                                                    .double,
+                                                decorationColor: Color(
+                                                    0xff464D40),
+                                                decorationThickness: 1.5,
+                                              )
+                                          )
+                                      ),
+                                      ListTile(
+                                        title: Padding(
                                             padding: const EdgeInsets.only(
-                                                bottom: 5),
-                                            child: Text("${place} / ${galleryRegion}", style: TextStyle(
+                                                top: 5, bottom: 5),
+                                            child: Text(exTitle, style: TextStyle(
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 12),),
-                                          ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 5),
-                                            child: Text(
-                                                "${DateFormat('yyyy.MM.dd')
-                                                    .format(
-                                                    startDate)} ~ ${DateFormat(
-                                                    'yyyy.MM.dd').format(
-                                                    endDate)}"),
-                                          ),
-                                        ],
+                                                fontSize: 16),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis)
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 5),
+                                              child: Text("${place} / ${galleryRegion}", style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12),),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 5),
+                                              child: Text(
+                                                  "${DateFormat('yyyy.MM.dd')
+                                                      .format(
+                                                      startDate)} ~ ${DateFormat(
+                                                      'yyyy.MM.dd').format(
+                                                      endDate)}"),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }else if(isAllRegions){
+                              return InkWell(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) =>
+                                          ExhibitionDetail(document: doc.id)));
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.all(5.0),
+                                  child: Column(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(5),
+                                          topRight: Radius.circular(5),
+                                        ),
+                                        child: Image.asset("assets/ex/ex1.png"),
+                                      ),
+                                      Container(
+                                          alignment: Alignment.centerLeft,
+                                          padding: EdgeInsets.only(
+                                              left: 17, top: 15, bottom: 5),
+                                          decoration: BoxDecoration(
+                                          ),
+                                          child: Text(
+                                              getOngoing(startDate, endDate),
+                                              style: TextStyle(
+                                                decoration: TextDecoration
+                                                    .underline,
+                                                decorationStyle: TextDecorationStyle
+                                                    .double,
+                                                decorationColor: Color(
+                                                    0xff464D40),
+                                                decorationThickness: 1.5,
+                                              )
+                                          )
+                                      ),
+                                      ListTile(
+                                        title: Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 5, bottom: 5),
+                                            child: Text(exTitle, style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16),
+                                                maxLines: 3,
+                                                overflow: TextOverflow.ellipsis)
+                                        ),
+                                        subtitle: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 5),
+                                              child: Text("${place} / ${galleryRegion}", style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12),),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 5),
+                                              child: Text(
+                                                  "${DateFormat('yyyy.MM.dd')
+                                                      .format(
+                                                      startDate)} ~ ${DateFormat(
+                                                      'yyyy.MM.dd').format(
+                                                      endDate)}"),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }else{
+                              return Container();
+                            }
                           } else {
                             return Text('갤러리 정보 없음');
                           }
@@ -230,7 +316,6 @@ class _Ex_listState extends State<Ex_list> {
                     } else {
                       return Text('이미지 없음');
                     }
-
                   }
                 );
               },
@@ -256,8 +341,6 @@ class _Ex_listState extends State<Ex_list> {
         _currentIndex = index;
       });
     }
-
-
 
     return Scaffold(
       appBar: AppBar(
@@ -330,6 +413,8 @@ class _Ex_listState extends State<Ex_list> {
                                     onPressed: (){
                                       setState(() {
                                         _selectedOption = "최신순";
+                                        _order = "startDate";
+                                        _trueOrfalse = true;
                                         Navigator.pop(context);
                                       });
                                     },
@@ -349,6 +434,8 @@ class _Ex_listState extends State<Ex_list> {
                                     onPressed: (){
                                       setState(() {
                                         _selectedOption = "인기순";
+                                        _order = "like";
+                                        _trueOrfalse = true;
                                         Navigator.pop(context);
                                       });
                                     },
@@ -368,6 +455,8 @@ class _Ex_listState extends State<Ex_list> {
                                     onPressed: (){
                                       setState(() {
                                         _selectedOption = "종료순";
+                                        _order = "endDate";
+                                        _trueOrfalse = false;
                                         Navigator.pop(context);
                                       });
                                     },
@@ -474,7 +563,6 @@ class _Ex_listState extends State<Ex_list> {
                                               ),
                                             ),
                                             onPressed: (){
-                                              print("찹아보기");
                                               Navigator.pop(context);
                                             },
                                             child: Text("찾아보기")
@@ -634,22 +722,35 @@ class _PlaceFlgState extends State<PlaceFlg> {
     setState(() {
       if (option == "전체") {
         if (_placeSelectedOptions.contains("전체")) {
-          _placeSelectedOptions.remove("전체");
-        } else {
+          // "전체"가 선택되어 있을 때 "전체"만 선택
           _placeSelectedOptions = ["전체"];
+        } else {
+          // "전체"가 선택되지 않았을 때 "전체"만 선택하고 나머지 옵션 제거
+          _placeSelectedOptions.clear();
+          _placeSelectedOptions.add("전체");
         }
       } else {
         if (_placeSelectedOptions.contains("전체")) {
+          // "전체"가 선택되어 있을 때 "전체" 제거하고 현재 선택된 옵션 추가
           _placeSelectedOptions.remove("전체");
         }
+
         if (_placeSelectedOptions.contains(option)) {
+          // 선택된 옵션이 이미 있는 경우 제거
           _placeSelectedOptions.remove(option);
         } else {
+          // 선택된 옵션이 없는 경우 추가
           _placeSelectedOptions.add(option);
+        }
+
+        if (_placeSelectedOptions.length == 15) {
+          // 모든 옵션이 선택되어 있으면 "전체" 추가
+          _placeSelectedOptions.add("전체");
         }
       }
     });
   }
+
 
   Widget customButton(String label, bool selected) {
     return GestureDetector(
@@ -674,6 +775,7 @@ class _PlaceFlgState extends State<PlaceFlg> {
     );
   }
 
+
   Widget _placeSelectBtn() {
     if (_placeFlg) {
       return Padding(
@@ -686,11 +788,18 @@ class _PlaceFlgState extends State<PlaceFlg> {
             children: [
               customButton("전체", _placeSelectedOptions.contains("전체")),
               customButton("서울", _placeSelectedOptions.contains("서울")),
-              customButton("경기/인천", _placeSelectedOptions.contains("경기/인천")),
-              customButton("부산/울산/경남", _placeSelectedOptions.contains("부산/울산/경남")),
-              customButton("대구/경북", _placeSelectedOptions.contains("대구/경북")),
-              customButton("광주/전라", _placeSelectedOptions.contains("광주/전라")),
-              customButton("대전/충청/세종", _placeSelectedOptions.contains("대전/충청/세종")),
+              customButton("경기", _placeSelectedOptions.contains("경기")),
+              customButton("인천", _placeSelectedOptions.contains("인천")),
+              customButton("부산", _placeSelectedOptions.contains("부산")),
+              customButton("울산", _placeSelectedOptions.contains("울산")),
+              customButton("경남", _placeSelectedOptions.contains("경남")),
+              customButton("대구", _placeSelectedOptions.contains("대구")),
+              customButton("경북", _placeSelectedOptions.contains("경북")),
+              customButton("광주", _placeSelectedOptions.contains("광주")),
+              customButton("전라", _placeSelectedOptions.contains("전라")),
+              customButton("대전", _placeSelectedOptions.contains("대전")),
+              customButton("충청", _placeSelectedOptions.contains("충청")),
+              customButton("세종", _placeSelectedOptions.contains("세종")),
               customButton("강원", _placeSelectedOptions.contains("강원")),
               customButton("제주", _placeSelectedOptions.contains("제주")),
             ],

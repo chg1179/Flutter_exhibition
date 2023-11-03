@@ -280,8 +280,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   Container(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: Image.network(
-                        _exImageData?['imageURL'],
+                      child: Image.asset(
+                        //_exImageData?['imageURL'],
+                        "assets/ex/ex1.png",
                         fit: BoxFit.fitWidth,
                       ),
                     ),
