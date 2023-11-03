@@ -23,12 +23,14 @@ Map<String, dynamic> _galleryInfo = {
 class _GalleryInfoState extends State<GalleryInfo> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _galleryData;
+  Map<String, dynamic>? _galleryImageData;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _getGalleryData();
+    _getGalleryImageData();
   }
 
   void _getGalleryData() async {
@@ -37,16 +39,39 @@ class _GalleryInfoState extends State<GalleryInfo> {
       if (documentSnapshot.exists) {
         setState(() {
           _galleryData = documentSnapshot.data() as Map<String, dynamic>;
+          _getGalleryImageData();
+        });
+      } else {
+        print('정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  void _getGalleryImageData() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('gallery')
+          .doc(widget.document)
+          .collection('gallery_image')
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final firstDocument = querySnapshot.docs.first;
+        setState(() {
+          _galleryImageData = firstDocument.data() as Map<String, dynamic>;
           _isLoading = false;
         });
       } else {
-        print('전시회 정보를 찾을 수 없습니다.');
+        print('정보를 찾을 수 없습니다.');
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
       _isLoading = false;
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +106,8 @@ class _GalleryInfoState extends State<GalleryInfo> {
                     Container(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.asset(
-                          "assets/main/가로1.jpg",
+                        child: Image.network(
+                          _galleryImageData?['imageURL'],
                           fit: BoxFit.fitWidth,
                         ),
                       ),
@@ -233,54 +258,54 @@ class _GalleryInfoState extends State<GalleryInfo> {
                         thickness: 0.3, // 선의 두께 변경 가능
                       ),
                     ),
-                    Container(
-                      height: 30,
-                      child: Stack(
-                        children: [
-                          Text(
-                            "   진행 중 전시회",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            child: Container(
-                              height: 2.0, // 밑줄의 높이
-                              width: 140,
-                              color: Colors.black, // 밑줄의 색
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      height: 200,
-                      child: Center(child: Text("진행 중 전시가 없습니다.")),
-                    ),
-                    Container(
-                      height: 30,
-                      child: Stack(
-                        children: [
-                          Text(
-                            "   예정 전시회",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            child: Container(
-                              height: 2.0, // 밑줄의 높이
-                              width: 140,
-                              color: Colors.black, // 밑줄의 색
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      height: 200,
-                      child: Center(child: Text("예정 전시가 없습니다.")),
-                    ),
+                    // Container(
+                    //   height: 30,
+                    //   child: Stack(
+                    //     children: [
+                    //       Text(
+                    //         "   진행 중 전시회",
+                    //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    //       ),
+                    //       Positioned(
+                    //         bottom: 0,
+                    //         left: 0,
+                    //         child: Container(
+                    //           height: 2.0, // 밑줄의 높이
+                    //           width: 140,
+                    //           color: Colors.black, // 밑줄의 색
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // Container(
+                    //   height: 200,
+                    //   child: Center(child: Text("진행 중 전시가 없습니다.")),
+                    // ),
+                    // Container(
+                    //   height: 30,
+                    //   child: Stack(
+                    //     children: [
+                    //       Text(
+                    //         "   예정 전시회",
+                    //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    //       ),
+                    //       Positioned(
+                    //         bottom: 0,
+                    //         left: 0,
+                    //         child: Container(
+                    //           height: 2.0, // 밑줄의 높이
+                    //           width: 140,
+                    //           color: Colors.black, // 밑줄의 색
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // Container(
+                    //   height: 200,
+                    //   child: Center(child: Text("예정 전시가 없습니다.")),
+                    // ),
                   ]
               ),
             ),

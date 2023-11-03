@@ -208,14 +208,19 @@ class _SearchState extends State<Search> {
                         width: 1,
                       ),
                     ),
-                    suffixIcon: Padding(
+                    suffixIcon: _search.text.isNotEmpty
+                        ? Padding(
                       padding: const EdgeInsets.only(right: 10),
                       child: IconButton(
-                        icon: Icon(Icons.search, color: Color(0xff464D40)),
+                        icon: Icon(Icons.clear, color: Color(0xff464D40)),
                         onPressed: () {
+                          setState(() {
+                            _search.clear();
+                          });
                         },
                       ),
-                    ),
+                    )
+                        : null,
                   ),
                   style: TextStyle(fontSize: 18),
                   cursorColor: Color(0xff464D40),
