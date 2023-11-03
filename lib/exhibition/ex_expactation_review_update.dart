@@ -1,19 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class ExExpactationReview extends StatefulWidget {
+class ExExpactationReviewUpdate extends StatefulWidget {
   final String document;
+  final String ReId;
 
-  const ExExpactationReview({required this.document});
+  const ExExpactationReviewUpdate({required this.document, required this.ReId});
 
   @override
-  State<ExExpactationReview> createState() => _ExExpactationReviewState();
+  State<ExExpactationReviewUpdate> createState() => _ExExpactationReviewUpdateState();
 }
 
-class _ExExpactationReviewState extends State<ExExpactationReview> {
+class _ExExpactationReviewUpdateState extends State<ExExpactationReviewUpdate> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
   final _review = TextEditingController();
+  Map<String, dynamic>? _expactationReviewData;
 
   void _getExDetailData() async {
     try {
@@ -30,13 +32,31 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     }
   }
 
+  void _getReviewData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).collection('expactationReview').doc(widget.ReId).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _expactationReviewData = documentSnapshot.data() as Map<String, dynamic>;
+          _review.text = _expactationReviewData?['content'];
+        });
+      } else {
+        print('기대평 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
     _getExDetailData();
+    _getReviewData();
   }
 
-  Future<void> addExpactationReview() async {
+  Future<void> updateExpactationReview() async {
     try {
       String userId = 'user123';
 
@@ -46,8 +66,13 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         'cDateTime': FieldValue.serverTimestamp(),
       };
 
-      // Add review data
-      DocumentReference reviewReference = await _firestore.collection('exhibition').doc(widget.document).collection('expactationReview').add(reviewData);
+      // Update review data
+      await _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('expactationReview')
+          .doc(widget.ReId)
+          .update(reviewData);
 
       _review.clear();
 
@@ -56,13 +81,13 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('기대평이 등록되었습니다.', style: TextStyle(fontSize: 16),),
+            title: Text('성공적으로 수정되었습니다.', style: TextStyle(fontSize: 16),),
             actions: <Widget>[
               TextButton(
                 child: Text('확인', style: TextStyle(color: Color(0xff464D40)),),
                 onPressed: () {
                   Navigator.pop(context); // 다이얼로그 닫기
-                  Navigator.pop(context); // 한 번 더 뒤로가기해서 전시회 페이지로 돌아가기
+                  Navigator.pop(context); // 전시회 페이지로 이동
                 },
               ),
             ],
@@ -70,7 +95,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         },
       );
     } catch (e) {
-      print('기대평 등록 중 오류 발생: $e');
+      print('리뷰 업데이트 중 오류 발생: $e');
     }
   }
 
@@ -78,7 +103,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("${_exDetailData?['exTitle']} 기대평 작성", style: TextStyle(color: Colors.black, fontSize: 17),),
+        title: Text("${_exDetailData?['exTitle']} 기대평 수정", style: TextStyle(color: Colors.black, fontSize: 17),),
         backgroundColor: Colors.white,
         elevation: 1.0,
         leading: IconButton(
@@ -97,7 +122,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
               SizedBox(height: 20),
               Row(
                 children: [
-                  Text("기대평 작성", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+                  Text("기대평 수정", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
                   Text(" *", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff464D40))),
                 ],
               ),
@@ -142,9 +167,9 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
                       shadowColor: Colors.transparent,
                     ),
                     onPressed: (){
-                      addExpactationReview();
+                      updateExpactationReview();
                     },
-                    child: Text("기대평 등록", style: TextStyle(fontSize: 18),)
+                    child: Text("기대평 수정", style: TextStyle(fontSize: 18),)
                 ),
               ),
               SizedBox(height: 30,)

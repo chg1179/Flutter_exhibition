@@ -1,5 +1,7 @@
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
+import 'package:exhibition_project/exhibition/ex_expactation_review_update.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
+import 'package:exhibition_project/exhibition/ex_oneLine_review_update.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
@@ -177,6 +179,72 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         .get();
 
     expactationReviewCount = expactationReviewSnapshot.docs.length;
+  }
+
+  void _deleteReviewConfirmation(DocumentReference reviewReference) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("리뷰 삭제"),
+          content: Text("리뷰를 삭제하시겠습니까?"),
+          actions: <Widget>[
+            TextButton(
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('삭제', style: TextStyle(color: Color(0xff464D40))),
+              onPressed: () {
+                _deleteReview(reviewReference, "리뷰가");
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteReview(DocumentReference reviewReference, txt) {
+    reviewReference.delete().then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${txt} 삭제되었습니다.'),
+      ));
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('리뷰 삭제 중 오류 발생: $error'),
+      ));
+    });
+  }
+
+  void _deleteExpactationConfirmation(DocumentReference reviewReference) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("기대평 삭제"),
+          content: Text("기대평을 삭제하시겠습니까?"),
+          actions: <Widget>[
+            TextButton(
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('삭제', style: TextStyle(color: Color(0xff464D40))),
+              onPressed: () {
+                _deleteReview(reviewReference, "기대평이");
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -595,7 +663,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   List<Widget> ExpactationReviewWidgets = [];
 
                                   snapshot.data!.docs.forEach((review) {
-                                    // 리뷰 데이터 가져오기
                                     Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
                                     String reviewText = reviewData['content'];
                                     String userNick = reviewData['userNo'];
@@ -637,12 +704,16 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 ),
                                                 Spacer(),
                                                 InkWell(
-                                                  onTap: (){},
+                                                  onTap: (){
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReviewUpdate(document: widget.document, ReId : review.id)));
+                                                  },
                                                   child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
-                                                  onTap: (){},
+                                                  onTap: (){
+                                                    _deleteExpactationConfirmation(review.reference);
+                                                  },
                                                   child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 SizedBox(width: 15,)
@@ -761,12 +832,16 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 ),
                                                 Spacer(),
                                                 InkWell(
-                                                    onTap: (){},
+                                                    onTap: (){
+                                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReviewUpdate(document: widget.document, ReId : review.id)));
+                                                    },
                                                     child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
-                                                    onTap: (){},
+                                                    onTap: () {
+                                                      _deleteReviewConfirmation(review.reference);
+                                                    },
                                                     child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 SizedBox(width: 15,)
