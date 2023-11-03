@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
+import 'package:exhibition_project/community/post_search.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -521,7 +522,7 @@ class _CommMainState extends State<CommMain> {
           actions: [
             IconButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => Search()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => PostSearch()));
               },
               icon: Icon(Icons.search),
               color: Colors.black,

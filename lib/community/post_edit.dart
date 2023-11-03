@@ -25,6 +25,21 @@ class _CommEditState extends State<CommEdit> {
   XFile? _imageFile;
   String? downloadURL;
 
+
+  List<Map<String, bool>> _tagList = [
+    {'전시': false},
+    {'설치미술': false},
+    {'온라인전시': false},
+    {'유화': false},
+    {'미디어': false},
+    {'사진': false},
+    {'조각': false},
+    {'특별전시': false},
+  ];
+
+
+  List<String> _selectTag = [];
+
   @override
   void initState() {
     super.initState();
@@ -100,8 +115,6 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
-
-
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
@@ -141,6 +154,8 @@ class _CommEditState extends State<CommEdit> {
             _buildImgButton(),
             _buildContentInput(),
             _buildSelectedImage(),
+            _selectTagForm(),
+            _hashTagList()
           ],
         ),
       ),
@@ -185,6 +200,7 @@ class _CommEditState extends State<CommEdit> {
     );
   }
 
+
   Widget _buildDivider() {
     return Container(
       margin: EdgeInsets.only(right: 20, left: 20),
@@ -220,6 +236,98 @@ class _CommEditState extends State<CommEdit> {
           border: InputBorder.none,
         ),
       ),
+    );
+  }
+
+  ButtonStyle _unPushBtnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      backgroundColor: MaterialStateProperty.all(Colors.white),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          fontSize: 13,
+        ),
+      ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.black;
+      }),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
+  }
+
+  ButtonStyle _pushBtnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+        ),
+      ),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
+  }
+
+  Widget _hashTagList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 30, left: 15),
+          child: Text('해시태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: 10, top: 10),
+          child: Wrap(
+            spacing: 5,
+            children: _tagList.asMap().entries.map((entry) {
+              final index = entry.key;
+              final tagName = entry.value.keys.first;
+              final selected = entry.value.values.first;
+              return ElevatedButton(
+                child: Text('# $tagName'),
+                onPressed: () {
+                  setState(() {
+                    _tagList[index][tagName] = !selected;
+                  });
+                },
+                style: selected ? _pushBtnStyle() : _unPushBtnStyle(),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
+  Widget _selectTagForm(){
+    return Wrap(
+      spacing: 5,
+      children: _selectTag.asMap().entries.map((entry) {
+        final index = entry.key;
+        final selectTag = entry.value;
+        return ElevatedButton(
+          child: Text('# $selectTag'),
+          onPressed: () {},
+          style: _pushBtnStyle(),
+        );
+      }).toList(),
     );
   }
 
