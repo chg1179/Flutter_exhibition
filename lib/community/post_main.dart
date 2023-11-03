@@ -1,3 +1,4 @@
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
@@ -56,8 +57,10 @@ class _CommMainState extends State<CommMain> {
   }
 
   void _updateSelectedTag(int index) {
-    selectedButtonIndex = index;
-    selectedTag = _tagList[index];
+    setState(() {
+      selectedButtonIndex = index;
+      selectedTag = _tagList[index];
+    });
   }
 
   ButtonStyle _unPushBtnStyle() {
@@ -96,6 +99,12 @@ class _CommMainState extends State<CommMain> {
           fontWeight: FontWeight.bold,
         ),
       ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.white; // 선택된 버튼의 텍스트 색상을 흰색으로 변경
+      }),
       shape: MaterialStateProperty.all(
         RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15),
@@ -151,7 +160,7 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-///////////////////////////////////////////////////////////댓글수 카운트
+  // 댓글수 카운트
   Map<String, int> commentCounts = {};
 
   @override
@@ -161,8 +170,7 @@ class _CommMainState extends State<CommMain> {
     _updateSelectedTag(selectedButtonIndex);
   }
 
-
-  //게시글 아이디 불러오기
+  // 게시글 아이디 불러오기
   Future<List<String>> getPostDocumentIds() async {
     try {
       final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
@@ -193,12 +201,7 @@ class _CommMainState extends State<CommMain> {
   Future<void> calculateCommentCounts(List<String> documentIds) async {
     for (String documentId in documentIds) {
       try {
-        final QuerySnapshot commentQuery = await FirebaseFirestore.instance
-            .collection('post')
-            .doc(documentId)
-            .collection('comment')
-            .get();
-        int commentCount = commentQuery.docs.length;
+        int commentCount = await getCommentCount(documentId);
         commentCounts[documentId] = commentCount;
         setState(() {});
       } catch (e) {
@@ -212,7 +215,6 @@ class _CommMainState extends State<CommMain> {
     List<String> documentIds = await getPostDocumentIds();
     await calculateCommentCounts(documentIds);
   }
-
 
   Widget buildIcons(String docId, int commentCount, int viewCount) {
     return Padding(
@@ -265,12 +267,13 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
+  Widget _commList(bool isPopular) {
+    final orderByField = isPopular ? 'viewCount' : 'write_date';
 
-  Widget _commList() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('post')
-          .orderBy('write_date', descending: true)
+          .orderBy(orderByField, descending: true)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
@@ -283,13 +286,30 @@ class _CommMainState extends State<CommMain> {
           return Center(child: Text('데이터 없음'));
         }
 
+        final filteredDocs = snap.data!.docs.where((doc) {
+          final title = doc['title'] as String;
+          final content = doc['content'] as String;
+
+          // 선택한 해시태그가 '전체'일 경우 모든 게시물 표시
+          if (selectedTag == '전체') {
+            return true;
+          }
+
+          // 게시물 제목 또는 내용에 선택한 해시태그가 포함되어 있는 경우 표시
+          if (title.contains(selectedTag) || content.contains(selectedTag)) {
+            return true;
+          }
+
+          return false;
+        }).toList();
+
         return ListView.separated(
-          itemCount: snap.data!.docs.length,
+          itemCount: filteredDocs.length,
           separatorBuilder: (context, index) {
             return Divider(color: Colors.grey, thickness: 0.8);
           },
           itemBuilder: (context, index) {
-            final doc = snap.data!.docs[index];
+            final doc = filteredDocs[index];
             final title = doc['title'] as String;
             final content = doc['content'] as String;
 
@@ -299,7 +319,6 @@ class _CommMainState extends State<CommMain> {
             String docId = doc.id;
 
             int viewCount = doc['viewCount'] as int? ?? 0;
-
 
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
@@ -314,7 +333,7 @@ class _CommMainState extends State<CommMain> {
               onTap: () {
                 // 조회수 증가
                 FirebaseFirestore.instance.collection('post').doc(docId).update({
-                  'viewCount': (viewCount+ 1),
+                  'viewCount': (viewCount + 1),
                 });
 
                 Navigator.push(
@@ -376,128 +395,7 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount!),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _commListPopular() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('post')
-          .orderBy('viewCount', descending: true)
-          .snapshots(),
-      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (snap.hasError) {
-          return Center(child: Text('에러 발생: ${snap.error}'));
-        }
-        if (!snap.hasData) {
-          return Center(child: Text('데이터 없음'));
-        }
-
-        return ListView.separated(
-          itemCount: snap.data!.docs.length,
-          separatorBuilder: (context, index) {
-            return Divider(color: Colors.grey, thickness: 0.8);
-          },
-          itemBuilder: (context, index) {
-            final doc = snap.data!.docs[index];
-            final title = doc['title'] as String;
-            final content = doc['content'] as String;
-
-            Timestamp timestamp = doc['write_date'] as Timestamp;
-            DateTime dateTime = timestamp.toDate();
-
-            String docId = doc.id;
-
-            int viewCount = doc['viewCount'] as int? ?? 0;
-
-
-            String? imageURL;
-            final data = doc.data() as Map<String, dynamic>;
-
-            if (data.containsKey('imageURL')) {
-              imageURL = data['imageURL'];
-            } else {
-              imageURL = '';
-            }
-
-            return GestureDetector(
-              onTap: () {
-                // 조회수 증가
-                FirebaseFirestore.instance.collection('post').doc(docId).update({
-                  'viewCount': (viewCount+ 1),
-                });
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CommDetail(document: doc.id),
-                  ),
-                );
-              },
-              child: Container(
-                margin: EdgeInsets.all(5),
-                padding: EdgeInsets.all(5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 10,
-                          ),
-                          SizedBox(width: 5),
-                          Text('userNickname', style: TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        title,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        content,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                    if (imageURL != null && imageURL.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            imageURL,
-                            width: 400,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount!),
+                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount),
                   ],
                 ),
               ),
@@ -552,8 +450,8 @@ class _CommMainState extends State<CommMain> {
             Expanded(
               child: TabBarView(
                 children: [
-                  Center(child: _commList()),
-                  Center(child: _commListPopular()),
+                  Center(child: _commList(false)),
+                  Center(child: _commList(true)),
                 ],
               ),
             ),

@@ -26,15 +26,15 @@ class _CommEditState extends State<CommEdit> {
   String? downloadURL;
 
 
-  List<Map<String, bool>> _tagList = [
-    {'전시': false},
-    {'설치미술': false},
-    {'온라인전시': false},
-    {'유화': false},
-    {'미디어': false},
-    {'사진': false},
-    {'조각': false},
-    {'특별전시': false},
+  List<String> _tagList = [
+    '전시',
+    '설치미술',
+    '온라인전시',
+    '유화',
+    '미디어',
+    '사진',
+    '조각',
+    '특별전시',
   ];
 
 
@@ -93,20 +93,24 @@ class _CommEditState extends State<CommEdit> {
             'imageURL': downloadURL,
           });
         } else {
-          await post.add({
+          DocumentReference newPostRef = await post.add({
             'title': _titleCtr.text,
             'content': _contentCtr.text,
             'write_date': DateTime.now(),
             'imageURL': downloadURL,
-            'viewCount' : 0
+            'viewCount': 0
           });
+
+          if (_selectTag.isNotEmpty) {
+            // 선택된 해시태그를 추가
+            await addHashtags(_selectTag, newPostRef.id);
+          }
         }
 
         _titleCtr.clear();
         _contentCtr.clear();
-        // 이미지 선택 여부 초기화
         downloadURL = null;
-        _imageFile = null; // 이미지 선택 여부 초기화
+        _imageFile = null;
       } catch (e) {
         print('데이터 저장 중 오류가 발생했습니다: $e');
       }
@@ -114,6 +118,47 @@ class _CommEditState extends State<CommEdit> {
       print("제목과 내용을 입력해주세요");
     }
   }
+
+
+  Future<void> addHashtags(List<String> hashtags, String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+
+    for (String hashtag in hashtags) {
+      final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc(); // 문서 ID 자동 생성
+
+      // hashtag 문서가 이미 있는지 확인
+      final hashtagSnapshot = await hashtagDocRef.get();
+      if (!hashtagSnapshot.exists) {
+        // hashtag 문서가 없으면 추가
+        await hashtagDocRef.set({
+          'tag_name': hashtag,
+        });
+      }
+    }
+  }
+
+
+
+  // 선택된 해시태그를 추가하는 함수
+  void addSelectedTag(String tagName) {
+    if (!_selectTag.contains(tagName)) {
+      setState(() {
+        _selectTag.add(tagName);
+      });
+    }
+  }
+
+// 선택된 해시태그를 제거하는 함수
+  void removeSelectedTag(String tagName) {
+    if (_selectTag.contains(tagName)) {
+      setState(() {
+        _selectTag.remove(tagName);
+      });
+    }
+  }
+
+
+
 
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
@@ -294,18 +339,21 @@ class _CommEditState extends State<CommEdit> {
           padding: EdgeInsets.only(left: 10, top: 10),
           child: Wrap(
             spacing: 5,
-            children: _tagList.asMap().entries.map((entry) {
-              final index = entry.key;
-              final tagName = entry.value.keys.first;
-              final selected = entry.value.values.first;
+            children: _tagList.map((tagName) {
               return ElevatedButton(
                 child: Text('# $tagName'),
                 onPressed: () {
                   setState(() {
-                    _tagList[index][tagName] = !selected;
+                    if (_selectTag.contains(tagName)) {
+                      // 선택 해제된 해시태그를 제거
+                      removeSelectedTag(tagName);
+                    } else {
+                      // 선택된 해시태그를 추가
+                      addSelectedTag(tagName);
+                    }
                   });
                 },
-                style: selected ? _pushBtnStyle() : _unPushBtnStyle(),
+                style: _selectTag.contains(tagName) ? _pushBtnStyle() : _unPushBtnStyle(),
               );
             }).toList(),
           ),
@@ -316,12 +364,12 @@ class _CommEditState extends State<CommEdit> {
 
 
 
-  Widget _selectTagForm(){
+
+
+  Widget _selectTagForm() {
     return Wrap(
       spacing: 5,
-      children: _selectTag.asMap().entries.map((entry) {
-        final index = entry.key;
-        final selectTag = entry.value;
+      children: _selectTag.map((selectTag) {
         return ElevatedButton(
           child: Text('# $selectTag'),
           onPressed: () {},
