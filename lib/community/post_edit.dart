@@ -83,6 +83,7 @@ class _CommEditState extends State<CommEdit> {
             'content': _contentCtr.text,
             'write_date': DateTime.now(),
             'imageURL': downloadURL,
+            'viewCount' : 0
           });
         }
 

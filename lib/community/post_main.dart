@@ -213,7 +213,7 @@ class _CommMainState extends State<CommMain> {
   }
 
 
-  Widget buildIcons(String docId, int commentCount) {
+  Widget buildIcons(String docId, int commentCount, int viewCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -221,7 +221,7 @@ class _CommMainState extends State<CommMain> {
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, '0'),
+              buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
                 Icons.chat_bubble_rounded,
@@ -296,17 +296,24 @@ class _CommMainState extends State<CommMain> {
 
             String docId = doc.id;
 
+            int viewCount = doc['viewCount'] ?? 0;
+
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
 
             if (data.containsKey('imageURL')) {
-              imageURL = data['imageURL'] as String;
+              imageURL = data['imageURL'];
             } else {
               imageURL = '';
             }
 
             return GestureDetector(
               onTap: () {
+                // 조회수 증가
+                FirebaseFirestore.instance.collection('post').doc(docId).update({
+                  'viewCount': viewCount + 1,
+                });
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -366,7 +373,7 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons(docId, commentCounts[docId] ?? 0),
+                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount),
                   ],
                 ),
               ),

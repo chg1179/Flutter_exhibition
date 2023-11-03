@@ -63,21 +63,6 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  Future<List<String>> getCommentIds() async {
-    try {
-      final QuerySnapshot commentQuerySnapshot = await FirebaseFirestore.instance
-          .collection('post')
-          .doc(widget.document)
-          .collection('comment')
-          .get();
-      final List<String> commentIds = commentQuerySnapshot.docs.map((doc) => doc.id).toList();
-      return commentIds;
-    } catch (e) {
-      print('댓글 ID를 불러오는 동안 오류 발생: $e');
-      return [];
-    }
-  }
-
   Future<List<Map<String, dynamic>>?> getRepliesForComment(String commentId) async {
     try {
       final QuerySnapshot replyQuerySnapshot = await FirebaseFirestore.instance
@@ -108,45 +93,6 @@ class _CommDetailState extends State<CommDetail> {
       print('댓글의 답글을 불러오는 동안 오류 발생: $e');
       return null;
     }
-  }
-
-  Widget buildCommentWithReplies(Map<String, dynamic> commentData) {
-    final commentId = commentData['documentId'];
-    final commentText = commentData['comment'] as String;
-
-    return Column(
-      children: [
-        // 댓글 내용 표시
-        Text(commentText),
-        // 해당 댓글의 답글을 표시
-        FutureBuilder(
-          future: getRepliesForComment(commentId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-            } else if (snapshot.hasData) {
-              final replies = snapshot.data as List<Map<String, dynamic>>?;
-              if (replies != null && replies.isNotEmpty) {
-                return Column(
-                  children: replies.map((replyData) {
-                    final replyText = replyData['reply'] as String;
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 20),
-                      child: Text(replyText),
-                    );
-                  }).toList(),
-                );
-              } else {
-                return SizedBox(); // 답글이 없을 경우 빈 공간을 반환
-              }
-            }
-            return SizedBox(); // 데이터가 없을 경우 빈 공간을 반환
-          },
-        ),
-      ],
-    );
   }
 
 
@@ -403,19 +349,30 @@ class _CommDetailState extends State<CommDetail> {
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _commentCtr,
-            maxLines: null, // 댓글이 여러 줄로 나타날 수 있도록 함
-            decoration: InputDecoration(
-              hintText: '댓글을 작성해주세요',
-              contentPadding: EdgeInsets.all(10),
-              border: InputBorder.none,
+          child: Container(
+            margin: EdgeInsets.all(5),
+            child: TextField(
+              controller: _commentCtr,
+              maxLines: null, // 댓글이 여러 줄로 나타날 수 있도록 함
+              decoration: InputDecoration(
+                hintText: '댓글을 작성해주세요',
+                contentPadding: EdgeInsets.all(10),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff464D40)), // 포커스가 있을 때의 테두리 색상
+                ),
+              ),
+              cursorColor: Color(0xff464D40),
             ),
           ),
         ),
         TextButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+            minimumSize: MaterialStateProperty.all(Size(50, 5)), // 너비 100, 높이 40으로 설정
+          ),
           onPressed: _addComment,
-          child: Text('등록', style: TextStyle(color: Color(0xff464D40), fontWeight: FontWeight.bold)),
+          child: Text('등록', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -599,8 +556,8 @@ class _CommDetailState extends State<CommDetail> {
               children: [
                 Text('hj',style: TextStyle(fontSize: 13)),
                 GestureDetector(
-                  onTap: () {
-
+                  onTap: (){
+                    _showCommentMenu(commentData ,documentId, commentText);
                   },
                   child: Icon(Icons.more_vert, size: 15)
                 )
@@ -613,7 +570,7 @@ class _CommDetailState extends State<CommDetail> {
                 ),
                 Text(
                   _addLineBreaks(commentText, MediaQuery.of(context).size.width),
-                  style: TextStyle(fontSize: 13),
+                  style: TextStyle(fontSize: 12),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -667,8 +624,8 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  void _showCommentMenu(Map<String, dynamic> commentData, String documentId) {
-    final commentId = commentData['reference'].id;
+  void _showCommentMenu(Map<String, dynamic> commentData, String documentId, String commentText) {
+    final commentId = documentId;
     final commentText = commentData['comment'] as String;
 
     showModalBottomSheet(
@@ -698,7 +655,7 @@ class _CommDetailState extends State<CommDetail> {
                 title: Text('댓글 수정'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showEditCommentDialog(commentId, commentText, commentText);
+                  _showEditCommentDialog(widget.document, commentId, commentText);
                 },
               ),
               ListTile(
@@ -718,7 +675,7 @@ class _CommDetailState extends State<CommDetail> {
 
   void _showEditCommentDialog(String documentId, String commentId, String initialText) {
     final TextEditingController editCommentController = TextEditingController(text: initialText);
-
+    documentId = widget.document;
     showDialog(
       context: context,
       builder: (context) {
@@ -766,6 +723,7 @@ class _CommDetailState extends State<CommDetail> {
     showDialog(
       context: context,
       builder: (context) {
+        documentId = widget.document;
         return AlertDialog(
           title: Text('댓글 삭제'),
           content: Text('댓글을 삭제하시겠습니까?'),
@@ -778,9 +736,8 @@ class _CommDetailState extends State<CommDetail> {
             ),
             TextButton(
               onPressed: () {
-                _deleteComment(documentId, commentId);
-                Navigator.pop(context);
-                _showDeleteCommentDialog();
+                Navigator.pop(context); // 현재 다이얼로그 닫기
+                _deleteComment(documentId, commentId); // 삭제 동작 수행
               },
               child: Text('삭제'),
             ),
@@ -809,61 +766,131 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
+
   void _deleteComment(String documentId, String commentId) async {
     try {
+      // 먼저 해당 문서를 삭제
       await _firestore.collection('post').doc(documentId).collection('comment').doc(commentId).delete();
-      // 화면 업데이트
+
+      // 그런 다음 해당 댓글에 연결된 모든 답글 컬렉션을 가져옵니다.
+      final replyCollection = _firestore.collection('post').doc(documentId).collection('comment').doc(commentId).collection('reply');
+
+      // 해당 답글 컬렉션을 삭제하기 전에 모든 답글을 가져와서 삭제합니다.
+      final replyDocs = await replyCollection.get();
+      for (final doc in replyDocs.docs) {
+        await replyCollection.doc(doc.id).delete();
+      }
+
+      // 마지막으로 댓글 삭제 후, 화면에서 해당 댓글을 업데이트합니다.
       _loadComments();
+
+      // 댓글이 삭제되었음을 사용자에게 알리는 다이얼로그를 표시합니다.
+      _showDeleteCommentDialog();
     } catch (e) {
       print('댓글 삭제 오류: $e');
     }
   }
 
 
+
+  int _visibleReplyCount = 1;
+  bool _showAllReplies = false; // 모든 답글을 표시할지 여부
+
+
+
   Widget _repliesList(QuerySnapshot<Object?> data) {
     if (data.docs.isNotEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: data.docs.map((doc) {
-          final replyData = doc.data() as Map<String, dynamic>;
-          final replyText = replyData['reply'] as String;
-          final timestamp = replyData['write_date'] as Timestamp;
-          final replyDate = timestamp.toDate();
+      final replies = data.docs.map((doc) {
+        final replyData = doc.data() as Map<String, dynamic>;
+        final replyText = replyData['reply'] as String;
+        final timestamp = replyData['write_date'] as Timestamp?;
+        final replyDate = timestamp != null ? timestamp.toDate() : null;
+        return {
+          'replyText': replyText,
+          'replyDate': replyDate,
+        };
+      }).toList();
 
-          return Container(
-            padding: EdgeInsets.only(top: 10, bottom: 10, left:30),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('hj', style: TextStyle(fontSize: 13)),
-                    GestureDetector(
-                      onTap: () {
-                        // Implement your action when the more button is tapped
-                      },
-                      child: Icon(Icons.more_vert, size: 15),
-                    ),
-                  ],
+      if (!_showAllReplies) {
+        replies.removeRange(_visibleReplyCount, replies.length);
+      }
+
+      return Container(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (int i = 0; i < replies.length; i++) _buildReplyRow(replies[i]),
+            if (data.docs.length > _visibleReplyCount)
+              Padding(
+                padding: const EdgeInsets.only(left: 53),
+                child: ReplyToggleButton(
+                  showAllReplies: _showAllReplies,
+                  onTap: () {
+                    setState(() {
+                      _showAllReplies = !_showAllReplies;
+                    });
+                  },
                 ),
-                SizedBox(height: 5),
-                Text(
-                  replyDate.toString(),
-                  style: TextStyle(fontSize: 10),
-                ),
-                Text(
-                  replyText,
-                  style: TextStyle(fontSize: 13),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
+              )
+          ],
+        ),
       );
     } else {
       return Container();
     }
+  }
+
+  Widget _buildReplyRow(Map<String, dynamic> replyData) {
+    final replyText = replyData['replyText'] as String;
+    final replyDate = replyData['replyDate'] as DateTime?;
+
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      padding: EdgeInsets.only(left: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(10),
+            child: Icon(
+              Icons.subdirectory_arrow_right,
+              size: 20,
+            ),
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width - 105,
+            padding: EdgeInsets.only(top: 10, bottom: 10),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('hj', style: TextStyle(fontSize: 13)),
+                    SizedBox(height: 5),
+                    if (replyDate != null)
+                      Text(
+                        replyDate.toString(),
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    Text(
+                      _addLineBreaks(replyText, MediaQuery.of(context).size.width),
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Icon(
+              Icons.more_vert,
+              size: 15,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -943,3 +970,32 @@ class _CommDetailState extends State<CommDetail> {
   }
 }
 
+class ReplyToggleButton extends StatefulWidget {
+  final bool showAllReplies;
+  final VoidCallback onTap;
+
+  ReplyToggleButton({
+    required this.showAllReplies,
+    required this.onTap,
+  });
+
+  @override
+  _ReplyToggleButtonState createState() => _ReplyToggleButtonState();
+}
+
+class _ReplyToggleButtonState extends State<ReplyToggleButton> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Text(
+        widget.showAllReplies ? '답글 접기' : '답글 더보기',
+        style: TextStyle(
+          fontSize: 10,
+          color: Colors.grey,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}

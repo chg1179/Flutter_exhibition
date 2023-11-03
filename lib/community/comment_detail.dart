@@ -111,41 +111,77 @@ class _CommentDetailState extends State<CommentDetail> {
     );
   }
 
+  // 댓글수 일정 수 이상 넘어가면 줄바꿈
+  String _addLineBreaks(String text, double maxLineLength) {
+    final buffer = StringBuffer();
+    double currentLineLength = 0;
+
+    for (var i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+      currentLineLength++;
+
+      if (currentLineLength >= maxLineLength) {
+        buffer.write('\n'); // 글자 수가 일정 수 이상이면 줄바꿈 추가
+        currentLineLength = 0;
+      }
+    }
+
+    return buffer.toString();
+  }
+
   Widget _replyList(QuerySnapshot<Object?> data) {
-    if (_reply.isNotEmpty) {
+    if (data.docs.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: _reply.map((replyData) {
+        children: data.docs.map((doc) {
+          final replyData = doc.data() as Map<String, dynamic>;
           final replyText = replyData['reply'] as String;
-          final timestamp = replyData['write_date'] as Timestamp;
-          final replyDate = timestamp.toDate();
+
+          final timestamp = replyData['write_date'] as Timestamp?;
+          final replyDate = timestamp != null ? timestamp.toDate() : null;
 
           return Container(
-            margin: EdgeInsets.only(right: 10, left: 10),
-            padding: EdgeInsets.only(top: 10, bottom: 10, right: 10, left: 30),
-            child: Column(
+            width: MediaQuery.of(context).size.width,
+            padding: EdgeInsets.only(left: 10),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('hj', style: TextStyle(fontSize: 13)),
-                    GestureDetector(
-                      onTap: () {
-                        // Implement your action when the more button is tapped
-                      },
-                      child: Icon(Icons.more_vert, size: 15),
-                    ),
-                  ],
+                Container(
+                  padding: EdgeInsets.all(10),
+                  child: Icon(
+                    Icons.subdirectory_arrow_right,
+                    size: 20,
+                  ),
                 ),
-                SizedBox(height: 5),
-                Text(
-                  replyDate.toString(),
-                  style: TextStyle(fontSize: 10),
+                Container(
+                  width: MediaQuery.of(context).size.width-105,
+                  padding: EdgeInsets.only(top: 10, bottom: 10),
+                  child: Row(
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('hj', style: TextStyle(fontSize: 13)),
+                          SizedBox(height: 5),
+                          Text(
+                            replyDate.toString(),
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          Text(
+                            _addLineBreaks(replyText, MediaQuery.of(context).size.width),
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  replyText,
-                  style: TextStyle(fontSize: 13),
+                Expanded(
+                  child: Icon(
+                    Icons.more_vert,
+                    size: 15,
+                  ),
                 ),
               ],
             ),
@@ -153,7 +189,7 @@ class _CommentDetailState extends State<CommentDetail> {
         }).toList(),
       );
     } else {
-      return Center(child: Text('답글이 없습니다.'));
+      return Container();
     }
   }
 
