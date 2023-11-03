@@ -39,7 +39,7 @@ class FirstPage extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(13.0),
-                      child: Text('오늘의 전시🔥', style: TextStyle(color: Color(0xffD4D8C8),fontWeight: FontWeight.bold)),
+                      child: Text('오늘의 전시🌤️', style: TextStyle(fontSize: 18,color: Color(0xffD4D8C8),fontWeight: FontWeight.bold)),
                     ),
                     Center(
                       child: Container(
@@ -52,7 +52,7 @@ class FirstPage extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(13.0),
-                child: Text('지금 인기있는 전시🔥', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text('지금 인기있는 전시🔥', style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
               ),
               Container(
                 child: popularEx(), // ImageList에 전시 정보 전달
@@ -60,11 +60,11 @@ class FirstPage extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 13.0),
-                child: Text('요즘 많이 찾는 지역🔥', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text('요즘 많이 찾는 지역🔎', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 13.0, top: 5),
-                child: Text('최신 공간 소식을 받아세요🔥',
+                child: Text('최신 공간 소식을 받아세요🔔',
                   style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -77,7 +77,7 @@ class FirstPage extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(13.0),
-                    child: Text('어떤 전시회가 좋을지 고민된다면?🤔', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('어떤 전시회가 좋을지 고민된다면?🤔', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
                   ),
                   TextButton(
                     onPressed: () {
@@ -96,7 +96,7 @@ class FirstPage extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.all(13.0),
-                child: Text('곧 종료되는 전시🏁', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text('곧 종료되는 전시🕰️', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
               ),
               Container(child: endExList(),height: 260,), // ImageList에 전시 정보 전달
             ],
