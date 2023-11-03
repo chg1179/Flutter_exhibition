@@ -1,11 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artist/artist_edit.dart';
-import 'package:exhibition_project/admin/artist/artist_edit_profile.dart';
-import 'package:exhibition_project/admin/artist/artist_list.dart';
-import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
+import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
-import 'package:exhibition_project/firestore_connect/artist.dart';
 import 'package:flutter/material.dart';
 
 class ArtistViewPage extends StatelessWidget {
@@ -33,6 +30,7 @@ class _ArtistViewState extends State<ArtistView> {
   String? documentId; // 저장된 값
   String? imageURL;
 
+
   //이미지 받아오기
   Future<void> settingText() async {
     imageURL = await getFirstFieldValue(widget!.document, 'artist_image', 'imageURL');
@@ -40,7 +38,7 @@ class _ArtistViewState extends State<ArtistView> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic> artistData = getArtistMapData(widget.document);
+    Map<String, dynamic> artistData = getMapData(widget.document);
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -62,9 +60,9 @@ class _ArtistViewState extends State<ArtistView> {
               Column(
                 children: [
                   ClipOval(
-                    child: imageURL != null
-                        ? SizedBox(height: 50)//Image.network(selectImgURL!) //파일 터짐 방지
-                        : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
+                    child: artistData['imageURL'] != null
+                        ? Image.network(artistData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
+                        : Image.asset('assets/ex/ex1.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Text('프로필 이미지', style: TextStyle(fontSize: 13),)
                 ],
@@ -95,6 +93,7 @@ class _ArtistViewState extends State<ArtistView> {
                       MaterialPageRoute(builder: (context) => ArtistEditPage(document: widget.document)),
                     );
                   },
+                  style: greenButtonStyle(),
                   child: Text("작가 수정"),
                 ),
               )

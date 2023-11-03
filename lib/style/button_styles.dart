@@ -30,6 +30,22 @@ Container boldGreenButtonContainer(String txt){
   );
 }
 
+Widget checkboxButton(bool value, String text, VoidCallback onPressed) {
+  return GestureDetector(
+    onTap: onPressed,
+    child: Row(
+      children: [
+        Icon(
+          value ? Icons.check_box : Icons.check_box_outline_blank,
+          color: value ? Color.fromRGBO(70, 77, 64, 1.0) : Color.fromRGBO(70, 77, 64, 1.0), // 체크된 상태일 때 초록색, 아닐 때 검정색
+        ),
+        SizedBox(width: 8),
+        Text(text),
+      ],
+    ),
+  );
+}
+
 imageWithTextBtn(BuildContext context, String imagePath, String txt, Widget Function() pageMove) {
   // 화면 높이의 1/5 크기 계산
   double screenHeight = MediaQuery.of(context).size.height;

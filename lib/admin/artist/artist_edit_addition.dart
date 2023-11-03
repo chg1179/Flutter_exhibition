@@ -150,9 +150,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
         await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
         Navigator.of(context).pop();
       },
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(Colors.green)
-      ),
+      style: fullGreenButtonStyle(),
       child: boldGreyButtonContainer('저장하기'),
     );
   }

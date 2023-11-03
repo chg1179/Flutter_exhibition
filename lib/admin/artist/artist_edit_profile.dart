@@ -64,7 +64,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   // 수정하는 경우에 저장된 값을 필드에 출력
   Future<void> settingText() async {
     if (widget.document != null) {
-      Map<String, dynamic> artistData = getArtistMapData(widget.document!);
+      Map<String, dynamic> artistData = getMapData(widget.document!);
       if (widget.document!.exists) {
         _nameController.text = artistData['artistName'];
         _englishNameController.text = artistData['artistEnglishName'];
@@ -261,6 +261,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         if(kind == 'nationality')
           ElevatedButton(
             onPressed: () => _countrySelect(),
+            style: greenButtonStyle(),
             child: Text("국가선택")
           ),
       ],
@@ -284,7 +285,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           isIntroduce ? LengthLimitingTextInputFormatter(1000) : LengthLimitingTextInputFormatter(30), // 최대 길이 설정
         ],
         decoration: InputDecoration(
-          hintText: isNationality ? '국가를 선택' : null,
+          hintText: isNationality ? '국가를 선택해 주세요.' : null,
           labelStyle: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -322,14 +323,14 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
             String documentId = widget.document!.id;
             if (_imageFile != null) {
               await uploadImage();
-              await updateArtistImg('artist', 'artist_image', widget.document!, imageURL!, 'artist_images');
+              await updateImageURL('artist', widget.document!.id, imageURL!, 'artist_images');
             }
             widget.moveToNextTab(documentId, 'update'); // 다음 탭으로 이동
           } else { // 추가
             String documentId = await addArtist('artist', formData);
             if (_imageFile != null) {
               await uploadImage();
-              await addArtistImg('artist', 'artist_image', documentId, imageURL!, 'artist_images');
+              await updateImageURL('artist', documentId!, imageURL!, 'artist_images');
             }
             widget.moveToNextTab(documentId, 'add'); // 다음 탭으로 이동
           }
@@ -344,8 +345,10 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           print(e.toString());
         }
       } : null, // 버튼이 비활성 상태인 경우 onPressed를 null로 설정
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(allFieldsFilled ? Colors.green : Colors.grey), // 모든 값을 입력했다면 그린 색상으로 활성화
+      style: allFieldsFilled
+          ? fullGreenButtonStyle()
+          : ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Colors.grey), // 모든 값을 입력했다면 그린 색상으로 활성화
       ),
       child: boldGreyButtonContainer('정보 저장'),
     );

@@ -73,6 +73,12 @@ class _ArtistEditState extends State<ArtistEdit> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textSelectionTheme: TextSelectionThemeData(
+          cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
+        ),
+      ),
       home: DefaultTabController(
         length: 3,
         child: Scaffold(
