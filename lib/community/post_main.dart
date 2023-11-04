@@ -8,7 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../exhibition/ex_list.dart';
-import '../exhibition/search.dart';
 import '../firebase_options.dart';
 import '../main.dart';
 import '../myPage/mypage.dart';
@@ -49,6 +48,38 @@ class _CommMainState extends State<CommMain> {
   String selectedTag = '전체';
 
   int _currentIndex = 0;
+
+  // 댓글수 카운트
+  Map<String, int> commentCounts = {};
+
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!isDataLoaded) {
+      loadInitialData();
+    }
+  }
+
+  Future<void> loadInitialData() async {
+    _tagList = [
+      '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
+    ];
+
+    selectedButtonIndex = 0;
+    selectedTag = '전체';
+
+    List<String> documentIds = await getPostDocumentIds();
+    calculateCommentCounts(documentIds);
+
+    //댓글수 로드 함수
+    await loadCommentCounts();
+    isDataLoaded = true;
+
+    setState(() {});
+  }
+
 
   void _onTabTapped(int index) {
     setState(() {
@@ -160,16 +191,6 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  // 댓글수 카운트
-  Map<String, int> commentCounts = {};
-
-  @override
-  void initState() {
-    super.initState();
-    loadCommentCounts();
-    _updateSelectedTag(selectedButtonIndex);
-  }
-
   // 게시글 아이디 불러오기
   Future<List<String>> getPostDocumentIds() async {
     try {
@@ -200,18 +221,24 @@ class _CommMainState extends State<CommMain> {
   // 해당 게시글 아이디별 댓글수
   Future<void> calculateCommentCounts(List<String> documentIds) async {
     for (String documentId in documentIds) {
-      try {
-        int commentCount = await getCommentCount(documentId);
-        commentCounts[documentId] = commentCount;
-        setState(() {});
-      } catch (e) {
-        print('댓글 수 조회 중 오류 발생: $e');
-        commentCounts[documentId] = 0;
+      if (!commentCounts.containsKey(documentId)) {
+        try {
+          int commentCount = await getCommentCount(documentId);
+          commentCounts[documentId] = commentCount;
+        } catch (e) {
+          print('댓글 수 조회 중 오류 발생: $e');
+          commentCounts[documentId] = 0;
+        }
       }
     }
+    setState(() {});
   }
 
+
   Future<void> loadCommentCounts() async {
+    if (isDataLoaded) {
+      return; // 이미 데이터가 로드된 경우 중복 호출 방지
+    }
     List<String> documentIds = await getPostDocumentIds();
     await calculateCommentCounts(documentIds);
   }
@@ -276,9 +303,6 @@ class _CommMainState extends State<CommMain> {
           .orderBy(orderByField, descending: true)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
         if (snap.hasError) {
           return Center(child: Text('에러 발생: ${snap.error}'));
         }
@@ -319,6 +343,7 @@ class _CommMainState extends State<CommMain> {
             String docId = doc.id;
 
             int viewCount = doc['viewCount'] as int? ?? 0;
+
 
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
@@ -396,6 +421,32 @@ class _CommMainState extends State<CommMain> {
                         ),
                       ),
                     buildIcons(docId, commentCounts[docId] ?? 0, viewCount),
+                    FutureBuilder<QuerySnapshot>(
+                        future: FirebaseFirestore.instance
+                                .collection('post')
+                                .doc(docId)
+                                .collection('hashtag')
+                                .get(),
+                        builder: (context, AsyncSnapshot<QuerySnapshot> hashtagSnap){
+                          if (hashtagSnap.hasError) {
+                            return Center(child: Text('에러 발생: ${hashtagSnap.error}'));
+                          }
+                          if (!hashtagSnap.hasData) {
+                            return Center(child: Text('데이터 없음'));
+                          }
+                          return Wrap(
+                            spacing: 5,
+                            children: hashtagSnap.data!.docs.map((doc) {
+                              final keyword = doc['tag_name'] as String; // 실제 필드 이름으로 변경하세요
+                              return ElevatedButton(
+                                child: Text('# $keyword'),
+                                onPressed: () {},
+                                style: _unPushBtnStyle(),
+                              );
+                            }).toList(),
+                          );
+                        }
+                    )
                   ],
                 ),
               ),

@@ -98,7 +98,8 @@ class _CommEditState extends State<CommEdit> {
             'content': _contentCtr.text,
             'write_date': DateTime.now(),
             'imageURL': downloadURL,
-            'viewCount': 0
+            'viewCount': 0,
+            'likeCount' : 0
           });
 
           if (_selectTag.isNotEmpty) {
@@ -198,8 +199,40 @@ class _CommEditState extends State<CommEdit> {
             SizedBox(height: 10),
             _buildImgButton(),
             _buildContentInput(),
-            _buildSelectedImage(),
-            _selectTagForm(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if(_imageFile != null)
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text('등록한 이미지', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 10.0),
+                  child: Stack(
+                    children: [
+                      _buildSelectedImage(),
+                      Positioned(
+                        bottom: 25,
+                        left: 25,
+                        child: IconButton(
+                          onPressed: (){
+                            setState(() {
+                              _imageFile = null;
+                            });
+                          },
+                            icon: Icon(Icons.cancel,size: 20, color: Colors.black87)
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 10.0),
+              child: _selectTagForm(),
+            ),
             _hashTagList()
           ],
         ),
@@ -211,15 +244,15 @@ class _CommEditState extends State<CommEdit> {
     if (_imageFile != null) {
       return Image.file(
         File(_imageFile!.path),
-        width: 100,
-        height: 100,
+        width: 60,
+        height: 60,
         fit: BoxFit.cover,
       );
     } else if (downloadURL != null && downloadURL!.isNotEmpty) {
       return Image.network(
         downloadURL!,
-        width: 100,
-        height: 100,
+        width: 60,
+        height: 60,
         fit: BoxFit.cover,
       );
     } else {

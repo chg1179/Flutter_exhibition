@@ -20,9 +20,9 @@ class _CommentDetailState extends State<CommentDetail> {
   @override
   void initState() {
     super.initState();
-    _loadReplys();
     print(widget.commentId);
     print(widget.postId);
+    _loadReplys();
   }
 
   // 대댓글 불러오기
@@ -36,17 +36,18 @@ class _CommentDetailState extends State<CommentDetail> {
           .collection('reply')
           .orderBy('write_date', descending: false)
           .get();
-      final replys = querySnapshot.docs.map((doc) {
+      final replies = querySnapshot.docs.map((doc) {
         final data = doc.data();
         return {
           'reply': data['reply'] as String,
           'write_date': data['write_date'] as Timestamp,
         };
       }).toList();
-
+      
       setState(() {
-        _reply = replys;
+        _reply = replies;
       });
+
     } catch (e) {
       print('답글을 불러오는 중 오류가 발생했습니다: $e');
     }
@@ -71,9 +72,8 @@ class _CommentDetailState extends State<CommentDetail> {
 
         _replyCtr.clear();
         FocusScope.of(context).unfocus();
-
-        _loadReplys();
         _showSnackBar('답글이 등록되었습니다!');
+
       } catch (e) {
         print('대댓글 등록 오류: $e');
       }
@@ -218,18 +218,15 @@ class _CommentDetailState extends State<CommentDetail> {
                 .collection('comment')
                 .doc(widget.commentId)
                 .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
+            builder: (context, commentSnapshot) {
+              if (commentSnapshot.hasError) {
+                return Text('댓글을 불러오는 중 오류가 발생했습니다: ${commentSnapshot.error}');
               }
-              if (snapshot.hasError) {
-                return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-              }
-              if (!snapshot.hasData) {
+              if (!commentSnapshot.hasData) {
                 return Text('댓글이 없습니다.');
               }
 
-              final commentData = snapshot.data as DocumentSnapshot;
+              final commentData = commentSnapshot.data as DocumentSnapshot;
               final commentText = commentData['comment'] as String;
               final timestamp = commentData['write_date'] as Timestamp;
               final commentDate = timestamp.toDate();
@@ -272,17 +269,12 @@ class _CommentDetailState extends State<CommentDetail> {
                 .collection('reply')
                 .orderBy('write_date', descending: false)
                 .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
+            builder: (context, replySnapshot) {
+              if (replySnapshot.hasError) {
+                return Text('답글을 불러오는 중 오류가 발생했습니다: ${replySnapshot.error}');
               }
-              if (snapshot.hasError) {
-                return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-              }
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 40.0),
-                child: _replyList(snapshot.data as QuerySnapshot),
-              );
+              final data = replySnapshot.data as QuerySnapshot;
+              return _replyList(data);
             },
           ),
         ],

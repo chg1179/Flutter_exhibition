@@ -6,7 +6,6 @@ import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 
-
 class CommDetail extends StatefulWidget {
   final String document;
   CommDetail({required this.document});
@@ -16,6 +15,7 @@ class CommDetail extends StatefulWidget {
 }
 
 class _CommDetailState extends State<CommDetail> {
+  bool _dataLoaded = false;
   bool isLiked = false;
 
   final _commentCtr = TextEditingController();
@@ -25,16 +25,16 @@ class _CommDetailState extends State<CommDetail> {
   bool _showFloatingButton = false;
   Map<String, dynamic>? _postData;
   List<Map<String, dynamic>> _comments = [];
-  List<Map<String, dynamic>> _replies = [];
 
 
   @override
   void initState() {
     super.initState();
-    _getPostData();
-    _loadComments();
-    loadCommentCounts();
-
+    if (!_dataLoaded) {
+      _getPostData();
+      _loadComments();
+      _loadCommentCounts();
+    }
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
         setState(() {
@@ -54,6 +54,7 @@ class _CommDetailState extends State<CommDetail> {
       if (documentSnapshot.exists) {
         setState(() {
           _postData = documentSnapshot.data() as Map<String, dynamic>;
+          _dataLoaded = true;
         });
       } else {
         print('게시글을 찾을 수 없습니다.');
@@ -62,39 +63,6 @@ class _CommDetailState extends State<CommDetail> {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
-
-  Future<List<Map<String, dynamic>>?> getRepliesForComment(String commentId) async {
-    try {
-      final QuerySnapshot replyQuerySnapshot = await FirebaseFirestore.instance
-          .collection('post')
-          .doc(widget.document)
-          .collection('comment')
-          .doc(commentId)
-          .collection('reply')
-          .orderBy('write_date', descending: false)
-          .get();
-
-      final replies = replyQuerySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>?;
-
-        if (data != null) {
-          final reply = data['reply'] as String;
-          final writeDate = data['write_date'] as Timestamp;
-          // 나머지 코드
-        }
-        return {
-          'reply': data?['reply'] as String,
-          'write_date': data?['write_date'] as Timestamp,
-        };
-      }).toList();
-
-      return replies;
-    } catch (e) {
-      print('댓글의 답글을 불러오는 동안 오류 발생: $e');
-      return null;
-    }
-  }
-
 
   Future<void> _loadComments() async {
     try {
@@ -116,10 +84,16 @@ class _CommDetailState extends State<CommDetail> {
       print(comments);
       setState(() {
         _comments = comments;
+        _dataLoaded = true;
       });
     } catch (e) {
       print('댓글을 불러오는 중 오류가 발생했습니다: $e');
     }
+  }
+
+  Future<void> _loadCommentCounts() async {
+    List<String> documentIds = await getPostDocumentIds();
+    await calculateCommentCounts(documentIds);
   }
 
 
@@ -137,7 +111,7 @@ class _CommDetailState extends State<CommDetail> {
         FocusScope.of(context).unfocus();
 
         // 화면 업데이트
-        loadCommentCounts();
+        _loadCommentCounts();
         _loadComments();
         _showSnackBar('댓글이 등록되었습니다!');
 
@@ -263,10 +237,7 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  Future<void> loadCommentCounts() async {
-    List<String> documentIds = await getPostDocumentIds();
-    await calculateCommentCounts(documentIds);
-  }
+
 
   Widget buildIcons(String docId, int commentCount, int viewCount) {
     return Padding(
@@ -479,9 +450,9 @@ class _CommDetailState extends State<CommDetail> {
         // 댓글 문서 삭제
         await commentDoc.reference.delete();
       }
-
       // 게시글 문서 삭제
       await postRef.delete();
+
     } catch (e) {
       print('게시글 삭제 중 오류 발생: $e');
     }
@@ -509,7 +480,7 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  Widget _commentsList(QuerySnapshot<Object?> data) {
+  Widget _commentsList(QuerySnapshot data) {
     if (_comments.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -577,14 +548,15 @@ class _CommDetailState extends State<CommDetail> {
                       .orderBy('write_date', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    }
                     if (snapshot.hasError) {
                       return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
                     }
-                    // 변경된 부분: 답글 리스트를 출력하는 _repliesList 함수를 호출합니다.
-                    return _repliesList(snapshot.data as QuerySnapshot);
+
+                    if (snapshot.hasData) {
+                      return _repliesList(snapshot.data!);
+                    } else {
+                      return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
+                    }
                   },
                 ),
               ],
@@ -629,7 +601,7 @@ class _CommDetailState extends State<CommDetail> {
                 title: Text('댓글 수정'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showEditCommentDialog(widget.document, commentId, commentText);
+                  _showEditCommentDialog(widget.document!, commentId, commentText);
                 },
               ),
               ListTile(
@@ -874,7 +846,7 @@ class _CommDetailState extends State<CommDetail> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pop(context);
           },
           icon: Icon(Icons.arrow_back),
           color: Colors.black,
@@ -900,11 +872,14 @@ class _CommDetailState extends State<CommDetail> {
         controller: _scrollController,
         slivers: [
           SliverToBoxAdapter(
-            child: _postData == null
-              ? CircularProgressIndicator()
-              : Column(
+            child: Column(
                 children: [
-                  buildDetailContent(_postData!['title'] as String, _postData!['content'] as String, _postData!['viewCount']),
+                  if (_postData != null)
+                    buildDetailContent(
+                      _postData?['title'] ?? '',
+                      _postData?['content'] ?? '',
+                      _postData?['viewCount'] ?? 0,
+                    ),
                   StreamBuilder(
                     stream: FirebaseFirestore.instance
                         .collection('post')
@@ -913,16 +888,17 @@ class _CommDetailState extends State<CommDetail> {
                         .orderBy('write_date', descending: false)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      }
                       if (snapshot.hasError) {
                         return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
                       }
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 40.0),
-                        child: _commentsList(snapshot.data as QuerySnapshot),
-                      );
+                      if (snapshot.hasData) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 40.0),
+                          child: _commentsList(snapshot.data as QuerySnapshot<Object?>),
+                        );
+                      } else {
+                        return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
+                      }
                     },
                 ),
               ],
