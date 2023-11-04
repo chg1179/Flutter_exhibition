@@ -100,7 +100,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                     children: [
                                       Center(
                                         child: Image.network(
-                                          'https://firebasestorage.googleapis.com/v0/b/exhibitionproject-fdba1.appspot.com/o/artist_images%2F1698887009188.jpg?alt=media&token=e90dfec7-4ef6-4db1-b987-5aaa0d0d1115',
+                                          '',
                                           fit: BoxFit.cover,
                                           // 이미지를 가능한 최대 크기로 채우도록 설정합니다.
                                           width: 200,

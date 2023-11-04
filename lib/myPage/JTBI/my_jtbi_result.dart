@@ -240,8 +240,8 @@ class TemperatureBar1 extends StatelessWidget {
     Color leftColor = Color(0xFF50A8AD); // #50A8AD 색상을 사용
     Color? rightColor = Colors.grey[300];
 
-    double leftWidth = 280 * (leftPercentage / (leftPercentage + rightPercentage));
-    double rightWidth = 280 * (rightPercentage / (leftPercentage + rightPercentage));
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -306,8 +306,8 @@ class TemperatureBar2 extends StatelessWidget {
     Color leftColor = Color(0xFFE2A941);
     Color? rightColor = Colors.grey[300];
 
-    double leftWidth = 280 * (leftPercentage / (leftPercentage + rightPercentage));
-    double rightWidth = 280 * (rightPercentage / (leftPercentage + rightPercentage));
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -372,8 +372,8 @@ class TemperatureBar3 extends StatelessWidget {
     Color? leftColor = Color(0xFF58AC8B);
     Color? rightColor = Colors.grey[300];
 
-    double leftWidth = 280 * (leftPercentage / (leftPercentage + rightPercentage));
-    double rightWidth = 280 * (rightPercentage / (leftPercentage + rightPercentage));
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -438,8 +438,8 @@ class TemperatureBar4 extends StatelessWidget {
     Color? leftColor = Color(0xFFCDA1B5);
     Color? rightColor = Colors.grey[300];
 
-    double leftWidth = 280 * (leftPercentage / (leftPercentage + rightPercentage));
-    double rightWidth = 280 * (rightPercentage / (leftPercentage + rightPercentage));
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -504,8 +504,8 @@ class TemperatureBar5 extends StatelessWidget {
     Color? leftColor = Color(0xFF8B719A);
     Color? rightColor = Colors.grey[300];
 
-    double leftWidth = 280 * (leftPercentage / (leftPercentage + rightPercentage));
-    double rightWidth = 280 * (rightPercentage / (leftPercentage + rightPercentage));
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
