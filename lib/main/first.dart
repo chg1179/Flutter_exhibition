@@ -433,8 +433,7 @@ class _MainListState extends State<MainList> {
                                     children: [
                                       CachedNetworkImage(
                                         imageUrl: imageURL, // 이미지 URL
-                                        width: 150,
-                                        height: 150,
+                                        height: 300,
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                                         errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
@@ -456,7 +455,7 @@ class _MainListState extends State<MainList> {
                                         child: Text(
                                           '${galleryName}/${galleryRegion}',
                                           style: TextStyle(
-                                            fontSize: 10,
+                                            fontSize: 12,
                                             color: Colors.grey,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -465,7 +464,7 @@ class _MainListState extends State<MainList> {
                                       Padding(
                                         padding: const EdgeInsets.only(top: 6.0),
                                         child: Text('${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: 12,
                                           color: Colors.grey,
                                           fontWeight: FontWeight.bold,
                                         )),
@@ -930,25 +929,6 @@ class _recommendExState extends State<recommendEx> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center, // 이미지와 텍스트를 수평으로 가운데 정렬
                               children: [
-                                // Image(
-                                //     width: 150,
-                                //     height: 150,
-                                //     image: NetworkImageWithRetry(
-                                //         imageURL,
-                                //         scale: 0.8,
-                                //         fetchStrategy: (Uri uri, FetchFailure? failure) async{
-                                //           final FetchInstructions fetchInstruction =
-                                //           FetchInstructions.attempt(
-                                //             uri: uri,
-                                //             timeout: attemptTimeout,
-                                //           );
-                                //
-                                //           if(failure != null && failure.attemptCount > maxAttempt){
-                                //             return FetchInstructions.giveUp(uri: uri);
-                                //           }
-                                //           return fetchInstruction;
-                                //         }
-                                //     )),
                                 Image.network(
                                   imageURL,
                                   width: 150,
