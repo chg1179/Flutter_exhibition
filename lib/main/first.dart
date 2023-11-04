@@ -1,9 +1,8 @@
 import 'dart:async';
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image/flutter_image.dart';
 import 'package:intl/intl.dart';
 
 void main() {
@@ -236,25 +235,14 @@ class _popularExState extends State<popularEx> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image(
-                                          width: 150,
-                                          height: 150,
-                                          image: NetworkImageWithRetry(
-                                              imageURL,
-                                              scale: 0.8,
-                                              fetchStrategy: (Uri uri, FetchFailure? failure) async{
-                                                final FetchInstructions fetchInstruction =
-                                                FetchInstructions.attempt(
-                                                  uri: uri,
-                                                  timeout: attemptTimeout,
-                                                );
-
-                                                if(failure != null && failure.attemptCount > maxAttempt){
-                                                  return FetchInstructions.giveUp(uri: uri);
-                                                }
-                                                return fetchInstruction;
-                                              }
-                                          )),
+                                      CachedNetworkImage(
+                                        imageUrl: imageURL, // 이미지 URL
+                                        width: 150,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                      ),
                                       // Image.network(
                                       //   imageURL,
                                       //   width: 150,
@@ -443,25 +431,14 @@ class _MainListState extends State<MainList> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image(
-                                          width: 150,
-                                          height: 150,
-                                          image: NetworkImageWithRetry(
-                                              imageURL,
-                                              scale: 0.8,
-                                              fetchStrategy: (Uri uri, FetchFailure? failure) async{
-                                                final FetchInstructions fetchInstruction =
-                                                FetchInstructions.attempt(
-                                                  uri: uri,
-                                                  timeout: attemptTimeout,
-                                                );
-
-                                                if(failure != null && failure.attemptCount > maxAttempt){
-                                                  return FetchInstructions.giveUp(uri: uri);
-                                                }
-                                                return fetchInstruction;
-                                              }
-                                          )),
+                                      CachedNetworkImage(
+                                        imageUrl: imageURL, // 이미지 URL
+                                        width: 150,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                      ),
                                       // Image.network(
                                       //   imageURL,
                                       //   width: MediaQuery.of(context).size.width * 0.5,
@@ -796,25 +773,14 @@ class _endExListState extends State<endExList> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image(
-                                          width: 150,
-                                          height: 150,
-                                          image: NetworkImageWithRetry(
-                                            imageURL,
-                                            scale: 0.8,
-                                            fetchStrategy: (Uri uri, FetchFailure? failure) async{
-                                              final FetchInstructions fetchInstruction =
-                                              FetchInstructions.attempt(
-                                                uri: uri,
-                                                timeout: attemptTimeout,
-                                              );
-
-                                              if(failure != null && failure.attemptCount > maxAttempt){
-                                                return FetchInstructions.giveUp(uri: uri);
-                                              }
-                                              return fetchInstruction;
-                                            }
-                                          )),
+                                      CachedNetworkImage(
+                                        imageUrl: imageURL, // 이미지 URL
+                                        width: 150,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                      ),
                                       // Image.network(
                                       //   imageURL,
                                       //   width: 150,
