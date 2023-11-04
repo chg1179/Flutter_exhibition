@@ -1,18 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ArtworkEditPage extends StatelessWidget {
-  const ArtworkEditPage({super.key});
+  final DocumentSnapshot? document;
+  const ArtworkEditPage({super.key, required this.document});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ArtworkEdit()
+        home: ArtworkEdit(document: document)
     );
   }
 }
 
 class ArtworkEdit extends StatefulWidget {
-  const ArtworkEdit({super.key});
+  final DocumentSnapshot? document;
+  const ArtworkEdit({super.key, required this.document});
 
   @override
   State<ArtworkEdit> createState() => _ArtworkEditState();

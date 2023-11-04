@@ -87,6 +87,10 @@ Widget setImgTextList(
               itemBuilder: (context, index) {
                 DocumentSnapshot document = snap.data!.docs[index];
                 Map<String, dynamic> data = getMapData(document);
+                String text = data[name].toString();
+                // 너무 긴 제목은 생략하여 표시
+                String truncatedText = text.length <= 15 ? text : text.substring(0, 15) ;
+                if(text.length > 15) truncatedText += '...';
                 if (data[name] == null) return Container();
                 return Row(
                   children: [
@@ -118,8 +122,8 @@ Widget setImgTextList(
                                       ? Image.network(data['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
                                       : Image.asset('assets/ex/ex1.png', width: 55, height: 55, fit: BoxFit.cover),
                                 ),
-                                SizedBox(width: 20),
-                                Text('${data[name]}', style: TextStyle(fontSize: 17)),
+                                SizedBox(width: 18),
+                                Text(truncatedText, style: TextStyle(fontSize: 16)),
                               ],
                             ),
                           ),
@@ -149,7 +153,7 @@ Widget setImgTextList(
 }
 
 // 컬렉션의 하위 컬렉션 출력
-Widget listContent(DocumentSnapshot document, String parentCollection, String childCollection, String condition, bool orderBool) {
+Widget listContent(DocumentSnapshot document, String parentCollection, String childCollection, String condition, String values, bool orderBool) {
   return StreamBuilder(
     stream: getChildStreamData(document, parentCollection, childCollection, condition, orderBool),
     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
@@ -171,17 +175,17 @@ Widget listContent(DocumentSnapshot document, String parentCollection, String ch
         physics: NeverScrollableScrollPhysics(), // 스크롤이 필요 없는 경우 스크롤을 비활성화
         children: snap.data!.docs.map((DocumentSnapshot document) {
           Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-          if (data['content'] == null) {
+          if (data[values] == null) {
             return Container();
           } else {
             return Container(
               child: Row(
                 children: [
                   SizedBox(width: 5),
-                  Text('- ${data['year']}', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
+                  Text('- ${data[condition]}', textAlign: TextAlign.center, style: TextStyle(fontSize: 14)),
                   SizedBox(width: 5),
                   Expanded(
-                    child: Text('${data['content']}', textAlign: TextAlign.start, style: TextStyle(fontSize: 14)),
+                    child: Text('${data[values]}', textAlign: TextAlign.start, style: TextStyle(fontSize: 14)),
                   ),
                 ],
               ),

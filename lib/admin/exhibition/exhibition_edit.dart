@@ -1,18 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class ExhibitionEditPage extends StatelessWidget {
-  const ExhibitionEditPage({super.key});
+  final DocumentSnapshot? document;
+  const ExhibitionEditPage({super.key, required this.document});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: ExhibitionEdit()
+        home: ExhibitionEdit(document: document)
     );
   }
 }
 
 class ExhibitionEdit extends StatefulWidget {
-  const ExhibitionEdit({super.key});
+  final DocumentSnapshot? document;
+  const ExhibitionEdit({super.key, required this.document});
 
   @override
   State<ExhibitionEdit> createState() => _ExhibitionEditState();

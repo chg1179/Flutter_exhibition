@@ -26,16 +26,6 @@ class ArtistView extends StatefulWidget {
 }
 
 class _ArtistViewState extends State<ArtistView> {
-  Map<int, bool> checkBoxState = {}; // 예시로 상태를 유지하기 위한 Map
-  String? documentId; // 저장된 값
-  String? imageURL;
-
-
-  //이미지 받아오기
-  Future<void> settingText() async {
-    imageURL = await getFirstFieldValue(widget!.document, 'artist_image', 'imageURL');
-  }
-
   @override
   Widget build(BuildContext context) {
     Map<String, dynamic> artistData = getMapData(widget.document);
@@ -78,13 +68,13 @@ class _ArtistViewState extends State<ArtistView> {
               Text('소개 : ${artistData['artistIntroduce']}'),
               SizedBox(height: 15),
               Text('학력'),
-              listContent(widget.document, 'artist', 'artist_education', 'year', false),
+              listContent(widget.document, 'artist', 'artist_education', 'year', 'content', false),
               SizedBox(height: 10),
               Text('활동'),
-              listContent(widget.document, 'artist', 'artist_history', 'year', false),
+              listContent(widget.document, 'artist', 'artist_history', 'year', 'content', false),
               SizedBox(height: 10),
               Text('수상이력'),
-              listContent(widget.document, 'artist', 'artist_awards', 'year', false),
+              listContent(widget.document, 'artist', 'artist_awards', 'year', 'content', false),
               Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -94,7 +84,7 @@ class _ArtistViewState extends State<ArtistView> {
                     );
                   },
                   style: greenButtonStyle(),
-                  child: Text("작가 수정"),
+                  child: Text("수정하기"),
                 ),
               )
             ],
