@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image/flutter_image.dart';
 import 'package:intl/intl.dart';
 
 void main() {
@@ -115,6 +116,9 @@ class popularEx extends StatefulWidget {
 class _popularExState extends State<popularEx> {
   final PageController _pageController = PageController(viewportFraction: 0.85);
   int currentPage = 0;
+  static const Duration attemptTimeout = Duration(seconds: 2);
+  static const int maxAttempt = 3;
+
   Stream<QuerySnapshot> _snapshot = FirebaseFirestore.instance
       .collection('exhibition')
       .orderBy('postDate', descending: true)
@@ -232,11 +236,30 @@ class _popularExState extends State<popularEx> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image.network(
-                                        imageURL,
-                                        width: 150,
-                                        height: 150,
-                                      ),
+                                      Image(
+                                          width: 150,
+                                          height: 150,
+                                          image: NetworkImageWithRetry(
+                                              imageURL,
+                                              scale: 0.8,
+                                              fetchStrategy: (Uri uri, FetchFailure? failure) async{
+                                                final FetchInstructions fetchInstruction =
+                                                FetchInstructions.attempt(
+                                                  uri: uri,
+                                                  timeout: attemptTimeout,
+                                                );
+
+                                                if(failure != null && failure.attemptCount > maxAttempt){
+                                                  return FetchInstructions.giveUp(uri: uri);
+                                                }
+                                                return fetchInstruction;
+                                              }
+                                          )),
+                                      // Image.network(
+                                      //   imageURL,
+                                      //   width: 150,
+                                      //   height: 150,
+                                      // ),
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4.0),
                                         child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -310,6 +333,8 @@ class MainList extends StatefulWidget {
 }
 class _MainListState extends State<MainList> {
   final PageController _controller = PageController(viewportFraction: 0.8);
+  static const Duration attemptTimeout = Duration(seconds: 2);
+  static const int maxAttempt = 3;
   int _currentPage = 0;
   String? region;
   String? galleryName;
@@ -418,11 +443,30 @@ class _MainListState extends State<MainList> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image.network(
-                                        imageURL,
-                                        width: MediaQuery.of(context).size.width * 0.5,
-                                        height: 310,
-                                      ),
+                                      Image(
+                                          width: 150,
+                                          height: 150,
+                                          image: NetworkImageWithRetry(
+                                              imageURL,
+                                              scale: 0.8,
+                                              fetchStrategy: (Uri uri, FetchFailure? failure) async{
+                                                final FetchInstructions fetchInstruction =
+                                                FetchInstructions.attempt(
+                                                  uri: uri,
+                                                  timeout: attemptTimeout,
+                                                );
+
+                                                if(failure != null && failure.attemptCount > maxAttempt){
+                                                  return FetchInstructions.giveUp(uri: uri);
+                                                }
+                                                return fetchInstruction;
+                                              }
+                                          )),
+                                      // Image.network(
+                                      //   imageURL,
+                                      //   width: MediaQuery.of(context).size.width * 0.5,
+                                      //   height: 310,
+                                      // ),
                                       Text(
                                         '${data['exTitle']}',
                                         style: TextStyle(
@@ -632,6 +676,9 @@ class endExList extends StatefulWidget {
 class _endExListState extends State<endExList> {
   final PageController _pageController = PageController(viewportFraction: 0.85);
   int currentPage = 0;
+  static const Duration attemptTimeout = Duration(seconds: 2);
+  static const int maxAttempt = 3;
+
   Stream<QuerySnapshot> _snapshot = FirebaseFirestore.instance
       .collection('exhibition')
       .orderBy('endDate', descending: true)
@@ -749,11 +796,30 @@ class _endExListState extends State<endExList> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Image.network(
-                                        imageURL,
-                                        width: 150,
-                                        height: 150,
-                                      ),
+                                      Image(
+                                          width: 150,
+                                          height: 150,
+                                          image: NetworkImageWithRetry(
+                                            imageURL,
+                                            scale: 0.8,
+                                            fetchStrategy: (Uri uri, FetchFailure? failure) async{
+                                              final FetchInstructions fetchInstruction =
+                                              FetchInstructions.attempt(
+                                                uri: uri,
+                                                timeout: attemptTimeout,
+                                              );
+
+                                              if(failure != null && failure.attemptCount > maxAttempt){
+                                                return FetchInstructions.giveUp(uri: uri);
+                                              }
+                                              return fetchInstruction;
+                                            }
+                                          )),
+                                      // Image.network(
+                                      //   imageURL,
+                                      //   width: 150,
+                                      //   height: 150,
+                                      // ),
                                       Padding(
                                         padding: const EdgeInsets.only(top: 6.0),
                                         child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -810,6 +876,8 @@ class recommendEx extends StatefulWidget {
 }
 
 class _recommendExState extends State<recommendEx> {
+  static const Duration attemptTimeout = Duration(seconds: 2);
+  static const int maxAttempt = 3;
   Stream<QuerySnapshot> _snapshot = FirebaseFirestore.instance
       .collection('exhibition')
       .orderBy('endDate', descending: true)
@@ -896,6 +964,25 @@ class _recommendExState extends State<recommendEx> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center, // 이미지와 텍스트를 수평으로 가운데 정렬
                               children: [
+                                // Image(
+                                //     width: 150,
+                                //     height: 150,
+                                //     image: NetworkImageWithRetry(
+                                //         imageURL,
+                                //         scale: 0.8,
+                                //         fetchStrategy: (Uri uri, FetchFailure? failure) async{
+                                //           final FetchInstructions fetchInstruction =
+                                //           FetchInstructions.attempt(
+                                //             uri: uri,
+                                //             timeout: attemptTimeout,
+                                //           );
+                                //
+                                //           if(failure != null && failure.attemptCount > maxAttempt){
+                                //             return FetchInstructions.giveUp(uri: uri);
+                                //           }
+                                //           return fetchInstruction;
+                                //         }
+                                //     )),
                                 Image.network(
                                   imageURL,
                                   width: 150,
