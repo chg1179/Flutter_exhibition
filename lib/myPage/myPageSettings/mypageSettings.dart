@@ -10,6 +10,12 @@ import 'package:provider/provider.dart';
 import '../../myPage/myPageSettings/notice.dart';
 import 'alert.dart';
 
+
+void main() {
+  runApp(App());
+}
+
+
 class MySetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

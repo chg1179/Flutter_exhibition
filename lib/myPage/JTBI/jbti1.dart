@@ -1,4 +1,5 @@
 import 'package:exhibition_project/dialog/show_message.dart';
+import 'package:exhibition_project/myPage/JTBI/graph.dart';
 import 'package:exhibition_project/user/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,17 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<int> selectedAnswerIndices = List.generate(12, (index) => -1);
 
+  double totalWeight = 15;
+
+  double group1Score = 0.0;
+  double group1OppositeScore = 0.0;
+  double group2Score = 0.0;
+  double group2OppositeScore = 0.0;
+  double group3Score = 0.0;
+  double group3OppositeScore = 0.0;
+  double group4Score = 0.0;
+  double group4OppositeScore = 0.0;
+
   List<int> group1Counts = [];
   List<int> group2Counts = [];
   List<int> group3Counts = [];
@@ -60,35 +72,34 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   }
 
 
-  double totalWeight = 15;
 
-  double group1Score = 0.0;
-  double group1OppositeScore = 0.0;
-  double group2Score = 0.0;
-  double group2OppositeScore = 0.0;
-  double group3Score = 0.0;
-  double group3OppositeScore = 0.0;
-  double group4Score = 0.0;
-  double group4OppositeScore = 0.0;
 
   final List<String> questions = [
-    'a vs b',
-    'a vs b',
-    'a vs b',
+    '여러각도에서 관찰할 수 있는 전시가  더 끌리는 편이다.',
+    '액자로 된 전시회는 지루해 하는 편이다.',
+    '눈을 확 사로잡는 입체적인 전시가 더 좋다.',
+    '이것 저것 체험을 하며 경험하는 것에 흥미를 느낀다.',
+    '멈춰있는 작품보단 살아 숨쉬듯 움직이는 작품이 더 좋다.',
     'c vs d',
-    'c vs d',
-    'c vs d',
+    '‘구관이 명관이다.’ 라는 말에 동의한다.',
+    '뭉크 고흐 모네 다빈치등의 오래된 작품등에 흥미가 많은 편이다.',
     'e vs f',
-    'e vs f',
-    'e vs f',
-    'g vs h',
-    'g vs h',
-    'g vs h',
+    '단지 감상만 하기보단, 배움이 있는 전시회가 좋다.',
+    '이것저것 체험하고 만지고 경험해볼수있는 활동을 좋아한다.',
+    '무엇이든지 신기하면 손으로 만져봐야 직성이 풀리는 편이다.',
   ];
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 9, vsync: this);
+    group1Score = 0.0;
+    group1OppositeScore = 0.0;
+    group2Score = 0.0;
+    group2OppositeScore = 0.0;
+    group3Score = 0.0;
+    group3OppositeScore = 0.0;
+    group4Score = 0.0;
+    group4OppositeScore = 0.0;
   }
 
   void onAnswerSelected(int questionIndex, int answerIndex) {
@@ -98,6 +109,11 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
       if (_tabController.index < _tabController.length - 1) {
         _tabController.animateTo(_tabController.index + 1);
       }
+      print('그룹 점수:');
+      print('그룹1: $group1Score (반대: $group1OppositeScore)');
+      print('그룹2: $group2Score (반대: $group2OppositeScore)');
+      print('그룹3: $group3Score (반대: $group3OppositeScore)');
+      print('그룹4: $group4Score (반대: $group4OppositeScore)');
     });
   }
 
@@ -161,6 +177,15 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                       'g': group4Score,
                       'h': group4OppositeScore,
                     });
+                    // Print the calculated values
+                    print('a: 1');
+                    print('b: $group1OppositeScore');
+                    print('c: $group2Score');
+                    print('d: $group2OppositeScore');
+                    print('e: $group3Score');
+                    print('f: $group3OppositeScore');
+                    print('g: $group4Score');
+                    print('h: $group4OppositeScore');
                     Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                   },
                   child: Text('결과 저장하기'),
@@ -198,7 +223,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
 
   double calculateProgress() {
     int answeredCount = selectedAnswerIndices.where((index) => index >= 0).length;
-    return answeredCount / 12;
+    return answeredCount / 12.0;
   }
 }
 
