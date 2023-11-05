@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:usesCleartextTraffic="true"
-        android:label="내 손 안에 전시회"
+        android:label="내 손안의 전시회"
         android:name="${applicationName}"
         android:icon="@mipmap/logo">
         <activity
