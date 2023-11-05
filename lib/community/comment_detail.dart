@@ -1,6 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CommentDetail extends StatefulWidget {
   final String? postId;
@@ -16,6 +17,23 @@ class _CommentDetailState extends State<CommentDetail> {
   final _replyCtr = TextEditingController();
   List<Map<String, dynamic>> _reply = [];
   final _firestore = FirebaseFirestore.instance;
+
+  String _formatTimestamp(Timestamp timestamp) {
+    final currentTime = DateTime.now();
+    final commentTime = timestamp.toDate();
+
+    final difference = currentTime.difference(commentTime);
+
+    if (difference.inDays > 0) {
+      return DateFormat('yyyy-MM-dd').format(commentTime);
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}분 전';
+    } else {
+      return '방금 전';
+    }
+  }
 
   @override
   void initState() {
@@ -137,15 +155,11 @@ class _CommentDetailState extends State<CommentDetail> {
           final replyData = doc.data() as Map<String, dynamic>;
           final replyText = replyData['reply'] as String;
 
-          final timestamp = replyData['write_date'] as Timestamp?;
-          final replyDate = timestamp != null ? timestamp.toDate() : null;
-
           return Container(
             width: MediaQuery.of(context).size.width,
             padding: EdgeInsets.only(left: 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   padding: EdgeInsets.all(10),
@@ -155,7 +169,6 @@ class _CommentDetailState extends State<CommentDetail> {
                   ),
                 ),
                 Container(
-                  width: MediaQuery.of(context).size.width-105,
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   child: Row(
                     children: [
@@ -165,10 +178,6 @@ class _CommentDetailState extends State<CommentDetail> {
                           Text('hj', style: TextStyle(fontSize: 13)),
                           SizedBox(height: 5),
                           Text(
-                            replyDate.toString(),
-                            style: TextStyle(fontSize: 10),
-                          ),
-                          Text(
                             _addLineBreaks(replyText, MediaQuery.of(context).size.width),
                             style: TextStyle(fontSize: 12),
                           ),
@@ -177,11 +186,19 @@ class _CommentDetailState extends State<CommentDetail> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Icon(
-                    Icons.more_vert,
-                    size: 15,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      replyData['write_date'] != null
+                          ? _formatTimestamp(replyData['write_date'] as Timestamp)
+                          : '날짜 없음', // 또는 다른 대체 텍스트
+                      style: TextStyle(fontSize: 10),
+                    ),
+                    Icon(
+                      Icons.more_vert,
+                      size: 15,
+                    ),
+                  ]
                 ),
               ],
             ),
@@ -228,8 +245,6 @@ class _CommentDetailState extends State<CommentDetail> {
 
               final commentData = commentSnapshot.data as DocumentSnapshot;
               final commentText = commentData['comment'] as String;
-              final timestamp = commentData['write_date'] as Timestamp;
-              final commentDate = timestamp.toDate();
 
               return Container(
                 margin: EdgeInsets.only(right: 10, left: 10),
@@ -241,20 +256,26 @@ class _CommentDetailState extends State<CommentDetail> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('hj', style: TextStyle(fontSize: 13)),
-                        GestureDetector(
-                          onTap: () {
-                            // Implement your action when the more button is tapped
-                          },
-                          child: Icon(Icons.more_vert, size: 15),
+                        Row(
+                          children: [
+                            Text(
+                              commentData['write_date'] != null
+                                  ? _formatTimestamp(commentData['write_date'] as Timestamp)
+                                  : '날짜 없음', // 또는 다른 대체 텍스트
+                              style: TextStyle(fontSize: 10),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                // Implement your action when the more button is tapped
+                              },
+                              child: Icon(Icons.more_vert, size: 15),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                     Text(commentText, style: TextStyle(fontSize: 13)),
                     SizedBox(height: 5),
-                    Text(
-                      commentDate.toString(),
-                      style: TextStyle(fontSize: 10),
-                    ),
                   ],
                 ),
               );
@@ -273,7 +294,15 @@ class _CommentDetailState extends State<CommentDetail> {
               if (replySnapshot.hasError) {
                 return Text('답글을 불러오는 중 오류가 발생했습니다: ${replySnapshot.error}');
               }
-              final data = replySnapshot.data as QuerySnapshot;
+
+              if (!replySnapshot.hasData || replySnapshot.data!.docs.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text('답글이 없습니다.',style: TextStyle(fontSize: 13, color: Colors.grey),),
+                );
+              }
+
+              final data = replySnapshot.data!;
               return _replyList(data);
             },
           ),

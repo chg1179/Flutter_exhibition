@@ -5,10 +5,12 @@ import 'package:exhibition_project/community/comment_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CommDetail extends StatefulWidget {
   final String document;
   CommDetail({required this.document});
+
 
   @override
   State<CommDetail> createState() => _CommDetailState();
@@ -16,7 +18,7 @@ class CommDetail extends StatefulWidget {
 
 class _CommDetailState extends State<CommDetail> {
   bool _dataLoaded = false;
-  bool isLiked = false;
+  bool _isLiked = false;
 
   final _commentCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
@@ -25,6 +27,23 @@ class _CommDetailState extends State<CommDetail> {
   bool _showFloatingButton = false;
   Map<String, dynamic>? _postData;
   List<Map<String, dynamic>> _comments = [];
+
+  String _formatTimestamp(Timestamp timestamp) {
+    final currentTime = DateTime.now();
+    final commentTime = timestamp.toDate();
+
+    final difference = currentTime.difference(commentTime);
+
+    if (difference.inDays > 0) {
+      return DateFormat('yyyy-MM-dd').format(commentTime);
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}분 전';
+    } else {
+      return '방금 전';
+    }
+  }
 
 
   @override
@@ -50,10 +69,14 @@ class _CommDetailState extends State<CommDetail> {
 
   Future<void> _getPostData() async {
     try {
+
       final documentSnapshot = await _firestore.collection('post').doc(widget.document).get();
       if (documentSnapshot.exists) {
         setState(() {
           _postData = documentSnapshot.data() as Map<String, dynamic>;
+          final timestamp = _postData?['write_date'] as Timestamp;
+          final formattedDate = _formatTimestamp(timestamp);
+          _postData?['write_date'] = formattedDate;
           _dataLoaded = true;
         });
       } else {
@@ -131,13 +154,13 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  Widget buildDetailContent(String title, String content, int viewCount) {
+  Widget buildDetailContent(String title, String content, String writeDate, int viewCount) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildAuthorInfo(),
+          buildAuthorInfo(writeDate),
           buildTitle(title),
           buildContent(content),
           buildImage(),
@@ -147,7 +170,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  Widget buildAuthorInfo() {
+  Widget buildAuthorInfo(String writeDate) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -165,7 +188,7 @@ class _CommDetailState extends State<CommDetail> {
             ],
           ),
           Text(
-            '방금 전',
+            writeDate,
             style: TextStyle(fontSize: 10, color: Colors.black45, fontWeight: FontWeight.bold),
           ),
         ],
@@ -259,13 +282,13 @@ class _CommDetailState extends State<CommDetail> {
           GestureDetector(
             onTap: () {
               setState(() {
-                isLiked = !isLiked;
+                _isLiked = !_isLiked;
               });
             },
             child: buildIconsItem(
-              isLiked ? Icons.favorite : Icons.favorite_border,
+              _isLiked ? Icons.favorite : Icons.favorite_border,
               '0',
-              isLiked ? Colors.red : null,
+              _isLiked ? Colors.red : null,
             ),
           ),
         ],
@@ -510,9 +533,12 @@ class _CommDetailState extends State<CommDetail> {
                 ),
                 SizedBox(height: 5),
                 Text(
-                  commentDate.toString(),
+                  commentData['write_date'] != null
+                      ? _formatTimestamp(commentData['write_date'] as Timestamp)
+                      : '날짜 없음', // 또는 다른 대체 텍스트
                   style: TextStyle(fontSize: 10),
                 ),
+
                 Text(
                   _addLineBreaks(commentText, MediaQuery.of(context).size.width),
                   style: TextStyle(fontSize: 12),
@@ -553,7 +579,10 @@ class _CommDetailState extends State<CommDetail> {
                     }
 
                     if (snapshot.hasData) {
-                      return _repliesList(snapshot.data!);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: _repliesList(snapshot.data!),
+                      );
                     } else {
                       return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
                     }
@@ -788,8 +817,6 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget _buildReplyRow(Map<String, dynamic> replyData) {
     final replyText = replyData['replyText'] as String;
-    final replyDate = replyData['replyDate'] as DateTime?;
-
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.only(left: 10),
@@ -814,11 +841,12 @@ class _CommDetailState extends State<CommDetail> {
                   children: [
                     Text('hj', style: TextStyle(fontSize: 13)),
                     SizedBox(height: 5),
-                    if (replyDate != null)
-                      Text(
-                        replyDate.toString(),
-                        style: TextStyle(fontSize: 10),
-                      ),
+                    Text(
+                      replyData['write_date'] != null
+                          ? _formatTimestamp(replyData['write_date'] as Timestamp)
+                          : '날짜 없음', // 또는 다른 대체 텍스트
+                      style: TextStyle(fontSize: 10),
+                    ),
                     Text(
                       _addLineBreaks(replyText, MediaQuery.of(context).size.width),
                       style: TextStyle(fontSize: 12),
@@ -878,6 +906,7 @@ class _CommDetailState extends State<CommDetail> {
                     buildDetailContent(
                       _postData?['title'] ?? '',
                       _postData?['content'] ?? '',
+                      _postData?['write_date'],
                       _postData?['viewCount'] ?? 0,
                     ),
                   StreamBuilder(

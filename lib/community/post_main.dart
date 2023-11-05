@@ -54,6 +54,23 @@ class _CommMainState extends State<CommMain> {
 
   bool isDataLoaded = false;
 
+  String _formatTimestamp(Timestamp timestamp) {
+    final currentTime = DateTime.now();
+    final commentTime = timestamp.toDate();
+
+    final difference = currentTime.difference(commentTime);
+
+    if (difference.inDays > 0) {
+      return DateFormat('yyyy-MM-dd').format(commentTime);
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}분 전';
+    } else {
+      return '방금 전';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -337,8 +354,6 @@ class _CommMainState extends State<CommMain> {
             final title = doc['title'] as String;
             final content = doc['content'] as String;
 
-            Timestamp timestamp = doc['write_date'] as Timestamp;
-            DateTime dateTime = timestamp.toDate();
 
             String docId = doc.id;
 
@@ -377,12 +392,21 @@ class _CommMainState extends State<CommMain> {
                     Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CircleAvatar(
-                            radius: 10,
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 10,
+                              ),
+                              SizedBox(width: 5),
+                              Text('userNickname', style: TextStyle(fontSize: 13)),
+                            ],
                           ),
-                          SizedBox(width: 5),
-                          Text('userNickname', style: TextStyle(fontSize: 13)),
+                          Text(
+                            _formatTimestamp(doc['write_date'] as Timestamp),
+                            style: TextStyle(fontSize: 12),
+                          )
                         ],
                       ),
                     ),
@@ -398,13 +422,6 @@ class _CommMainState extends State<CommMain> {
                       child: Text(
                         content,
                         style: TextStyle(fontSize: 14),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Text(
-                        DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime),
-                        style: TextStyle(fontSize: 12),
                       ),
                     ),
                     if (imageURL != null && imageURL.isNotEmpty)
