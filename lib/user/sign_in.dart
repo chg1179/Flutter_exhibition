@@ -145,7 +145,9 @@ class _SignInCheckState extends State<SignInCheck> {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('로그인 되었습니다.'))
         );
-        Navigator.push(
+        // Home이 두 번 실행되는 것을 방지하기 위해 Home으로 이동하지 않고 현재 로그인 페이지를 없앰
+        Navigator.of(context).pop();
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => Home()),
         );

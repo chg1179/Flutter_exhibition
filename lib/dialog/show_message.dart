@@ -67,13 +67,13 @@ Future<bool?> chooseMessageDialog(BuildContext context, String message) {
         content: Text(message, style: TextStyle(fontSize: 18)),
         actions: <Widget>[
           TextButton(
-            child: Text('삭제'),
+            child: Text('삭제', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),),
             onPressed: () {
               Navigator.of(context).pop(true); // '삭제'를 누르면 true 반환
             },
           ),
           TextButton(
-            child: Text('취소'),
+            child: Text('취소', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),),
             onPressed: () {
               Navigator.of(context).pop(false); // '취소'를 누르면 false 반환
             },
@@ -82,4 +82,27 @@ Future<bool?> chooseMessageDialog(BuildContext context, String message) {
       );
     },
   );
+}
+
+// 다이얼로그를 통해 사용자에게 종료 여부를 묻는 메서드
+Future<bool> onWillPopDialog(BuildContext context) async {
+  bool exitConfirmed = await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 40),
+      actionsPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
+      content: Text('종료하시겠습니까?', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text('종료', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text('취소', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),),
+        ),
+      ],
+    ),
+  );
+  return exitConfirmed ?? false; // null일 경우 기본값으로 false 반환
 }

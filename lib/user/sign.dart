@@ -1,3 +1,4 @@
+import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:flutter/material.dart';
 import 'sign_in.dart';
 import 'sign_up.dart';
@@ -13,9 +14,9 @@ class SignPage extends StatefulWidget {
 class _SignPageState extends State<SignPage> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
+    return WillPopScope(
+      onWillPop: () => onWillPopDialog(context),
+      child: Scaffold(
         body: Stack(
           children: <Widget>[
             Image.asset(
