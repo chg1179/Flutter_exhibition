@@ -5,10 +5,10 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:usesCleartextTraffic="true">
-        android:label="exhibition_project"
+        android:usesCleartextTraffic="true"
+        android:label="내 손 안에 전시회"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"
