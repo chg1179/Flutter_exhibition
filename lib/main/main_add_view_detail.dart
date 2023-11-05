@@ -89,48 +89,79 @@ class _AddViewDetailState extends State<AddViewDetail> {
                             String,
                             dynamic>;
                         final isSelected = index == selectedUserIndex;
-                        return InkWell( // 클릭시 이벤트 주는 명령어
-                          onTap: () => handleUserClick(index),
-                          child: Padding(
-                            padding: const EdgeInsets.all(18.0),
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Column(
-                                    children: [
-                                      Center(
-                                        child: Image.network(
-                                          '',
-                                          fit: BoxFit.cover,
-                                          // 이미지를 가능한 최대 크기로 채우도록 설정합니다.
-                                          width: 200,
-                                          // 원하는 너비를 설정합니다.
-                                          height: 200, // 원하는 높이를 설정합니다.
+                        final galleryNo = data['galleryNo'] as String;
+                        return StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance.collection('gallery').doc(galleryNo).snapshots(),
+                          builder: (context, gallerySnapshot) {
+                            if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            if(gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
+                              final addr = gallerySnapshot.data!['addr'] as String;
+                              final galleryRegion = gallerySnapshot.data!['region'] as String;
+                              return InkWell( // 클릭시 이벤트 주는 명령어
+                                onTap: () => handleUserClick(index),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(18.0),
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        Column(
+                                          children: [
+                                            Center(
+                                              child: Image.network(
+                                                '${data['imageURL']}',
+                                                fit: BoxFit.cover,
+                                                // 이미지를 가능한 최대 크기로 채우도록 설정합니다.
+                                                width: 200,
+                                                // 원하는 너비를 설정합니다.
+                                                height: 200, // 원하는 높이를 설정합니다.
+                                              ),
+                                            ),
+                                            Center(child: Text(
+                                              '${data['exTitle']}',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),)),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .start,
+                                              children: [
+                                                Text(
+                                                    '장소 : ${data['galleryName']}/${getAddressPart(
+                                                        data['rigeon'])}',
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
+                                                Text('주소 : $addr}',
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
+                                                Text(
+                                                    '기간 : ${formatFirestoreDate(
+                                                        data['startDate'])} ~ ${formatFirestoreDate(
+                                                        data['endDate'])}',
+                                                    style: TextStyle(
+                                                        fontSize: 12)),
+                                              ],
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      Center(child: Text('${data['exTitle']}',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),)),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text('장소 : ${data['galleryName']}/${getAddressPart(data['addr'])}',style: TextStyle(fontSize: 12)),
-                                          Text('주소 : ${data['addr']}',style: TextStyle(fontSize: 12)),
-                                          Text('기간 : ${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}',style: TextStyle(fontSize: 12)),
-                                        ],
-                                      ),
-                                    ],
+                                        SizedBox(height: 16),
+                                        Center(child: Text(
+                                            '(FK)exContents == ${data['exContents']}')),
+                                        Divider(
+                                          color: Colors.grey, // 수평선의 색상 설정
+                                          thickness: 1, // 수평선의 두께 설정
+                                          height: 20, // 수평선의 높이 설정
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  SizedBox(height: 16),
-                                  Center(child: Text(
-                                      '(FK)exContents == ${data['exContents']}')),
-                                  Divider(
-                                      color: Colors.grey, // 수평선의 색상 설정
-                                      thickness: 1, // 수평선의 두께 설정
-                                      height: 20, // 수평선의 높이 설정
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                                ),
+                              );
+                            } else {
+                              return Text('갤러리 데이터가 없습니다.');
+                            }
+                          }
                         );
                       }
                   ),
