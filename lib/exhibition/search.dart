@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -9,7 +12,11 @@ class Search extends StatefulWidget {
 
 class _SearchState extends State<Search> {
   final _search = TextEditingController();
-  final appBarHeight = AppBar().preferredSize.height; // AppBar의 높이 가져오기
+  final appBarHeight = AppBar().preferredSize.height;
+  final _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _exhibitionList = [];
+  bool _isLoading = true;
+  bool txtCheck = false;
 
   ButtonStyle _buttonSt(){
     return ButtonStyle(
@@ -27,7 +34,7 @@ class _SearchState extends State<Search> {
 
   List<String> recommendedSearches = [
     "국립현대미술관",
-    "아트페어",
+    "김환기",
     "서울시립미술관북서울관",
     "리움미술관",
   ];
@@ -53,6 +60,45 @@ class _SearchState extends State<Search> {
     "앤디워홀",
   ];
 
+  void _getExListData() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('exhibition').get();
+
+      List<Map<String, dynamic>> tempExhibitionList = [];
+
+      if (querySnapshot.docs.isNotEmpty) {
+        tempExhibitionList = querySnapshot.docs
+            .map((doc) {
+          Map<String, dynamic> exhibitionData = doc.data() as Map<String, dynamic>;
+          exhibitionData['id'] = doc.id; // 문서의 ID를 추가
+          return exhibitionData;
+        })
+            .where((exhibition) {
+          return exhibition['exTitle'].toString().contains(_search.text) ||
+              exhibition['galleryName'].toString().contains(_search.text) ||
+              exhibition['region'].toString().contains(_search.text);
+        })
+            .toList();
+      }
+
+      setState(() {
+        _exhibitionList = tempExhibitionList;
+        print('조건에 맞는 전시회 리스트: $_exhibitionList');
+        _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
+      });
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+        _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Widget recommendedTag(){
     return Wrap(
       spacing: 7.0,
@@ -62,6 +108,7 @@ class _SearchState extends State<Search> {
           onPressed: (){
             setState(() {
               _search.text = recommendedSearches[index];
+              _getExListData();
             });
           },
           child: Text(recommendedSearches[index]),
@@ -167,7 +214,55 @@ class _SearchState extends State<Search> {
         height: MediaQuery.of(context).size.height,
         child: TabBarView(
           children: [
-            ExhibitionPage(),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: ListView.builder(
+                itemCount: _exhibitionList.length,
+                itemBuilder: (context, index) {
+                  final exhibition = _exhibitionList[index];
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(context,MaterialPageRoute(builder: (context) => ExhibitionDetail(document: exhibition['id'])));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            "assets/ex/ex1.png",
+                            width: 80,
+                            height: 80,
+                          ),
+                          SizedBox(width: 30),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.65,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  exhibition['exTitle'],
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                                Text(
+                                  "${exhibition['galleryName']} / ${exhibition['region']}",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                Text(
+                                    "${DateFormat('yyyy.MM.dd').format(exhibition['startDate'].toDate())} ~ ${DateFormat('yyyy.MM.dd').format(exhibition['endDate'].toDate())}",
+                                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             ArtistPage(),
             GalleryPage(),
             ArtworkPage()
@@ -225,7 +320,7 @@ class _SearchState extends State<Search> {
                   style: TextStyle(fontSize: 18),
                   cursorColor: Color(0xff464D40),
                   onChanged: (newValue) {
-                    setState(() {});
+                    _getExListData();
                   },
                 ),
               ),
@@ -240,92 +335,92 @@ class _SearchState extends State<Search> {
   }
 }
 
-
-///////////////////////////////////////////////////////////////////////전시
-
-class ExhibitionPage extends StatefulWidget {
-  @override
-  _ExhibitionPageState createState() => _ExhibitionPageState();
-}
-
-class _ExhibitionPageState extends State<ExhibitionPage> {
-  final List<Exhibition> exhibitions = [
-    Exhibition(
-      image: 'assets/main/전시2.jpg',
-      title: '전시회 이름',
-      subtitle: '장소',
-      date: '2023.10.31 ~ 2023.10.31',
-    ),
-    Exhibition(
-      image: 'assets/main/전시5.jpg',
-      title: '전시회 이름',
-      subtitle: '장소',
-      date: '2023.10.31 ~ 2023.10.31',
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: exhibitions.length,
-        itemBuilder: (context, index) {
-          final exhibition = exhibitions[index];
-          return InkWell(
-            onTap: (){},
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  Image.asset(
-                      exhibition.image,
-                      width: 80, // 이미지의 폭
-                      height: 80, // 이미지의 높이
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        exhibition.title,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        exhibition.subtitle,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                      Text(
-                        exhibition.date,
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Exhibition {
-  final String image;
-  final String title;
-  final String subtitle;
-  final String date;
-
-  Exhibition({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-    required this.date,
-  });
-}
+//
+// ///////////////////////////////////////////////////////////////////////전시
+//
+// class ExhibitionPage extends StatefulWidget {
+//   @override
+//   _ExhibitionPageState createState() => _ExhibitionPageState();
+// }
+//
+// class _ExhibitionPageState extends State<ExhibitionPage> {
+//   final List<Exhibition> exhibitions = [
+//     Exhibition(
+//       image: 'assets/main/전시2.jpg',
+//       title: '전시회 이름',
+//       subtitle: '장소',
+//       date: '2023.10.31 ~ 2023.10.31',
+//     ),
+//     Exhibition(
+//       image: 'assets/main/전시5.jpg',
+//       title: '전시회 이름',
+//       subtitle: '장소',
+//       date: '2023.10.31 ~ 2023.10.31',
+//     ),
+//   ];
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Padding(
+//       padding: const EdgeInsets.only(top: 15),
+//       child: ListView.builder(
+//         itemCount: exhibitions.length,
+//         itemBuilder: (context, index) {
+//           final exhibition = exhibitions[index];
+//           return InkWell(
+//             onTap: (){},
+//             child: Padding(
+//               padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+//               child: Row(
+//                 children: [
+//                   Image.asset(
+//                       exhibition.image,
+//                       width: 80, // 이미지의 폭
+//                       height: 80, // 이미지의 높이
+//                   ),
+//                   SizedBox(width: 30),
+//                   Column(
+//                     crossAxisAlignment: CrossAxisAlignment.start,
+//                     mainAxisAlignment: MainAxisAlignment.center,
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       Text(
+//                         exhibition.title,
+//                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+//                       ),
+//                       Text(
+//                         exhibition.subtitle,
+//                         style: TextStyle(fontSize: 14),
+//                       ),
+//                       Text(
+//                         exhibition.date,
+//                         style: TextStyle(fontSize: 13, color: Colors.grey),
+//                       ),
+//                     ],
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           );
+//         },
+//       ),
+//     );
+//   }
+// }
+//
+// class Exhibition {
+//   final String image;
+//   final String title;
+//   final String subtitle;
+//   final String date;
+//
+//   Exhibition({
+//     required this.image,
+//     required this.title,
+//     required this.subtitle,
+//     required this.date,
+//   });
+// }
 
 
 ////////////////////////////////////////////////////////////////////////////작가

@@ -119,205 +119,182 @@ class _Ex_listState extends State<Ex_list> {
                   imagePath = null;
                 }
 
-                return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('exhibition')
-                      .doc(doc.id)
-                      .collection('exhibition_image')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    }
-                    if (snapshot.hasError) {
-                      return Text('데이터를 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-                    }
+                final galleryNo = doc['galleryNo'] as String;
 
-                    if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                      final imageUrl = snapshot.data!.docs[0]['imageURL'] as String;
-                      // 가져온 이미지 경로를 사용하여 UI에 표시할 수 있습니다.
-                      // 이곳에서 이미지를 표시하거나, 리스트에 추가하는 등의 작업을 수행할 수 있습니다.
+                return StreamBuilder<DocumentSnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('gallery')
+                        .doc(galleryNo)
+                        .snapshots(),
+                    builder: (context, gallerySnapshot) {
+                      if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      }
+                      if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
+                        final galleryName = gallerySnapshot.data!['galleryName'] as String;
+                        final galleryRegion = gallerySnapshot.data!['region'] as String;
+                        final place = galleryName; // 갤러리 이름을 가져와서 place 변수에 할당
 
-                      final galleryNo = doc['galleryNo'] as String;
+                        bool isAllRegions = _placeSelectedOptions.contains('전체');
+                        bool isWithinSelectedRegion = _placeSelectedOptions.contains(galleryRegion);
 
-                      return StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('gallery')
-                            .doc(galleryNo)
-                            .snapshots(),
-                        builder: (context, gallerySnapshot) {
-                          if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
-                          }
-                          if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
-                            final galleryName = gallerySnapshot.data!['galleryName'] as String;
-                            final galleryRegion = gallerySnapshot.data!['region'] as String;
-                            final place = galleryName; // 갤러리 이름을 가져와서 place 변수에 할당
-
-                            bool isAllRegions = _placeSelectedOptions.contains('전체');
-                            bool isWithinSelectedRegion = _placeSelectedOptions.contains(galleryRegion);
-
-                            if(isWithinSelectedRegion){
-                              return InkWell(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExhibitionDetail(document: doc.id)));
-                                },
-                                child: Card(
-                                  margin: const EdgeInsets.all(5.0),
-                                  child: Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(5),
-                                          topRight: Radius.circular(5),
-                                        ),
-                                        child: Image.asset("assets/ex/ex1.png"),
-                                      ),
-                                      Container(
-                                          alignment: Alignment.centerLeft,
-                                          padding: EdgeInsets.only(
-                                              left: 17, top: 15, bottom: 5),
-                                          decoration: BoxDecoration(
-                                          ),
-                                          child: Text(
-                                              getOngoing(startDate, endDate),
-                                              style: TextStyle(
-                                                decoration: TextDecoration
-                                                    .underline,
-                                                decorationStyle: TextDecorationStyle
-                                                    .double,
-                                                decorationColor: Color(
-                                                    0xff464D40),
-                                                decorationThickness: 1.5,
-                                              )
-                                          )
-                                      ),
-                                      ListTile(
-                                        title: Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 5, bottom: 5),
-                                            child: Text(exTitle, style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16),
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis)
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 5),
-                                              child: Text("${place} / ${galleryRegion}", style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12),),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 5),
-                                              child: Text(
-                                                  "${DateFormat('yyyy.MM.dd')
-                                                      .format(
-                                                      startDate)} ~ ${DateFormat(
-                                                      'yyyy.MM.dd').format(
-                                                      endDate)}"),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                        if(isWithinSelectedRegion){
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(
+                                  builder: (context) =>
+                                      ExhibitionDetail(document: doc.id)));
+                            },
+                            child: Card(
+                              margin: const EdgeInsets.all(5.0),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(5),
+                                      topRight: Radius.circular(5),
+                                    ),
+                                    child: Image.asset("assets/ex/ex1.png"),
                                   ),
-                                ),
-                              );
-                            }else if(isAllRegions){
-                              return InkWell(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          ExhibitionDetail(document: doc.id)));
-                                },
-                                child: Card(
-                                  margin: const EdgeInsets.all(5.0),
-                                  child: Column(
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.only(
-                                          topLeft: Radius.circular(5),
-                                          topRight: Radius.circular(5),
-                                        ),
-                                        child: Image.asset("assets/ex/ex1.png"),
+                                  Container(
+                                      alignment: Alignment.centerLeft,
+                                      padding: EdgeInsets.only(
+                                          left: 17, top: 15, bottom: 5),
+                                      decoration: BoxDecoration(
                                       ),
-                                      Container(
-                                          alignment: Alignment.centerLeft,
-                                          padding: EdgeInsets.only(
-                                              left: 17, top: 15, bottom: 5),
-                                          decoration: BoxDecoration(
-                                          ),
-                                          child: Text(
-                                              getOngoing(startDate, endDate),
-                                              style: TextStyle(
-                                                decoration: TextDecoration
-                                                    .underline,
-                                                decorationStyle: TextDecorationStyle
-                                                    .double,
-                                                decorationColor: Color(
-                                                    0xff464D40),
-                                                decorationThickness: 1.5,
-                                              )
+                                      child: Text(
+                                          getOngoing(startDate, endDate),
+                                          style: TextStyle(
+                                            decoration: TextDecoration
+                                                .underline,
+                                            decorationStyle: TextDecorationStyle
+                                                .double,
+                                            decorationColor: Color(
+                                                0xff464D40),
+                                            decorationThickness: 1.5,
                                           )
-                                      ),
-                                      ListTile(
-                                        title: Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 5, bottom: 5),
-                                            child: Text(exTitle, style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16),
-                                                maxLines: 3,
-                                                overflow: TextOverflow.ellipsis)
-                                        ),
-                                        subtitle: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 5),
-                                              child: Text("${place} / ${galleryRegion}", style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12),),
-                                            ),
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 5),
-                                              child: Text(
-                                                  "${DateFormat('yyyy.MM.dd')
-                                                      .format(
-                                                      startDate)} ~ ${DateFormat(
-                                                      'yyyy.MM.dd').format(
-                                                      endDate)}"),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                      )
                                   ),
-                                ),
-                              );
-                            }else{
-                              return Container();
-                            }
-                          } else {
-                            return Text('갤러리 정보 없음');
-                          }
+                                  ListTile(
+                                    title: Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 5, bottom: 5),
+                                        child: Text(exTitle, style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis)
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 5),
+                                          child: Text("${place} / ${galleryRegion}", style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 5),
+                                          child: Text(
+                                              "${DateFormat('yyyy.MM.dd')
+                                                  .format(
+                                                  startDate)} ~ ${DateFormat(
+                                                  'yyyy.MM.dd').format(
+                                                  endDate)}"),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }else if(isAllRegions){
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(
+                                  builder: (context) =>
+                                      ExhibitionDetail(document: doc.id)));
+                            },
+                            child: Card(
+                              margin: const EdgeInsets.all(5.0),
+                              child: Column(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(5),
+                                      topRight: Radius.circular(5),
+                                    ),
+                                    child: Image.asset("assets/ex/ex1.png"),
+                                  ),
+                                  Container(
+                                      alignment: Alignment.centerLeft,
+                                      padding: EdgeInsets.only(
+                                          left: 17, top: 15, bottom: 5),
+                                      decoration: BoxDecoration(
+                                      ),
+                                      child: Text(
+                                          getOngoing(startDate, endDate),
+                                          style: TextStyle(
+                                            decoration: TextDecoration
+                                                .underline,
+                                            decorationStyle: TextDecorationStyle
+                                                .double,
+                                            decorationColor: Color(
+                                                0xff464D40),
+                                            decorationThickness: 1.5,
+                                          )
+                                      )
+                                  ),
+                                  ListTile(
+                                    title: Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 5, bottom: 5),
+                                        child: Text(exTitle, style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis)
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 5),
+                                          child: Text("${place} / ${galleryRegion}", style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12),),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 5),
+                                          child: Text(
+                                              "${DateFormat('yyyy.MM.dd')
+                                                  .format(
+                                                  startDate)} ~ ${DateFormat(
+                                                  'yyyy.MM.dd').format(
+                                                  endDate)}"),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }else{
+                          return Container();
                         }
-                      );
-                    } else {
-                      return Text('이미지 없음');
+                      } else {
+                        return Text('갤러리 정보 없음');
+                      }
                     }
-                  }
                 );
+
               },
             ),
           ),

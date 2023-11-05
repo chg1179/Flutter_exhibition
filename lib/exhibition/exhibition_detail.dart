@@ -38,7 +38,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     super.initState();
     getOnelineReviewCount();
     getExpactationReviewCount();
-    getExhibitionImages();
     _getExDetailData();
     _getGalleryInfo();
 
@@ -77,31 +76,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
-    }
-  }
-
-  void getExhibitionImages() async {
-    try {
-      QuerySnapshot imageSnapshot = await _firestore
-          .collection('exhibition')
-          .doc(widget.document)
-          .collection('exhibition_image')
-          .get();
-
-      if (imageSnapshot.docs.isNotEmpty) {
-        List<Map<String, dynamic>> images = imageSnapshot.docs
-            .map((DocumentSnapshot doc) => doc.data() as Map<String, dynamic>)
-            .toList();
-
-        _exImageData = images[0];
-
-        // 가져온 이미지 정보를 사용하거나 반환하거나 원하는 방식으로 처리
-        print('Exhibition Images: $images');
-      } else {
-        print('해당하는 이미지를 찾을 수 없습니다.');
-      }
-    } catch (e) {
-      print('이미지를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
@@ -151,8 +125,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   }
 
   Future<void> openURL(String url) async {
-    const url = 'https://daeguartmuseum.or.kr/index.do?menu_id=00000731&menu_link=/front/ehi/ehiViewFront.do?ehi_id=EHI_00000250'; // 여기에 열고 싶은 홈페이지의 URL을 넣으세요
-
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -649,9 +621,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(10),
-                                child: Image.network(
-                                  _exImageData?['imageURL'],
-                                ),
+                                child: Image.asset(""),
                               ),
                               Padding(
                                 padding: const EdgeInsets.all(10),

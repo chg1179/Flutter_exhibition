@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GalleryInfo extends StatefulWidget {
   final String document;
@@ -25,6 +26,14 @@ class _GalleryInfoState extends State<GalleryInfo> {
   Map<String, dynamic>? _galleryData;
   Map<String, dynamic>? _galleryImageData;
   bool _isLoading = true;
+
+  Future<void> openURL(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   void initState() {
@@ -237,6 +246,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                               ),
                               onPressed: (){
+                                openURL(_galleryData!['webSite'].toString());
                               },
                               child: Text("전시관 홈페이지")
                           ),

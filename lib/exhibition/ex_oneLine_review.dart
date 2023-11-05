@@ -28,6 +28,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   String? imgPath;
   String? imageURL;
   late ImageUploader uploader;
+  bool txtCheck = false;
 
   void _getExDetailData() async {
     try {
@@ -44,9 +45,22 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     }
   }
 
+  void _init() async{
+    setState(() {
+      _review.addListener(updateButtonState);
+    });
+  }
+
+  void updateButtonState() async {
+    setState(() {
+      txtCheck = _review.text.isNotEmpty;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _init();
     uploader = ImageUploader('ex_onelineReview_image');
     _getExDetailData();
   }
@@ -480,16 +494,31 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                 width: MediaQuery.of(context).size.width - 25,
                 height: 50,
                 child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
+                    style: txtCheck ? ElevatedButton.styleFrom(
                       foregroundColor: Color(0xffD4D8C8),
                       backgroundColor: Color(0xff464D40),
                       elevation: 0,
                       shadowColor: Colors.transparent,
-                    ),
+                    ) : ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
                     onPressed: (){
-
-                      uploadImage();
-                      addOnelineReview();
+                      txtCheck ?
+                      addOnelineReview() 
+                      :showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('리뷰 내용을 작성해주세요.'),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('확인'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     child: Text("리뷰 등록", style: TextStyle(fontSize: 18),)
                 ),

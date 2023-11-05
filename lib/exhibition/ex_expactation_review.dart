@@ -14,6 +14,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
   final _review = TextEditingController();
+  bool txtCheck = false;
 
   void _getExDetailData() async {
     try {
@@ -30,9 +31,22 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     }
   }
 
+  void _init() async{
+    setState(() {
+      _review.addListener(updateButtonState);
+    });
+  }
+
+  void updateButtonState() async {
+    setState(() {
+      txtCheck = _review.text.isNotEmpty;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    _init();
     _getExDetailData();
   }
 
@@ -135,14 +149,31 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
                 width: MediaQuery.of(context).size.width - 25,
                 height: 50,
                 child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
+                    style: txtCheck ? ElevatedButton.styleFrom(
                       foregroundColor: Color(0xffD4D8C8),
                       backgroundColor: Color(0xff464D40),
                       elevation: 0,
                       shadowColor: Colors.transparent,
-                    ),
+                    ) : ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
                     onPressed: (){
-                      addExpactationReview();
+                      txtCheck
+                        ? addExpactationReview()
+                        :showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('기대평 내용을 작성해주세요.'),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('확인'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     child: Text("기대평 등록", style: TextStyle(fontSize: 18),)
                 ),
