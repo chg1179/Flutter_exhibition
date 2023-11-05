@@ -7,9 +7,7 @@ class ExhibitionEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ExhibitionEdit(document: document)
-    );
+    return ExhibitionEdit(document: document);
   }
 }
 

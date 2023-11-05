@@ -118,7 +118,7 @@ class _MyPageAddView2State extends State<MyPageAddView2> with SingleTickerProvid
                   InkWell(
                     onTap: () {
                       Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => myPageSettings())
+                          MaterialPageRoute(builder: (context) => MyPageSettings())
                       );
                     },
                     child: Padding(

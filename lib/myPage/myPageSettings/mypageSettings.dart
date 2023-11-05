@@ -1,29 +1,33 @@
+import 'package:exhibition_project/model/user_model.dart';
 import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/myPageSettings/individualTerms.dart';
 import 'package:exhibition_project/myPage/myPageSettings/security.dart';
 import 'package:exhibition_project/myPage/myPageSettings/useTerms.dart';
 import 'package:exhibition_project/myPage/myPageSettings/qna.dart';
+import 'package:exhibition_project/user/sign.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../../myPage/myPageSettings/notice.dart';
 import 'alert.dart';
-
-void main() {
-  runApp(MySetting());
-}
 
 class MySetting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: myPageSettings(),
-    );
+    return MyPageSettings();
   }
 }
 
-class myPageSettings extends StatelessWidget {
+class MyPageSettings extends StatefulWidget {
+  const MyPageSettings({Key? key}) : super(key: key);
+
+  @override
+  State<MyPageSettings> createState() => _MyPageSettingsState();
+}
+
+class _MyPageSettingsState extends State<MyPageSettings> {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -128,8 +132,7 @@ class myPageSettings extends StatelessWidget {
             },
           ),
           Divider(),
-          SizedBox(height: 20,)
-          ,
+          SizedBox(height: 20,),
           ListTile(
               title: Text("SNS" , style: TextStyle(
                 fontWeight: FontWeight.bold,
@@ -158,7 +161,12 @@ class myPageSettings extends StatelessWidget {
           Divider(),
           ListTile(
             title: Text("로그아웃"),
-            onTap: () {
+            onTap: () async {
+              user.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SignPage()),
+              );
               print("로그아웃.");
             },
           ),

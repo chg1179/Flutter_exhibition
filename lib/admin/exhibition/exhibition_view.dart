@@ -11,9 +11,7 @@ class ExhibitionViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ExhibitionView(document: document)
-    );
+    return ExhibitionView(document: document);
   }
 }
 

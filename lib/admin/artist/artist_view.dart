@@ -11,9 +11,7 @@ class ArtistViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ArtistView(document: document)
-    );
+    return ArtistView(document: document);
   }
 }
 

@@ -68,7 +68,7 @@ class _MyCalendarState extends State<MyCalendar> {
           IconButton(
             icon: Icon(Icons.settings_outlined, color: Colors.black),
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => myPageSettings()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageSettings()));
             },
           ),
           // 다른 아이콘을 추가할 수 있습니다.

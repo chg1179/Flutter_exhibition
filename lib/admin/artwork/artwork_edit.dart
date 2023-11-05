@@ -7,9 +7,7 @@ class ArtworkEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ArtworkEdit(document: document)
-    );
+    return ArtworkEdit(document: document);
   }
 }
 

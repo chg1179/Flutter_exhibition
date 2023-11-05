@@ -9,9 +9,7 @@ class ArtistEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ArtistEdit(document: document)
-    );
+    return ArtistEdit(document: document);
   }
 }
 

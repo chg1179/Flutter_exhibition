@@ -7,9 +7,7 @@ class GalleryEditPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: GalleryEdit(document: document)
-    );
+    return GalleryEdit(document: document);
   }
 }
 

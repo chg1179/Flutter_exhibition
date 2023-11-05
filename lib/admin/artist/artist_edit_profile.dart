@@ -16,7 +16,6 @@ import 'package:image_picker/image_picker.dart';
 class ArtistEditProfilePage extends StatelessWidget {
   final Function moveToNextTab; // 다음 인덱스로 이동
   final DocumentSnapshot? document;
-
   const ArtistEditProfilePage({Key? key, required this.moveToNextTab, required this.document,}) : super(key: key);
 
   @override
@@ -28,7 +27,6 @@ class ArtistEditProfilePage extends StatelessWidget {
 class ArtistEditProfile extends StatefulWidget {
   final Function moveToNextTab;
   final DocumentSnapshot? document;
-
   const ArtistEditProfile({Key? key, required this.moveToNextTab, required this.document}) : super(key: key);
 
   @override
@@ -71,7 +69,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         _nationalityController.text = artistData['artistNationality'];
         _expertiseController.text = artistData['expertise'];
         _introduceController.text = artistData['artistIntroduce'];
-        selectImgURL = await getFirstFieldValue(widget.document, 'artist_image', 'imageURL');
+        selectImgURL = await artistData['imageURL'];
         print(selectImgURL);
         setState(() {
           allFieldsFilled = true; // 이미 모든 정보를 입력한 사용자를 불러옴
@@ -163,7 +161,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                                     child: _imageFile != null
                                         ? _buildImageWidget()
                                         : (widget.document != null && selectImgURL != null)
-                                          ? SizedBox(height: 50)//Image.network(selectImgURL!) //파일 터짐 방지
+                                          ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
                                           : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
                                   ),
                                   Text('프로필 이미지', style: TextStyle(fontSize: 13),)
@@ -219,7 +217,9 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         );
       }
     } else {
-      return SizedBox(); // 이미지가 없을 때 빈 SizedBox 반환 또는 다른 대체 위젯
+      return (selectImgURL != null)
+          ? Image.network(selectImgURL!)
+          : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover);
     }
   }
 
@@ -306,11 +306,9 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       onPressed: allFieldsFilled ? () async {
         try {
           // 입력한 정보 저장
-          // 저장 중에 로딩 표시
           setState(() {
-            _saving = true;
+            _saving = true; // 저장 중
           });
-
           formData['name'] = _nameController.text;
           formData['englishName'] = _englishNameController.text;
           formData['expertise'] = _expertiseController.text;

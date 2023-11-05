@@ -51,7 +51,7 @@ imageWithTextBtn(BuildContext context, String imagePath, String txt, Widget Func
   double screenHeight = MediaQuery.of(context).size.height;
   double buttonHeight = screenHeight / 5;
   return Padding(
-    padding: EdgeInsets.all(5),
+    padding: EdgeInsets.all(6),
     child: InkWell(
       onTap: () {
         Navigator.push(

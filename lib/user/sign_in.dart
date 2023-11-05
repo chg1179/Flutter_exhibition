@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../dialog/show_message.dart';
-import 'home.dart';
 import 'sign_up.dart';
 import '../model/user_model.dart';
 import '../hash/hash_password.dart';
@@ -11,15 +11,7 @@ import '../style/button_styles.dart';
 class SignInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textSelectionTheme: TextSelectionThemeData(
-          cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
-        ),
-      ),
-      home: SignInCheck(),
-    );
+    return SignInCheck();
   }
 }
 
@@ -155,7 +147,7 @@ class _SignInCheckState extends State<SignInCheck> {
         );
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => Home()),
         );
       } else {
         showMessageDialog(context, '비밀번호를 확인해 주세요.');

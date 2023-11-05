@@ -113,7 +113,7 @@ class popularEx extends StatefulWidget {
 }
 
 class _popularExState extends State<popularEx> {
-  final PageController _pageController = PageController(viewportFraction: 0.85);
+  late PageController _pageController;
   int currentPage = 0;
   static const Duration attemptTimeout = Duration(seconds: 2);
   static const int maxAttempt = 3;
@@ -126,6 +126,7 @@ class _popularExState extends State<popularEx> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(viewportFraction: 0.85);
     startAutoSlide();
   }
 
@@ -236,18 +237,19 @@ class _popularExState extends State<popularEx> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       CachedNetworkImage(
-                                        imageUrl: imageURL, // 이미지 URL
+                                        imageUrl: data['imageURL'], // 이미지 URL
                                         width: 150,
                                         height: 150,
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                                         errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                       ),
-                                      // Image.network(
-                                      //   imageURL,
-                                      //   width: 150,
-                                      //   height: 150,
-                                      // ),
+                                      /*
+                                       Image.network(
+                                         data['imageURL'],
+                                         width: 150,
+                                         height: 150,
+                                       ),*/
                                       Padding(
                                         padding: const EdgeInsets.only(top: 4.0),
                                         child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -432,17 +434,19 @@ class _MainListState extends State<MainList> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       CachedNetworkImage(
-                                        imageUrl: imageURL, // 이미지 URL
+                                        imageUrl: data['imageURL'], // 이미지 URL
                                         height: 300,
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                                         errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                       ),
-                                      // Image.network(
-                                      //   imageURL,
-                                      //   width: MediaQuery.of(context).size.width * 0.5,
-                                      //   height: 310,
-                                      // ),
+                                      /*
+                                       Image.network(
+                                          data['imageURL'],
+                                         width: MediaQuery.of(context).size.width * 0.5,
+                                         height: 310,
+                                       ),
+                                       */
                                       Text(
                                         '${data['exTitle']}',
                                         style: TextStyle(
@@ -583,21 +587,25 @@ class _UserListState extends State<UserList> {
                       stream: FirebaseFirestore.instance
                           .collection('gallery')
                           .doc(galleryDoc.id)
-                          .collection('gallery_image')
                           .snapshots(),
-                      builder: (context, galleryImageSnapshot) {
-                        if (galleryImageSnapshot.connectionState == ConnectionState.waiting) {
+                      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return CircularProgressIndicator();
                         }
-                        if (galleryImageSnapshot.hasError) {
-                          return Text('에러 발생: ${galleryImageSnapshot.error}');
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
                         }
-                        if (!galleryImageSnapshot.hasData) {
-                          return Text('데이터 없음');
+                        if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+                          return Text('No Data');
                         }
 
-                        // imageURL 가져오기
-                        String imageURL = galleryImageSnapshot.data!.docs[0]['imageURL'] as String;
+                        var data = snapshot.data!.data() as Map<String, dynamic>?;
+
+                        if (data == null || !data.containsKey('imageURL')) {
+                          return Text('Image URL not found');
+                        }
+
+                        var imageURL = data['imageURL'];
 
                         return InkWell(
                           onTap: () {
@@ -773,18 +781,20 @@ class _endExListState extends State<endExList> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       CachedNetworkImage(
-                                        imageUrl: imageURL, // 이미지 URL
+                                        imageUrl: data['imageURL'], // 이미지 URL
                                         width: 150,
                                         height: 150,
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
                                         errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                       ),
-                                      // Image.network(
-                                      //   imageURL,
-                                      //   width: 150,
-                                      //   height: 150,
-                                      // ),
+                                       /*
+                                       Image.network(
+                                         data['imageURL'],
+                                         width: 150,
+                                         height: 150,
+                                       ),
+                                        */
                                       Padding(
                                         padding: const EdgeInsets.only(top: 6.0),
                                         child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
@@ -930,7 +940,7 @@ class _recommendExState extends State<recommendEx> {
                               mainAxisAlignment: MainAxisAlignment.center, // 이미지와 텍스트를 수평으로 가운데 정렬
                               children: [
                                 Image.network(
-                                  imageURL,
+                                  data['imageURL'],
                                   width: 150,
                                   height: 100,
                                 ),

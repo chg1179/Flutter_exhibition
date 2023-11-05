@@ -10,9 +10,7 @@ class GalleryViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: GalleryView(document: document)
-    );
+    return GalleryView(document: document);
   }
 }
 

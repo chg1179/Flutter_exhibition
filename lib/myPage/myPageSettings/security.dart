@@ -75,7 +75,7 @@ class _State extends State<Security> {
             TextButton(
               child: const Text('확인'),
               onPressed: () {
-                Navigator.of(context).pop(myPageSettings());
+                Navigator.of(context).pop(MyPageSettings());
               },
             ),
           ],

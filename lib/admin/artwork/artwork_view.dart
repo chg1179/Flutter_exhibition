@@ -10,9 +10,7 @@ class ArtworkViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        home: ArtworkView(document: document)
-    );
+    return ArtworkView(document: document);
   }
 }
 

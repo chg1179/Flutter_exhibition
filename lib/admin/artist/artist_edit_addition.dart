@@ -11,7 +11,6 @@ import 'package:image_picker/image_picker.dart';
 class ArtistEditAdditionPage extends StatelessWidget {
   final String? documentId; // 상위 컬렉션의 문서 id
   final String editKind; // 수정하는지 추가하는지 구분하기 위한 파라미터
-
   const ArtistEditAdditionPage({Key? key, required this.documentId, required this.editKind}) : super(key: key);
 
   @override
@@ -23,7 +22,6 @@ class ArtistEditAdditionPage extends StatelessWidget {
 class ArtistEditAddition extends StatefulWidget {
   final String? documentId;
   final String editKind;
-
   const ArtistEditAddition({Key? key, required this.documentId, required this.editKind}) : super(key: key);
 
   @override
