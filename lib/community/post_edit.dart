@@ -20,11 +20,13 @@ class CommEdit extends StatefulWidget {
 class _CommEditState extends State<CommEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
+  final _customHashtagCtr = TextEditingController();
+
   final ImageSelector selector = ImageSelector();
   late ImageUploader uploader;
   XFile? _imageFile;
   String? downloadURL;
-
+  bool _showCustomHashtagInput = false;
 
   List<String> _tagList = [
     '전시',
@@ -37,21 +39,43 @@ class _CommEditState extends State<CommEdit> {
     '특별전시',
   ];
 
-
   List<String> _selectTag = [];
+
+  List<Map<String, dynamic>> _hashtags = [];
 
   @override
   void initState() {
     super.initState();
     if (widget.documentId != null) {
       _loadPostData(widget.documentId!);
+      _loadHashtags(widget.documentId!);
     }
   }
 
+  Future<void> _loadHashtags(String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+    final QuerySnapshot hashtagQuery = await postsCollection.doc(postId).collection('hashtag').get();
+
+    if (hashtagQuery.docs.isNotEmpty) {
+      final List<String> selectedHashtags = [];
+
+      for (final doc in hashtagQuery.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final hashtagName = data['tag_name'] as String;
+
+        selectedHashtags.add(hashtagName);
+      }
+
+      setState(() {
+        _selectTag = selectedHashtags;
+      });
+    }
+  }
+
+
   Future<void> _loadPostData(String documentId) async {
     try {
-      final documentSnapshot =
-      await FirebaseFirestore.instance.collection('post').doc(documentId).get();
+      final documentSnapshot = await FirebaseFirestore.instance.collection('post').doc(documentId).get();
 
       if (documentSnapshot.exists) {
         final data = documentSnapshot.data() as Map<String, dynamic>;
@@ -92,6 +116,10 @@ class _CommEditState extends State<CommEdit> {
             'write_date': DateTime.now(),
             'imageURL': downloadURL,
           });
+
+          // 업데이트된 선택 해시태그를 저장
+          await updateHashtags(_selectTag, widget.documentId!);
+
         } else {
           DocumentReference newPostRef = await post.add({
             'title': _titleCtr.text,
@@ -106,6 +134,21 @@ class _CommEditState extends State<CommEdit> {
             // 선택된 해시태그를 추가
             await addHashtags(_selectTag, newPostRef.id);
           }
+
+          if (_customHashtagCtr.text.isNotEmpty) {
+            await addCustomHashtag(_customHashtagCtr.text, newPostRef.id);
+          }
+
+          // 새로운 게시물에 선택 해시태그를 추가
+          if (_selectTag.isNotEmpty) {
+            await addHashtags(_selectTag, newPostRef.id);
+          }
+
+          if (_customHashtagCtr.text.isNotEmpty) {
+            await addCustomHashtag(_customHashtagCtr.text, newPostRef.id);
+          }
+
+
         }
 
         _titleCtr.clear();
@@ -120,6 +163,24 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
+  Future<void> updateHashtags(List<String> hashtags, String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+
+    // 기존 해시태그 문서들을 모두 삭제
+    final QuerySnapshot existingHashtags = await postsCollection.doc(postId).collection('hashtag').get();
+    for (final doc in existingHashtags.docs) {
+      await doc.reference.delete();
+    }
+
+    // 새로운 선택 해시태그를 추가
+    for (String hashtag in hashtags) {
+      final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc();
+
+      await hashtagDocRef.set({
+        'tag_name': hashtag,
+      });
+    }
+  }
 
   Future<void> addHashtags(List<String> hashtags, String postId) async {
     final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
@@ -137,7 +198,6 @@ class _CommEditState extends State<CommEdit> {
       }
     }
   }
-
 
 
   // 선택된 해시태그를 추가하는 함수
@@ -158,7 +218,20 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
+  Future<void> addCustomHashtag(String hashtag, String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
 
+    final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc(); // 문서 ID 자동 생성
+
+    // hashtag 문서가 이미 있는지 확인
+    final hashtagSnapshot = await hashtagDocRef.get();
+    if (!hashtagSnapshot.exists) {
+      // hashtag 문서가 없으면 추가
+      await hashtagDocRef.set({
+        'tag_name': hashtag,
+      });
+    }
+  }
 
 
   Future<void> getImage() async {
@@ -190,55 +263,92 @@ class _CommEditState extends State<CommEdit> {
 
   Widget buildCommForm() {
     return SingleChildScrollView(
-      child: Container(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildTitleInput(),
-            _buildDivider(),
-            SizedBox(height: 10),
-            _buildImgButton(),
-            _buildContentInput(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(width: 0.8, color: Color(0xff464D40)),
+              borderRadius: BorderRadius.circular(5)
+            ),
+            child: Column(
               children: [
-                if(_imageFile != null)
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Text('등록한 이미지', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  ),
+                _buildTitleInput(),
+                _buildDivider(),
+                SizedBox(height: 10),
+                _buildContentInput(),
+                SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.only(left: 10.0),
-                  child: Stack(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
                     children: [
-                      _buildSelectedImage(),
-                      Positioned(
-                        bottom: 25,
-                        left: 25,
-                        child: IconButton(
-                          onPressed: (){
-                            setState(() {
-                              _imageFile = null;
-                            });
-                          },
-                            icon: Icon(Icons.cancel,size: 20, color: Colors.black87)
+                      InkWell(
+                        onTap: toggleCustomHashtagInput,
+                        child: Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                              color: Color(0xffD4D8C8),
+                              shape: BoxShape.rectangle,
+                              borderRadius: BorderRadius.circular(5)
+                          ),
+                          child: Center(
+                            child: Text('#', style: TextStyle(fontSize: 15, color: Colors.black38, fontWeight: FontWeight.bold)),
+                          ),
                         ),
-                      )
+                      ),
+                      SizedBox(width: 5),
+                      _buildImgButton(),
                     ],
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(left: 10.0),
-              child: _selectTagForm(),
-            ),
-            _hashTagList()
-          ],
-        ),
+          ),
+          SizedBox(height: 20),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  _buildSelectedImage(),
+                  Positioned(
+                    top: 1,
+                    right: 1,
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _imageFile = null;
+                          downloadURL = null;
+                        });
+                      },
+                      child: Container(
+                        width: 15,
+                        height: 15,
+                        decoration: BoxDecoration(
+                          color: Color(0xffD4D8C8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(Icons.clear, size: 10, color: Color(0xff464D40)),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          _hashTagList(),
+          SizedBox(height: 20),
+          _selectTagForm(),
+
+        ],
       ),
     );
   }
+
 
   Widget _buildSelectedImage() {
     if (_imageFile != null) {
@@ -282,18 +392,26 @@ class _CommEditState extends State<CommEdit> {
   Widget _buildDivider() {
     return Container(
       margin: EdgeInsets.only(right: 20, left: 20),
-      height: 2.0,
+      height: 0.8,
       width: MediaQuery.of(context).size.width,
-      color: Colors.black12,
+      color: Colors.black45,
     );
   }
 
   Widget _buildImgButton() {
-    return Container(
-      padding: EdgeInsets.only(left: 10),
-      child: IconButton(
-        onPressed: getImage,
-        icon: Icon(Icons.image_rounded, color: Colors.black26),
+    return InkWell(
+      onTap: getImage,
+      child: Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          color: Color(0xffD4D8C8),
+          shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(5)
+        ),
+        child: Center(
+          child: Icon(Icons.image_rounded, color: Colors.black26, size: 15),
+        ),
       ),
     );
   }
@@ -309,7 +427,7 @@ class _CommEditState extends State<CommEdit> {
           hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
           hintStyle: TextStyle(
             color: Colors.black38,
-            fontSize: 15,
+            fontSize: 13,
           ),
           border: InputBorder.none,
         ),
@@ -360,57 +478,158 @@ class _CommEditState extends State<CommEdit> {
     );
   }
 
+  Widget _buildCustomHashtagInput() {
+    return Container(
+      height: 40,
+      child: TextField(
+        controller: _customHashtagCtr,
+        decoration: InputDecoration(
+          hintText: '# 직접 태그를 입력해보세요!',
+          hintStyle: TextStyle(
+            color: Colors.black38,
+            fontSize: 13,
+          ),
+          contentPadding: EdgeInsets.all(10),
+          border: OutlineInputBorder(),
+        ),
+        cursorColor: Color(0xff464D40),
+      ),
+    );
+  }
+
+  void toggleCustomHashtagInput() {
+    setState(() {
+      if (_showCustomHashtagInput) {
+        if (_customHashtagCtr.text.isNotEmpty) {
+          addCustomHashtagToList();
+        }
+        _customHashtagCtr.text = '';
+      }
+      _showCustomHashtagInput = !_showCustomHashtagInput;
+    });
+  }
+
+  void addCustomHashtagToList() {
+    if (_customHashtagCtr.text.isNotEmpty) {
+      final customHashtag = _customHashtagCtr.text;
+
+      if (!_selectTag.contains(customHashtag)) {
+        addSelectedTag(customHashtag);
+      }
+
+      toggleCustomHashtagInput();
+    }
+  }
+
   Widget _hashTagList() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 30, left: 15),
-          child: Text('해시태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('추천 해시태그✨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Wrap(
+          spacing: 4,
+          children: _tagList.map((tagName) {
+            return ElevatedButton(
+              child: Text('# $tagName'),
+              onPressed: () {
+                setState(() {
+                  if (_selectTag.contains(tagName)) {
+                    // 선택 해제된 해시태그를 제거
+                    removeSelectedTag(tagName);
+                  } else {
+                    // 선택된 해시태그를 추가
+                    addSelectedTag(tagName);
+                  }
+                });
+              },
+              style: _selectTag.contains(tagName) ? _pushBtnStyle() : _unPushBtnStyle(),
+            );
+          }).toList()
         ),
-        Padding(
-          padding: EdgeInsets.only(left: 10, top: 10),
-          child: Wrap(
-            spacing: 5,
-            children: _tagList.map((tagName) {
-              return ElevatedButton(
-                child: Text('# $tagName'),
-                onPressed: () {
-                  setState(() {
-                    if (_selectTag.contains(tagName)) {
-                      // 선택 해제된 해시태그를 제거
-                      removeSelectedTag(tagName);
-                    } else {
-                      // 선택된 해시태그를 추가
-                      addSelectedTag(tagName);
-                    }
-                  });
-                },
-                style: _selectTag.contains(tagName) ? _pushBtnStyle() : _unPushBtnStyle(),
-              );
-            }).toList(),
+        // 직접 입력 창을 나타내거나 숨기기 위한 부분
+        if (_showCustomHashtagInput)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 10,),
+              _buildCustomHashtagInput(),
+              SizedBox(height: 5),
+              ElevatedButton(
+                child: Text('추가'),
+                onPressed: addCustomHashtagToList,
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
+                  backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+                  textStyle: MaterialStateProperty.all(
+                    TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  ),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                      side: BorderSide(color: Color(0xff464D40)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
       ],
     );
   }
-
-
-
-
 
   Widget _selectTagForm() {
     return Wrap(
       spacing: 5,
       children: _selectTag.map((selectTag) {
-        return ElevatedButton(
-          child: Text('# $selectTag'),
-          onPressed: () {},
-          style: _pushBtnStyle(),
+        return Column(
+          children: [
+            Row(
+              children: [
+                InkWell(
+                  child: Container(
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Color(0xff464D40),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Text('# $selectTag', style: TextStyle(color: Color(0xffD4D8C8), fontSize: 10.5, fontWeight: FontWeight.bold,),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 2,),
+                InkWell(
+                  onTap: () {
+                    removeSelectedTag(selectTag);
+                  },
+                  child: Container(
+                    width: 15,
+                    height: 15,
+                    decoration: BoxDecoration(
+                      color: Color(0xffD4D8C8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.clear,
+                        size: 10,
+                        color: Color(0xff464D40),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 5)
+          ],
         );
       }).toList(),
     );
   }
+
+
 
   @override
   Widget build(BuildContext context) {

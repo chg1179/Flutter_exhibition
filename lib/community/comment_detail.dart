@@ -160,6 +160,7 @@ class _CommentDetailState extends State<CommentDetail> {
             padding: EdgeInsets.only(left: 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   padding: EdgeInsets.all(10),
@@ -169,6 +170,7 @@ class _CommentDetailState extends State<CommentDetail> {
                   ),
                 ),
                 Container(
+                  width: MediaQuery.of(context).size.width - 105,
                   padding: EdgeInsets.only(top: 10, bottom: 10),
                   child: Row(
                     children: [
@@ -178,6 +180,12 @@ class _CommentDetailState extends State<CommentDetail> {
                           Text('hj', style: TextStyle(fontSize: 13)),
                           SizedBox(height: 5),
                           Text(
+                            replyData['write_date'] != null
+                                ? _formatTimestamp(replyData['write_date'] as Timestamp)
+                                : '날짜 없음', // 또는 다른 대체 텍스트
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          Text(
                             _addLineBreaks(replyText, MediaQuery.of(context).size.width),
                             style: TextStyle(fontSize: 12),
                           ),
@@ -186,19 +194,11 @@ class _CommentDetailState extends State<CommentDetail> {
                     ],
                   ),
                 ),
-                Row(
-                  children: [
-                    Text(
-                      replyData['write_date'] != null
-                          ? _formatTimestamp(replyData['write_date'] as Timestamp)
-                          : '날짜 없음', // 또는 다른 대체 텍스트
-                      style: TextStyle(fontSize: 10),
-                    ),
-                    Icon(
-                      Icons.more_vert,
-                      size: 15,
-                    ),
-                  ]
+                Expanded(
+                  child: Icon(
+                    Icons.more_vert,
+                    size: 15,
+                  ),
                 ),
               ],
             ),

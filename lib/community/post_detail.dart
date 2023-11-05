@@ -7,15 +7,6 @@ import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class CommDetail extends StatefulWidget {
-  final String document;
-  CommDetail({required this.document});
-
-
-  @override
-  State<CommDetail> createState() => _CommDetailState();
-}
-
 class _CommDetailState extends State<CommDetail> {
   bool _dataLoaded = false;
   bool _isLiked = false;
@@ -509,8 +500,6 @@ class _CommDetailState extends State<CommDetail> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: _comments.map((commentData) {
           final commentText = commentData['comment'] as String;
-          final timestamp = commentData['write_date'] as Timestamp;
-          final commentDate = timestamp.toDate();
           String documentId = commentData['documentId'];
 
           return Container(
@@ -579,10 +568,7 @@ class _CommDetailState extends State<CommDetail> {
                     }
 
                     if (snapshot.hasData) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 20),
-                        child: _repliesList(snapshot.data!),
-                      );
+                      return _repliesList(snapshot.data!);
                     } else {
                       return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
                     }
@@ -778,18 +764,15 @@ class _CommDetailState extends State<CommDetail> {
       final replies = data.docs.map((doc) {
         final replyData = doc.data() as Map<String, dynamic>;
         final replyText = replyData['reply'] as String;
-        final timestamp = replyData['write_date'] as Timestamp?;
-        final replyDate = timestamp != null ? timestamp.toDate() : null;
+
         return {
           'replyText': replyText,
-          'replyDate': replyDate,
         };
       }).toList();
 
       if (!_showAllReplies) {
         replies.removeRange(_visibleReplyCount, replies.length);
       }
-
       return Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -922,7 +905,7 @@ class _CommDetailState extends State<CommDetail> {
                       }
                       if (snapshot.hasData) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 40.0),
+                          padding: const EdgeInsets.only(bottom: 50.0),
                           child: _commentsList(snapshot.data as QuerySnapshot<Object?>),
                         );
                       } else {
@@ -958,6 +941,16 @@ class _CommDetailState extends State<CommDetail> {
       ),
     );
   }
+}
+
+
+class CommDetail extends StatefulWidget {
+  final String document;
+  CommDetail({required this.document});
+
+
+  @override
+  State<CommDetail> createState() => _CommDetailState();
 }
 
 class ReplyToggleButton extends StatefulWidget {
