@@ -11,20 +11,9 @@ class GalleryInfo extends StatefulWidget {
   State<GalleryInfo> createState() => _GalleryInfoState();
 }
 
-Map<String, dynamic> _galleryInfo = {
-  'gallery_name': '국립아시아문화전당(ACC)/광주',
-  'address': '광주 동구 문화전당로 38',
-  'start_time': '10:00',
-  'end_time': '18:00',
-  'gallery_close': '월요일, 1월 1일',
-  'gallery_phone': '1899-5566',
-  'gallery_email': 'gfdge@naver.com'
-};
-
 class _GalleryInfoState extends State<GalleryInfo> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _galleryData;
-  Map<String, dynamic>? _galleryImageData;
   bool _isLoading = true;
 
   Future<void> openURL(String url) async {
@@ -39,7 +28,6 @@ class _GalleryInfoState extends State<GalleryInfo> {
   void initState() {
     super.initState();
     _getGalleryData();
-    _getGalleryImageData();
   }
 
   void _getGalleryData() async {
@@ -48,28 +36,6 @@ class _GalleryInfoState extends State<GalleryInfo> {
       if (documentSnapshot.exists) {
         setState(() {
           _galleryData = documentSnapshot.data() as Map<String, dynamic>;
-          _getGalleryImageData();
-        });
-      } else {
-        print('정보를 찾을 수 없습니다.');
-      }
-    } catch (e) {
-      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
-    }
-  }
-
-  void _getGalleryImageData() async {
-    try {
-      final querySnapshot = await _firestore
-          .collection('gallery')
-          .doc(widget.document)
-          .collection('gallery_image')
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        final firstDocument = querySnapshot.docs.first;
-        setState(() {
-          _galleryImageData = firstDocument.data() as Map<String, dynamic>;
           _isLoading = false;
         });
       } else {
@@ -80,7 +46,6 @@ class _GalleryInfoState extends State<GalleryInfo> {
       _isLoading = false;
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -115,8 +80,8 @@ class _GalleryInfoState extends State<GalleryInfo> {
                     Container(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.network(
-                          _galleryImageData?['imageURL'],
+                        child: Image.asset(
+                          "assets/ex/ex1.png",
                           fit: BoxFit.fitWidth,
                         ),
                       ),
@@ -261,13 +226,14 @@ class _GalleryInfoState extends State<GalleryInfo> {
                       padding: const EdgeInsets.all(15),
                       child: Text(_galleryData?['galleryIntroduce'] == null ? "" : _galleryData?['galleryIntroduce']),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 15),
-                      child: Divider(
-                        color: Color(0xff989898), // 선의 색상 변경 가능
-                        thickness: 0.3, // 선의 두께 변경 가능
-                      ),
-                    ),
+                    SizedBox(height: 30,)
+                    // Padding(
+                    //   padding: const EdgeInsets.only(bottom: 15),
+                    //   child: Divider(
+                    //     color: Color(0xff989898), // 선의 색상 변경 가능
+                    //     thickness: 0.3, // 선의 두께 변경 가능
+                    //   ),
+                    // ),
                     // Container(
                     //   height: 30,
                     //   child: Stack(

@@ -1,5 +1,6 @@
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
+import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -294,7 +295,6 @@ class _Ex_listState extends State<Ex_list> {
                       }
                     }
                 );
-
               },
             ),
           ),
@@ -323,30 +323,31 @@ class _Ex_listState extends State<Ex_list> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1.0,
-        leading: SizedBox.shrink(),
-        title: TextField(
-          controller: _search,
-          decoration: InputDecoration(
-            border: InputBorder.none, // 테두리 없애는 부분
-            enabledBorder: InputBorder.none, // 활성화된 상태의 테두리 없애는 부분
-            hintText: "검색어를 입력하세요.",
-            labelStyle: TextStyle(
-              color: Colors.grey,
+        automaticallyImplyLeading: false, // 이전 화면으로 가는 버튼을 없애기 위해 사용
+        title: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 7),
+              child: Expanded(
+                child: Text(
+                  "EXHIBITION",
+                  style: TextStyle(color: Colors.black),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
             ),
-            contentPadding: EdgeInsets.symmetric(vertical: 20.0, horizontal: -47),
-            suffixIcon: IconButton(
-              icon: Icon(Icons.search, color: Color(0xff464D40)),
-              onPressed: () {
-                print("돋보기 눌럿다");
-              },
-            ),
-          ),
-          style: TextStyle(),
-          cursorColor: Color(0xff464D40),
-          onChanged: (newValue) {
-            setState(() {});
-          },
+          ],
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.search, color: Color(0xff464D40)),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Search()));
+            },
+          ),
+          SizedBox(width: 10),
+        ],
       ),
       body: Column(
         children: [
@@ -461,6 +462,13 @@ class _Ex_listState extends State<Ex_list> {
                     ),
                 ),
                 Spacer(),
+                // IconButton(
+                //   icon: Icon(Icons.search, color: Color(0xff464D40)),
+                //   onPressed: () {
+                //     print("돋보기 눌럿다");
+                //   },
+                // ),
+                // SizedBox(width: 10,),
                 Padding(
                   padding: const EdgeInsets.only(right: 5),
                   child: IconButton(
