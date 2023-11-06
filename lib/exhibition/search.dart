@@ -357,7 +357,7 @@ class _SearchState extends State<Search> {
                   final artist = _artistList[index];
                   return InkWell(
                     onTap: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document : artist['id'])));
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),

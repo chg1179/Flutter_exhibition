@@ -92,7 +92,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                       padding: const EdgeInsets.only(top: 10, bottom: 10),
                       child: InkWell(
                         onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document: "")));
                         },
                         child: Row(
                           children: [

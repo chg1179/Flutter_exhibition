@@ -193,7 +193,7 @@ class _ArtistPageState extends State<ArtistPage> {
           final artist = artists[index];
           return InkWell(
             onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document: "")));
             },
             child: Padding(
               padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
