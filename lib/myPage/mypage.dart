@@ -414,64 +414,53 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                     onTap: _onTabTapped,
                     items: [
                       BottomNavigationBarItem(
-                        icon: InkWell(
-                          onTap: () {
-                            // 클릭되었을 때 실행할 작업을 여기에 추가합니다.
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-                          },
-                          child: Icon(
-                            Icons.home,
-                            color: Colors.black,
-                          ),
-                        )
+                        icon: IconButton(
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                            },
+                            icon : Icon(Icons.home),
+                            color: Colors.black
+                        ),
+                        label: '',
                       ),
                       BottomNavigationBarItem(
-                        icon: InkWell(
-                          onTap: () {
-                            // 클릭되었을 때 실행할 작업을 여기에 추가합니다.
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
-                          },
-                          child: Icon(
-                            Icons.home,
-                            color: Colors.black,
-                          ),
-                        )
+                        icon: IconButton(
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                            },
+                            icon : Icon(Icons.account_balance, color: Colors.black)
+                        ),
+                        label: '',
                       ),
                       BottomNavigationBarItem(
-                        icon: InkWell(
-                          onTap: () {
-                            // 클릭되었을 때 실행할 작업을 여기에 추가합니다.
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
-                          },
-                          child: Icon(
-                            Icons.home,
-                            color: Colors.black,
-                          ),
-                        )
+                        icon: IconButton(
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                            },
+                            icon : Icon(Icons.comment),
+                            color: Colors.black
+                        ),
+                        label: '',
                       ),
                       BottomNavigationBarItem(
-                        icon: InkWell(
-                          onTap: () {
-                            // 클릭되었을 때 실행할 작업을 여기에 추가합니다.
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
-                          },
-                          child: Icon(
-                            Icons.home,
-                            color: Colors.black,
-                          ),
-                        )
+                        icon: IconButton(
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                            },
+                            icon : Icon(Icons.library_books),
+                            color: Colors.black
+                        ),
+                        label: '',
                       ),
                       BottomNavigationBarItem(
-                        icon: InkWell(
-                          onTap: () {
-                            // 클릭되었을 때 실행할 작업을 여기에 추가합니다.
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
-                          },
-                          child: Icon(
-                            Icons.account_circle ,
-                            color: Colors.black,
-                          ),
-                        )
+                        icon: IconButton(
+                            onPressed: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                            },
+                            icon : Icon(Icons.account_circle),
+                            color: Colors.black
+                        ),
+                        label: '',
                       ),
                     ],
                   ),

@@ -128,8 +128,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                                   .start,
                                               children: [
                                                 Text(
-                                                    '장소 : ${data['galleryName']}/${getAddressPart(
-                                                        data['rigeon'])}',
+                                                    '장소 : ${data['galleryName']} / ${data['region']}',
                                                     style: TextStyle(
                                                         fontSize: 12)),
                                                 Text('주소 : $addr}',
@@ -146,8 +145,11 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                           ],
                                         ),
                                         SizedBox(height: 16),
-                                        Center(child: Text(
-                                            '(FK)exContents == ${data['content']}')),
+                                        Center(
+                                            child: Text(data['content'] != null && data['content'] != '' ? data['content'] : '현재 준비중 입니다.')
+                                        )
+
+                                        ,
                                         Divider(
                                           color: Colors.grey, // 수평선의 색상 설정
                                           thickness: 1, // 수평선의 두께 설정

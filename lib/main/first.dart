@@ -656,25 +656,25 @@ class _UserListState extends State<UserList> {
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => AddViewDetail(title: '서울 추천 전시회', subtitle: '지금 서울에는 어떤 전시가 진행되고 있을까요?'))
     );}
-    else if(galleryRegion == "대구"){
+    else if(galleryRegion == "경북"){
       Navigator.push(context, MaterialPageRoute(
-          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+          builder: (context) => AddViewDetail(title: '경북 추천 전시회', subtitle: '지금 경북에는 어떤 전시가 진행되고 있을까요?'))
       );}
     else if(galleryRegion == "대구"){
       Navigator.push(context, MaterialPageRoute(
           builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
       );}
-    else if(galleryRegion == "대구"){
+    else if(galleryRegion == "경기"){
       Navigator.push(context, MaterialPageRoute(
-          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+          builder: (context) => AddViewDetail(title: '경기 추천 전시회', subtitle: '지금 경기에는 어떤 전시가 진행되고 있을까요?'))
       );}
-    else if(galleryRegion == "대구"){
+    else if(galleryRegion == "부산"){
       Navigator.push(context, MaterialPageRoute(
-          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+          builder: (context) => AddViewDetail(title: '부산 추천 전시회', subtitle: '지금 부산에는 어떤 전시가 진행되고 있을까요?'))
       );}
-    else if(galleryRegion == "대구"){
+    else if(galleryRegion == "광주"){
       Navigator.push(context, MaterialPageRoute(
-          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+          builder: (context) => AddViewDetail(title: '광주 추천 전시회', subtitle: '지금 광주에는 어떤 전시가 진행되고 있을까요?'))
       );}
   }
 }
