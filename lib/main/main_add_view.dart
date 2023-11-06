@@ -41,6 +41,16 @@ class _AddViewState extends State<AddView> {
                 '지금 가볼 만한 전시작품 모음', '어떤 작품들이 전시되고 있을까요?', '가로4.jpg'),
             _buildImageWithText(
                 '제주도 추천 전시회', '지금 제주도에는 어떤 전시가 진행되고 있을까요?', '가로5.jpg'),
+            _buildImageWithText(
+                '서울 추천 전시회', '지금 서울에는 어떤 전시가 진행되고 있을까요?', 'seoul.jpg'),
+            _buildImageWithText(
+                '대전 추천 전시회', '지금 대전에는 어떤 전시가 진행되고 있을까요?', 'daegeon.jpg'),
+            _buildImageWithText(
+                '대구 추천 전시회', '지금 대구에는 어떤 전시가 진행되고 있을까요?', 'daegu.jpg'),
+            _buildImageWithText(
+                '인천 추천 전시회', '지금 인천에는 어떤 전시가 진행되고 있을까요?', 'daenamu.jpg'),
+            _buildImageWithText(
+                '전시 추천 전시회', '지금 전시에는 어떤 전시가 진행되고 있을까요?', 'jeonsi.jpg'),
           ],
         ),
       ),

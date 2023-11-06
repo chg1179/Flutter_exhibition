@@ -147,7 +147,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                         ),
                                         SizedBox(height: 16),
                                         Center(child: Text(
-                                            '(FK)exContents == ${data['exContents']}')),
+                                            '(FK)exContents == ${data['content']}')),
                                         Divider(
                                           color: Colors.grey, // 수평선의 색상 설정
                                           thickness: 1, // 수평선의 두께 설정

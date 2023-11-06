@@ -3,7 +3,10 @@ import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+import '../model/user_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,7 +18,7 @@ void main() async {
 }
 
 class MyCalendar extends StatefulWidget {
-  MyCalendar({super.key});
+
 
   @override
   State<MyCalendar> createState() => _MyCalendarState();
@@ -25,6 +28,11 @@ class _MyCalendarState extends State<MyCalendar> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName;
+
+  List<Event> allEvents = []; // allEvents를 선언 및 초기화
+
 
   ///일정 내용이 담기는 맵
   Map<DateTime, List<Event>> _events = {};
@@ -36,15 +44,58 @@ class _MyCalendarState extends State<MyCalendar> {
   @override
   void initState() {
     super.initState();
-    _events = {
-      DateTime(2023, 11, 1): [
-        Event("더미 이벤트", 'assets/ex/dummy.png', '이벤트 설명', DateTime.now()),
-      ],
-    };
-    print(_events);
-
-    // 초기 페이지 로딩 시, 이벤트를 업데이트합니다.
+    _loadUserData(); // 사용자 데이터 로딩 함수를 먼저 호출
     _updateEventList(_selectedDay);
+  }
+
+  // 사용자 데이터 로딩 함수
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname';
+        print('닉네임: $_userNickName');
+        // 사용자 데이터 로딩이 완료되면 이벤트 데이터를 가져옵니다.
+        getEventsForUser(_userDocument as String);
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
+  // 사용자의 이벤트 데이터 가져오기
+  Future<void> getEventsForUser(String userId) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(_userDocument as String?)
+        .collection('events')
+        .get();
+
+    List<Event> events = [];
+    querySnapshot.docs.forEach((doc) {
+      events.add(Event(
+        doc['evtTitle'],
+        (doc['evtDate'] as Timestamp).toDate(),
+        doc['evtContent'],
+        doc['evtImage']
+      ));
+    });
+
+    setState(() {
+      allEvents = events; // 이벤트 리스트를 업데이트
+    });
+  }
+
+  List<Event> getEventsForSelectedDate(DateTime selectedDate, List<Event> allEvents) {
+    return allEvents.where((event) {
+      return isSameDay(event.evtDate, selectedDate);
+    }).toList();
   }
   @override
   Widget build(BuildContext context) {
@@ -62,6 +113,8 @@ class _MyCalendarState extends State<MyCalendar> {
           IconButton(
             icon: Icon(Icons.add_box_outlined, color: Colors.black),
             onPressed: () {
+              print('events ==> $_events');
+
               _addEvent(context);
             },
           ),
@@ -122,10 +175,10 @@ class _MyCalendarState extends State<MyCalendar> {
 
             // 날짜 아래 이벤트 목록을 추가합니다.
             eventLoader: (day) {
-              return _events[day] ?? [];
+              List<Event> eventsForDay = getEventsForSelectedDate(day, allEvents); // allEvents는 사용자의 모든 이벤트 목록
+              return eventsForDay;
             },
           ),
-
 
           ///일정등록 표시목록///////////////////////////////
       Expanded(
@@ -134,16 +187,16 @@ class _MyCalendarState extends State<MyCalendar> {
           children: _events[_selectedDay]!.map((event) {
             return Card(
               child: ListTile(
-                leading: Image.asset(event.imagePath, width: 60, height: 60),
+                leading: Image.asset(event.evtImage, width: 60, height: 60),
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(event.title),
-                    Text(event.memo, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(event.evtTitle),
+                    Text(event.evtContent, style: TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
                 ),
                 subtitle: Text(
-                  DateFormat('yyyy-MM-dd HH:mm').format(event.date),
+                  DateFormat('yyyy-MM-dd HH:mm').format(event.evtDate),
                   style: TextStyle(color: Colors.grey, fontSize: 12),
                 ),
                 trailing: IconButton(
@@ -171,9 +224,9 @@ class _MyCalendarState extends State<MyCalendar> {
     });
   }
   void _addEvent(BuildContext context) {
-    String eventText = _eventController.text;
-    String imagePath = _imagePathController.text;
-    String memo = _memoController.text;
+    String evtTitle = _eventController.text;
+    String evtImage = _imagePathController.text;
+    String evtContent = _memoController.text;
 
     showDialog(
       context: context,
@@ -187,21 +240,21 @@ class _MyCalendarState extends State<MyCalendar> {
                 controller: _eventController,
                 decoration: InputDecoration(labelText: '전시명'),
                 onChanged: (text) {
-                  eventText = text;
+                  evtTitle = text;
                 },
               ),
               TextField(
                 controller: _imagePathController,
                 decoration: InputDecoration(labelText: '사진 경로'),
                 onChanged: (text) {
-                  imagePath = text;
+                  evtImage = text;
                 },
               ),
               TextField(
                 controller: _memoController,
                 decoration: InputDecoration(labelText: '한줄메모'),
                 onChanged: (text) {
-                  memo = text;
+                  evtContent = text;
                 },
               ),
             ],
@@ -215,9 +268,9 @@ class _MyCalendarState extends State<MyCalendar> {
             ),
             TextButton(
               onPressed: () {
-                if (eventText.isNotEmpty) {
+                if (evtTitle.isNotEmpty) {
                   final events = _events[_selectedDay] ?? [];
-                  events.add(Event(eventText, imagePath, memo, DateTime.now())); // 현재 날짜로 설정
+                  events.add(Event(evtTitle, DateTime.now(), evtContent, evtImage)); // 현재 날짜로 설정
                   _events[_selectedDay] = events;
                   setState(() {
                     _updateEventList(_selectedDay);
@@ -239,21 +292,22 @@ class _MyCalendarState extends State<MyCalendar> {
     /// Firestore 인스턴스 얻기 /// 파이어베이스 일정 insert 부분
     final firestore = FirebaseFirestore.instance;
 
-    if (eventText.isNotEmpty) {
+    if (evtTitle.isNotEmpty) {
       final events = _events[_selectedDay] ?? [];
-      events.add(Event(eventText, imagePath, memo, DateTime.now())); // 현재 날짜로 설정
+      events.add(Event(evtTitle, DateTime.now(), evtContent, evtImage)); // 현재 날짜로 설정
       _events[_selectedDay] = events;
       setState(() {
         _updateEventList(_selectedDay);
       });
-
+      final user = Provider.of<UserModel?>(context, listen: false);
       /// Firestore에 데이터 추가  /// 수정할 부분
-      firestore.collection('events').add({/// 컬렉션명
-        'title': eventText, /// 전시명
-        'imagePath': imagePath, /// 사진 경로
-        'memo': memo, /// 한줄 메모
-        'date': DateTime.now(), /// 현재 날짜로 설정
+      firestore.collection('user').doc(user!.userNo).collection('events').add({/// 컬렉션명
+        'evtTitle': evtTitle, /// 전시명
+        'evtDate': DateTime.now(), /// 사진 경로
+        'evtContent': evtContent, /// 한줄 메모
+        'evtImage': evtImage /// 현재 날짜로 설정
       });
+      print('캘린더에 일정을 정상적으로 등록했습니다람쥐찎찎====>>>>>>${_userNickName}');
     }
   }
   /// 일정 삭제
@@ -287,12 +341,13 @@ class _MyCalendarState extends State<MyCalendar> {
 
 }
 class Event {
-  final String title;
-  final String imagePath;
-  final String memo; // 메모를 저장할 필드 추가
-  final DateTime date; // 날짜를 저장할 필드 추가
+  final String evtTitle;
+  final DateTime evtDate; // evtDate를 정의
+  final String evtContent;
+  final String evtImage;
 
-  Event(this.title, this.imagePath, this.memo, this.date);
+  Event(this.evtTitle, this.evtDate, this.evtContent, this.evtImage);
 }
+
 
 

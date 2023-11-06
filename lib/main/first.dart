@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:exhibition_project/main/main_add_view.dart';
 
+import 'main_add_view_detail.dart';
 void main() {
   // Firestore 초기화
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
@@ -649,6 +651,31 @@ class _UserListState extends State<UserList> {
   void _onUserClicked(String galleryRegion) {
     // 클릭된 지역명을 출력합니다.
     print('User clicked in region: $galleryRegion');
+   
+    if(galleryRegion == "서울"){
+    Navigator.push(context, MaterialPageRoute(
+        builder: (context) => AddViewDetail(title: '서울 추천 전시회', subtitle: '지금 서울에는 어떤 전시가 진행되고 있을까요?'))
+    );}
+    else if(galleryRegion == "대구"){
+      Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+      );}
+    else if(galleryRegion == "대구"){
+      Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+      );}
+    else if(galleryRegion == "대구"){
+      Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+      );}
+    else if(galleryRegion == "대구"){
+      Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+      );}
+    else if(galleryRegion == "대구"){
+      Navigator.push(context, MaterialPageRoute(
+          builder: (context) => AddViewDetail(title: '대구 추천 전시회', subtitle: '지금 대구에는 어떤 전시가 진행되고 있을까요?'))
+      );}
   }
 }
 /// 곧 종료되는 전시 리스트 !!
