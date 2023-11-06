@@ -1,7 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
+import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import '../community/post_main.dart';
+import '../main.dart';
+import '../myPage/mypage.dart';
+import '../review/review_list.dart';
+import 'ex_list.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -15,6 +23,8 @@ class _SearchState extends State<Search> {
   final appBarHeight = AppBar().preferredSize.height;
   final _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> _exhibitionList = [];
+  List<Map<String, dynamic>> _artistList = [];
+  List<Map<String, dynamic>> _galleryList = [];
   bool _isLoading = true;
   bool txtCheck = false;
 
@@ -35,29 +45,31 @@ class _SearchState extends State<Search> {
   List<String> recommendedSearches = [
     "국립현대미술관",
     "김환기",
-    "서울시립미술관북서울관",
-    "리움미술관",
+    "사진",
+    "현대",
+    "레이어41",
+    "데이비드 호크니",
   ];
 
   List<String> favourKey = [
-    "현대미술",
-    "감각적인",
-    "섬세한",
-    "절제",
-    "정적인",
-    "새로운",
+    "사진",
+    "회화",
+    "설치미술",
+    "현대",
+    "서울",
+    "자연",
     "형상화"
   ];
 
   List<String> popularSearches = [
-    "고양이전시",
-    "현대 미술",
-    "리움미술관",
+    "사진전",
+    "현대",
+    "소울아트스페이스",
     "실외전시",
     "현대미술관",
-    "사진전",
-    "개인전",
-    "앤디워홀",
+    "서울",
+    "개인",
+    "그라운드시소",
   ];
 
   void _getExListData() async {
@@ -83,7 +95,67 @@ class _SearchState extends State<Search> {
 
       setState(() {
         _exhibitionList = tempExhibitionList;
-        print('조건에 맞는 전시회 리스트: $_exhibitionList');
+      });
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+      });
+    }
+  }
+
+  void _getArtistListData() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('artist').get();
+
+      List<Map<String, dynamic>> tempArtistList = [];
+
+      if (querySnapshot.docs.isNotEmpty) {
+        tempArtistList = querySnapshot.docs
+            .map((doc) {
+          Map<String, dynamic> artistData = doc.data() as Map<String, dynamic>;
+          artistData['id'] = doc.id; // 문서의 ID를 추가
+          return artistData;
+        })
+            .where((artist) {
+          return artist['artistName'].toString().contains(_search.text) ||
+              artist['expertise'].toString().contains(_search.text) ||
+              artist['artistNationality'].toString().contains(_search.text);
+        })
+            .toList();
+      }
+
+      setState(() {
+        _artistList = tempArtistList;
+      });
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+      });
+    }
+  }
+
+  void _getGalleryListData() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('gallery').get();
+
+      List<Map<String, dynamic>> tempGalleryList = [];
+
+      if (querySnapshot.docs.isNotEmpty) {
+        tempGalleryList = querySnapshot.docs
+            .map((doc) {
+          Map<String, dynamic> galleryData = doc.data() as Map<String, dynamic>;
+          galleryData['id'] = doc.id; // 문서의 ID를 추가
+          return galleryData;
+        })
+            .where((gallery) {
+          return gallery['galleryName'].toString().contains(_search.text) ||
+              gallery['region'].toString().contains(_search.text);
+        })
+            .toList();
+      }
+
+      setState(() {
+        _galleryList = tempGalleryList;
         _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
       });
     } catch (e) {
@@ -109,6 +181,8 @@ class _SearchState extends State<Search> {
             setState(() {
               _search.text = recommendedSearches[index];
               _getExListData();
+              _getArtistListData();
+              _getGalleryListData();
             });
           },
           child: Text(recommendedSearches[index]),
@@ -127,6 +201,9 @@ class _SearchState extends State<Search> {
           onPressed: (){
             setState(() {
               _search.text = favourKey[index];
+              _getExListData();
+              _getArtistListData();
+              _getGalleryListData();
             });
           },
           child: Text(favourKey[index]),
@@ -150,6 +227,9 @@ class _SearchState extends State<Search> {
           onTap: () {
             setState(() {
               _search.text = popularSearches[index];
+              _getExListData();
+              _getArtistListData();
+              _getGalleryListData();
             });
           },
         ),
@@ -216,7 +296,10 @@ class _SearchState extends State<Search> {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 15),
-              child: ListView.builder(
+              child:
+              _exhibitionList.length < 1 
+              ? Center(child: Text("검색 결과가 없습니다. 😢", style: TextStyle(fontSize: 17),))
+              : ListView.builder(
                 itemCount: _exhibitionList.length,
                 itemBuilder: (context, index) {
                   final exhibition = _exhibitionList[index];
@@ -263,8 +346,93 @@ class _SearchState extends State<Search> {
                 },
               ),
             ),
-            ArtistPage(),
-            GalleryPage(),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child:
+              _artistList.length < 1
+                  ? Center(child: Text("검색 결과가 없습니다. 😢", style: TextStyle(fontSize: 17),))
+                  :ListView.builder(
+                itemCount: _artistList.length,
+                itemBuilder: (context, index) {
+                  final artist = _artistList[index];
+                  return InkWell(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo()));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: AssetImage("assets/ex/ex1.png"),
+                            radius: 40,
+                          ),
+                          SizedBox(width: 30),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                artist['artistName'],
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              Text(
+                                "${artist['artistNationality']} / ${artist['expertise']}",
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child: _galleryList.length < 1
+                  ? Center(child: Text("검색 결과가 없습니다. 😢", style: TextStyle(fontSize: 17),))
+                  :ListView.builder(
+                itemCount: _galleryList.length,
+                itemBuilder: (context, index) {
+                  final gallery = _galleryList[index];
+                  return InkWell(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery['id'])));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: AssetImage("assets/ex/ex1.png"),
+                            radius: 40,
+                          ),
+                          SizedBox(width: 30),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                gallery['galleryName'],
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              ),
+                              Text(
+                                gallery['region'],
+                                style: TextStyle(fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             ArtworkPage()
           ],
         )
@@ -321,6 +489,8 @@ class _SearchState extends State<Search> {
                   cursorColor: Color(0xff464D40),
                   onChanged: (newValue) {
                     _getExListData();
+                    _getArtistListData();
+                    _getGalleryListData();
                   },
                 ),
               ),
@@ -331,251 +501,63 @@ class _SearchState extends State<Search> {
         ]
         ),
       ),
-    );
-  }
-}
-
-//
-// ///////////////////////////////////////////////////////////////////////전시
-//
-// class ExhibitionPage extends StatefulWidget {
-//   @override
-//   _ExhibitionPageState createState() => _ExhibitionPageState();
-// }
-//
-// class _ExhibitionPageState extends State<ExhibitionPage> {
-//   final List<Exhibition> exhibitions = [
-//     Exhibition(
-//       image: 'assets/main/전시2.jpg',
-//       title: '전시회 이름',
-//       subtitle: '장소',
-//       date: '2023.10.31 ~ 2023.10.31',
-//     ),
-//     Exhibition(
-//       image: 'assets/main/전시5.jpg',
-//       title: '전시회 이름',
-//       subtitle: '장소',
-//       date: '2023.10.31 ~ 2023.10.31',
-//     ),
-//   ];
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: const EdgeInsets.only(top: 15),
-//       child: ListView.builder(
-//         itemCount: exhibitions.length,
-//         itemBuilder: (context, index) {
-//           final exhibition = exhibitions[index];
-//           return InkWell(
-//             onTap: (){},
-//             child: Padding(
-//               padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-//               child: Row(
-//                 children: [
-//                   Image.asset(
-//                       exhibition.image,
-//                       width: 80, // 이미지의 폭
-//                       height: 80, // 이미지의 높이
-//                   ),
-//                   SizedBox(width: 30),
-//                   Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       Text(
-//                         exhibition.title,
-//                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-//                       ),
-//                       Text(
-//                         exhibition.subtitle,
-//                         style: TextStyle(fontSize: 14),
-//                       ),
-//                       Text(
-//                         exhibition.date,
-//                         style: TextStyle(fontSize: 13, color: Colors.grey),
-//                       ),
-//                     ],
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
-//
-// class Exhibition {
-//   final String image;
-//   final String title;
-//   final String subtitle;
-//   final String date;
-//
-//   Exhibition({
-//     required this.image,
-//     required this.title,
-//     required this.subtitle,
-//     required this.date,
-//   });
-// }
-
-
-////////////////////////////////////////////////////////////////////////////작가
-
-class ArtistPage extends StatefulWidget {
-  @override
-  _ArtistPageState createState() => _ArtistPageState();
-}
-
-class _ArtistPageState extends State<ArtistPage> {
-  final List<Artist> artists = [
-    Artist(
-      name: "김소월",
-      profileImage: "assets/main/전시1.png",
-      subtitle: "회화",
-    ),
-    Artist(
-      name: "김동률",
-      profileImage: "assets/main/전시2.jpg",
-      subtitle: "갓우",
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: artists.length,
-        itemBuilder: (context, index) {
-          final artist = artists[index];
-          return InkWell(
-            onTap: (){},
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(artist.profileImage),
-                    radius: 40,
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        artist.name,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        artist.subtitle,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                },
+                icon : Icon(Icons.home),
+                color: Colors.black
             ),
-          );
-        },
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
+                },
+                icon : Icon(Icons.account_balance, color: Colors.black)
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                },
+                icon : Icon(Icons.comment),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
+                },
+                icon : Icon(Icons.library_books),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
+                },
+                icon : Icon(Icons.account_circle),
+                color: Colors.black
+            ),
+            label: '',
+          ),
+        ],
       ),
     );
   }
 }
 
-class Artist {
-  final String name;
-  final String profileImage;
-  final String subtitle;
-
-  Artist({
-    required this.name,
-    required this.profileImage,
-    required this.subtitle,
-  });
-}
-
-///////////////////////////////////////////////////////////////////////갤러리(전시관)
-
-class GalleryPage extends StatefulWidget {
-  @override
-  _GalleryPageState createState() => _GalleryPageState();
-}
-
-class _GalleryPageState extends State<GalleryPage> {
-  final List<Gallery> gallerys = [
-    Gallery(
-      name: "국립현대미술관 창동레지던시",
-      description: "서울",
-      imageUrl: "assets/main/가로1.jpg",
-    ),
-    Gallery(
-      name: "국립현대미술관 서면레지던시",
-      description: "부산",
-      imageUrl: "assets/main/가로2.jpg",
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: gallerys.length,
-        itemBuilder: (context, index) {
-          final gallery = gallerys[index];
-          return InkWell(
-            onTap: (){},
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(gallery.imageUrl),
-                    radius: 40,
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        gallery.name,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        gallery.description,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Gallery {
-  final String name;
-  final String description;
-  final String imageUrl;
-
-  Gallery({
-    required this.name,
-    required this.description,
-    required this.imageUrl,
-  });
-}
 
 ///////////////////////////////////////////////////////////////////////작품(artwork)
 
