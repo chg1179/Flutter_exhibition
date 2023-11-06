@@ -79,12 +79,6 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-// 세션으로 document 값 구하기
-  Future<DocumentSnapshot> getDocumentById(String documentId) async {
-    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
-    return document;
-  }
-
   Future<void> loadInitialData() async {
     _tagList = [
       '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
@@ -92,14 +86,34 @@ class _CommMainState extends State<CommMain> {
 
     selectedButtonIndex = 0;
     selectedTag = '전체';
-
-    List<String> documentIds = await getPostDocumentIds();
-
     isDataLoaded = true;
 
+    _loadUserData();
     setState(() {});
   }
 
+  String? _userNickName;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -315,6 +329,7 @@ class _CommMainState extends State<CommMain> {
             final doc = filteredDocs[index];
             final title = doc['title'] as String;
             final content = doc['content'] as String;
+            final nickName = doc['userNickName'] as String;
 
 
             String docId = doc.id;
@@ -362,7 +377,7 @@ class _CommMainState extends State<CommMain> {
                                 radius: 10,
                               ),
                               SizedBox(width: 5),
-                              Text('userNickname', style: TextStyle(fontSize: 13)),
+                              Text(nickName, style: TextStyle(fontSize: 13)),
                             ],
                           ),
                           Text(
@@ -416,7 +431,7 @@ class _CommMainState extends State<CommMain> {
                           return Wrap(
                             spacing: 5,
                             children: hashtagSnap.data!.docs.map((doc) {
-                              final keyword = doc['tag_name'] as String; // 실제 필드 이름으로 변경하세요
+                              final keyword = doc['tag_name'] as String;
                               return ElevatedButton(
                                 child: Text('# $keyword'),
                                 onPressed: () {},

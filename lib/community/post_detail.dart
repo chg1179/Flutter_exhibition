@@ -6,6 +6,9 @@ import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 class _CommDetailState extends State<CommDetail> {
   bool _dataLoaded = false;
@@ -36,6 +39,28 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+  String? _userNickName;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
 
   @override
   void initState() {
@@ -61,6 +86,7 @@ class _CommDetailState extends State<CommDetail> {
       setState(() {
         _dataLoaded = true;
       });
+      await _loadUserData();
     }
   }
 
@@ -98,6 +124,7 @@ class _CommDetailState extends State<CommDetail> {
           'documentId' : documentId,
           'comment': data['comment'] as String,
           'write_date': data['write_date'] as Timestamp,
+          'userNickName' : data['userNickName'] as String
         };
       }).toList();
       print(comments);
@@ -123,6 +150,7 @@ class _CommDetailState extends State<CommDetail> {
         await _firestore.collection('post').doc(widget.document).collection('comment').add({
           'comment': commentText,
           'write_date': FieldValue.serverTimestamp(),
+          'userNickName' : _userNickName
         });
 
         _commentCtr.clear();
@@ -148,13 +176,13 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  Widget buildDetailContent(String title, String content, String writeDate, int viewCount) {
+  Widget buildDetailContent(String title, String content, String writeDate, int viewCount, String userNickName) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildAuthorInfo(writeDate),
+          buildAuthorInfo(writeDate, userNickName),
           buildTitle(title),
           buildContent(content),
           buildImage(),
@@ -164,7 +192,7 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  Widget buildAuthorInfo(String writeDate) {
+  Widget buildAuthorInfo(String writeDate, String userNickName) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -178,7 +206,7 @@ class _CommDetailState extends State<CommDetail> {
                 backgroundImage: AssetImage('assets/ex/ex1.png'),
               ),
               SizedBox(width: 5),
-              Text('userNicname', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(userNickName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
             ],
           ),
           Text(
@@ -223,7 +251,7 @@ class _CommDetailState extends State<CommDetail> {
   //게시글 아이디 불러오기
   Future<List<String>> getPostDocumentIds() async {
     try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final QuerySnapshot querySnapshot = await _firestore.collection('post').get();
       final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
       return documentIds;
     } catch (e) {
@@ -422,7 +450,7 @@ class _CommDetailState extends State<CommDetail> {
 
   void _deletePost(String documentId) async {
     try {
-      final postRef = FirebaseFirestore.instance.collection("post").doc(documentId);
+      final postRef = _firestore.collection("post").doc(documentId);
 
       // 게시글 내의 댓글 컬렉션 참조 가져오기
       final commentCollection = postRef.collection("comment");
@@ -468,13 +496,14 @@ class _CommDetailState extends State<CommDetail> {
     return buffer.toString();
   }
 
-
   Widget _commentsList(QuerySnapshot data) {
     if (_comments.isNotEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: _comments.map((commentData) {
           final commentText = commentData['comment'] as String;
+          final userNickName = commentData['userNickName'] as String;
+
           String documentId = commentData['documentId'];
 
           return Container(
@@ -483,26 +512,29 @@ class _CommDetailState extends State<CommDetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('hj',style: TextStyle(fontSize: 13)),
-                GestureDetector(
-                  onTap: (){
-                    _showCommentMenu(commentData ,documentId, commentText);
-                  },
-                  child: Icon(Icons.more_vert, size: 15)
-                )
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(userNickName, style: TextStyle(fontSize: 10)),
+                    Row(
+                      children: [
+                        Text(
+                          commentData['write_date'] != null
+                              ? _formatTimestamp(commentData['write_date'] as Timestamp)
+                              : '날짜 없음', // 또는 다른 대체 텍스트
+                          style: TextStyle(fontSize: 10),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            _showCommentMenu(commentData, documentId, commentText);
+                          },
+                          child: Icon(Icons.more_vert, size: 15),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 SizedBox(height: 5),
-                Text(
-                  commentData['write_date'] != null
-                      ? _formatTimestamp(commentData['write_date'] as Timestamp)
-                      : '날짜 없음', // 또는 다른 대체 텍스트
-                  style: TextStyle(fontSize: 10),
-                ),
-
                 Text(
                   _addLineBreaks(commentText, MediaQuery.of(context).size.width),
                   style: TextStyle(fontSize: 12),
@@ -510,26 +542,25 @@ class _CommDetailState extends State<CommDetail> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: GestureDetector(
-                    onTap: (){
+                    onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(
-                          commentId: documentId,
-                          postId: widget.document
-                        )
-                      )
+                        commentId: documentId,
+                        postId: widget.document,
+                      )),
                       );
                     },
                     child: Text(
-                        '답글쓰기',
-                        style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey,
-                            decoration: TextDecoration.underline
-                        )
+                      '답글쓰기',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ),
                 StreamBuilder(
-                  stream: FirebaseFirestore.instance
+                  stream: _firestore
                       .collection('post')
                       .doc(widget.document)
                       .collection('comment')
@@ -558,6 +589,7 @@ class _CommDetailState extends State<CommDetail> {
       return Center(child: Text('댓글이 없습니다.'));
     }
   }
+
 
   void _showCommentMenu(Map<String, dynamic> commentData, String documentId, String commentText) {
     final commentId = documentId;
@@ -726,12 +758,8 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-
-
   int _visibleReplyCount = 1;
   bool _showAllReplies = false; // 모든 답글을 표시할지 여부
-
-
 
   Widget _repliesList(QuerySnapshot<Object?> data) {
     if (data.docs.isNotEmpty) {
@@ -870,9 +898,10 @@ class _CommDetailState extends State<CommDetail> {
                     _postData?['content'] ?? '',
                     _postData?['write_date'],
                     _postData?['viewCount'] ?? 0,
+                    _postData?['userNickName'] ?? '',
                   ),
                 StreamBuilder(
-                  stream: FirebaseFirestore.instance
+                  stream: _firestore
                       .collection('post')
                       .doc(widget.document)
                       .collection('comment')
