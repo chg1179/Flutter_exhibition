@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import '../firebase_storage/img_upload.dart';
+import '../model/user_model.dart';
 import 'post_detail.dart';
 import 'post_main.dart';
 
@@ -41,8 +41,6 @@ class _CommEditState extends State<CommEdit> {
 
   List<String> _selectTag = [];
 
-  List<Map<String, dynamic>> _hashtags = [];
-
   @override
   void initState() {
     super.initState();
@@ -50,6 +48,29 @@ class _CommEditState extends State<CommEdit> {
       _loadPostData(widget.documentId!);
       _loadHashtags(widget.documentId!);
     }
+  }
+
+  late String _userNickName;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
   }
 
   Future<void> _loadHashtags(String postId) async {
@@ -71,7 +92,6 @@ class _CommEditState extends State<CommEdit> {
       });
     }
   }
-
 
   Future<void> _loadPostData(String documentId) async {
     try {
@@ -113,7 +133,6 @@ class _CommEditState extends State<CommEdit> {
           await post.doc(widget.documentId!).update({
             'title': _titleCtr.text,
             'content': _contentCtr.text,
-            'write_date': DateTime.now(),
             'imageURL': downloadURL,
           });
 
@@ -121,34 +140,22 @@ class _CommEditState extends State<CommEdit> {
           await updateHashtags(_selectTag, widget.documentId!);
 
         } else {
+          await _loadUserData();
+
           DocumentReference newPostRef = await post.add({
             'title': _titleCtr.text,
             'content': _contentCtr.text,
             'write_date': DateTime.now(),
             'imageURL': downloadURL,
             'viewCount': 0,
-            'likeCount' : 0
+            'likeCount' : 0,
+            'userNickName': _userNickName,
           });
 
           if (_selectTag.isNotEmpty) {
             // 선택된 해시태그를 추가
             await addHashtags(_selectTag, newPostRef.id);
           }
-
-          if (_customHashtagCtr.text.isNotEmpty) {
-            await addCustomHashtag(_customHashtagCtr.text, newPostRef.id);
-          }
-
-          // 새로운 게시물에 선택 해시태그를 추가
-          if (_selectTag.isNotEmpty) {
-            await addHashtags(_selectTag, newPostRef.id);
-          }
-
-          if (_customHashtagCtr.text.isNotEmpty) {
-            await addCustomHashtag(_customHashtagCtr.text, newPostRef.id);
-          }
-
-
         }
 
         _titleCtr.clear();
@@ -158,8 +165,11 @@ class _CommEditState extends State<CommEdit> {
       } catch (e) {
         print('데이터 저장 중 오류가 발생했습니다: $e');
       }
+
+
     } else {
       print("제목과 내용을 입력해주세요");
+
     }
   }
 
@@ -199,7 +209,6 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
-
   // 선택된 해시태그를 추가하는 함수
   void addSelectedTag(String tagName) {
     if (!_selectTag.contains(tagName)) {
@@ -218,20 +227,20 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
-  Future<void> addCustomHashtag(String hashtag, String postId) async {
-    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
-
-    final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc(); // 문서 ID 자동 생성
-
-    // hashtag 문서가 이미 있는지 확인
-    final hashtagSnapshot = await hashtagDocRef.get();
-    if (!hashtagSnapshot.exists) {
-      // hashtag 문서가 없으면 추가
-      await hashtagDocRef.set({
-        'tag_name': hashtag,
-      });
-    }
-  }
+  // Future<void> addCustomHashtag(String hashtag, String postId) async {
+  //   final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+  //
+  //   final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc(); // 문서 ID 자동 생성
+  //
+  //   // hashtag 문서가 이미 있는지 확인
+  //   final hashtagSnapshot = await hashtagDocRef.get();
+  //   if (!hashtagSnapshot.exists) {
+  //     // hashtag 문서가 없으면 추가
+  //     await hashtagDocRef.set({
+  //       'tag_name': hashtag,
+  //     });
+  //   }
+  // }
 
 
   Future<void> getImage() async {
@@ -503,7 +512,6 @@ class _CommEditState extends State<CommEdit> {
         if (_customHashtagCtr.text.isNotEmpty) {
           addCustomHashtagToList();
         }
-        _customHashtagCtr.text = '';
       }
       _showCustomHashtagInput = !_showCustomHashtagInput;
     });
@@ -517,6 +525,7 @@ class _CommEditState extends State<CommEdit> {
         addSelectedTag(customHashtag);
       }
 
+      _customHashtagCtr.text = '';
       toggleCustomHashtagInput();
     }
   }
@@ -655,7 +664,7 @@ class _CommEditState extends State<CommEdit> {
               _savePost().then((value) {
                 if (widget.documentId != null) {
                   // 수정 버튼일 경우
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: widget.documentId!)));
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => CommDetail(document: widget.documentId!)));
                 } else {
                   // 등록 버튼일 경우
                   Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));

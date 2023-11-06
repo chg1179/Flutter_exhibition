@@ -298,7 +298,7 @@ class _CommentDetailState extends State<CommentDetail> {
               if (!replySnapshot.hasData || replySnapshot.data!.docs.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(10.0),
-                  child: Text('답글이 없습니다.',style: TextStyle(fontSize: 13, color: Colors.grey),),
+                  child: Text('가장 먼저 답글을 남겨보세요!',style: TextStyle(fontSize: 13, color: Colors.grey),),
                 );
               }
 

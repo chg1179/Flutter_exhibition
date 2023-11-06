@@ -40,11 +40,7 @@ class _CommDetailState extends State<CommDetail> {
   @override
   void initState() {
     super.initState();
-    if (!_dataLoaded) {
-      _getPostData();
-      _loadComments();
-      _loadCommentCounts();
-    }
+    _loadData();
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
         setState(() {
@@ -58,9 +54,18 @@ class _CommDetailState extends State<CommDetail> {
     });
   }
 
+  Future<void> _loadData() async {
+    if (!_dataLoaded) {
+      await _getPostData();
+      await _loadComments();
+      setState(() {
+        _dataLoaded = true;
+      });
+    }
+  }
+
   Future<void> _getPostData() async {
     try {
-
       final documentSnapshot = await _firestore.collection('post').doc(widget.document).get();
       if (documentSnapshot.exists) {
         setState(() {
@@ -105,11 +110,10 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  Future<void> _loadCommentCounts() async {
-    List<String> documentIds = await getPostDocumentIds();
-    await calculateCommentCounts(documentIds);
+  Future<bool> _onBackPressed() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CommMain()));
+    return Future.value(false);
   }
-
 
   void _addComment() async {
     String commentText = _commentCtr.text;
@@ -125,7 +129,6 @@ class _CommDetailState extends State<CommDetail> {
         FocusScope.of(context).unfocus();
 
         // 화면 업데이트
-        _loadCommentCounts();
         _loadComments();
         _showSnackBar('댓글이 등록되었습니다!');
 
@@ -155,7 +158,7 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
-          buildIcons(widget.document, commentCounts[widget.document] ?? 0, viewCount),
+          buildIcons(widget.document,viewCount),
         ],
       ),
     );
@@ -201,8 +204,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-
-
   Widget buildImage() {
     String? imagePath = _postData?['imageURL'] as String?;
     return Padding(
@@ -218,7 +219,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  Map<String, int> commentCounts = {};
 
   //게시글 아이디 불러오기
   Future<List<String>> getPostDocumentIds() async {
@@ -232,28 +232,9 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  // 해당 게시글 아이디별 댓글수
-  Future<void> calculateCommentCounts(List<String> documentIds) async {
-    for (String documentId in documentIds) {
-      try {
-        final QuerySnapshot commentQuery = await FirebaseFirestore.instance
-            .collection('post')
-            .doc(documentId)
-            .collection('comment')
-            .get();
-        int commentCount = commentQuery.docs.length;
-        commentCounts[documentId] = commentCount;
-        setState(() {});
-      } catch (e) {
-        print('댓글 수 조회 중 오류 발생: $e');
-        commentCounts[documentId] = 0;
-      }
-    }
-  }
 
 
-
-  Widget buildIcons(String docId, int commentCount, int viewCount) {
+  Widget buildIcons(String docId, int viewCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -263,10 +244,7 @@ class _CommDetailState extends State<CommDetail> {
             children: [
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
-              buildIconsItem(
-                Icons.chat_bubble_rounded,
-                commentCount.toString(),
-              ),
+              buildIconsItem(Icons.chat_bubble_rounded, ''),
               SizedBox(width: 5),
             ],
           ),
@@ -446,16 +424,16 @@ class _CommDetailState extends State<CommDetail> {
     try {
       final postRef = FirebaseFirestore.instance.collection("post").doc(documentId);
 
-      // 해당 게시글의 댓글 컬렉션 참조 가져오기
+      // 게시글 내의 댓글 컬렉션 참조 가져오기
       final commentCollection = postRef.collection("comment");
 
-      // 게시글의 댓글 컬렉션에 속한 모든 댓글 문서 삭제
+      // 댓글 컬렉션에 속한 모든 댓글 문서 삭제
       final commentQuerySnapshot = await commentCollection.get();
       for (var commentDoc in commentQuerySnapshot.docs) {
         // 해당 댓글의 답글 컬렉션 참조 가져오기
         final replyCollection = commentCollection.doc(commentDoc.id).collection("reply");
 
-        // 댓글의 답글 컬렉션에 속한 모든 답글 문서 삭제
+        // 답글 컬렉션에 속한 모든 답글 문서 삭제
         final replyQuerySnapshot = await replyCollection.get();
         for (var replyDoc in replyQuerySnapshot.docs) {
           await replyDoc.reference.delete();
@@ -464,16 +442,13 @@ class _CommDetailState extends State<CommDetail> {
         // 댓글 문서 삭제
         await commentDoc.reference.delete();
       }
+
       // 게시글 문서 삭제
       await postRef.delete();
-
     } catch (e) {
       print('게시글 삭제 중 오류 발생: $e');
     }
   }
-
-
-
 
   // 댓글수 일정 수 이상 넘어가면 줄바꿈
   String _addLineBreaks(String text, double maxLineLength) {
@@ -584,7 +559,6 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-
   void _showCommentMenu(Map<String, dynamic> commentData, String documentId, String commentText) {
     final commentId = documentId;
     final commentText = commentData['comment'] as String;
@@ -616,7 +590,7 @@ class _CommDetailState extends State<CommDetail> {
                 title: Text('댓글 수정'),
                 onTap: () {
                   Navigator.pop(context);
-                  _showEditCommentDialog(widget.document!, commentId, commentText);
+                  _showEditCommentDialog(widget.document, commentId, commentText);
                 },
               ),
               ListTile(
@@ -850,33 +824,38 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 
-  @override
+
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            _onBackPressed();
           },
           icon: Icon(Icons.arrow_back),
           color: Colors.black,
         ),
         elevation: 0,
-        title: Center(child: Text('커뮤니티', style: TextStyle(color: Colors.black, fontSize: 15,fontWeight: FontWeight.bold),)),
+        title: Center(
+          child: Text(
+            '커뮤니티',
+            style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
           GestureDetector(
-              onTap: (){},
-              child: Icon(Icons.share, color: Color(0xff464D40),size: 20,)
+            onTap: () {},
+            child: Icon(Icons.share, color: Color(0xff464D40), size: 20),
           ),
           SizedBox(width: 15),
           GestureDetector(
             onTap: _showMenu,
-            child: Icon(Icons.more_vert, color: Color(0xff464D40),size: 20),
+            child: Icon(Icons.more_vert, color: Color(0xff464D40), size: 20),
           ),
-          SizedBox(width: 15,)
+          SizedBox(width: 15),
         ],
       ),
       body: CustomScrollView(
@@ -884,34 +863,34 @@ class _CommDetailState extends State<CommDetail> {
         slivers: [
           SliverToBoxAdapter(
             child: Column(
-                children: [
-                  if (_postData != null)
-                    buildDetailContent(
-                      _postData?['title'] ?? '',
-                      _postData?['content'] ?? '',
-                      _postData?['write_date'],
-                      _postData?['viewCount'] ?? 0,
-                    ),
-                  StreamBuilder(
-                    stream: FirebaseFirestore.instance
-                        .collection('post')
-                        .doc(widget.document)
-                        .collection('comment')
-                        .orderBy('write_date', descending: false)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
-                      }
-                      if (snapshot.hasData) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 50.0),
-                          child: _commentsList(snapshot.data as QuerySnapshot<Object?>),
-                        );
-                      } else {
-                        return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
-                      }
-                    },
+              children: [
+                if (_postData != null)
+                  buildDetailContent(
+                    _postData?['title'] ?? '',
+                    _postData?['content'] ?? '',
+                    _postData?['write_date'],
+                    _postData?['viewCount'] ?? 0,
+                  ),
+                StreamBuilder(
+                  stream: FirebaseFirestore.instance
+                      .collection('post')
+                      .doc(widget.document)
+                      .collection('comment')
+                      .orderBy('write_date', descending: false)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                    }
+                    if (snapshot.hasData) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 50.0),
+                        child: _commentsList(snapshot.data as QuerySnapshot<Object?>),
+                      );
+                    } else {
+                      return Container();
+                    }
+                  },
                 ),
               ],
             ),
@@ -920,20 +899,20 @@ class _CommDetailState extends State<CommDetail> {
       ),
       floatingActionButton: _showFloatingButton
           ? Container(
-            padding: EdgeInsets.only(bottom: 30),
-            child: FloatingActionButton(
-              onPressed: () {
-                _scrollController.animateTo(
-                  0.0,
-                  duration: Duration(milliseconds: 2),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: Icon(Icons.arrow_upward),
-              backgroundColor: Color(0xff464D40),
-              mini: true,
-            ),
-          )
+        padding: EdgeInsets.only(bottom: 30),
+        child: FloatingActionButton(
+          onPressed: () {
+            _scrollController.animateTo(
+              0.0,
+              duration: Duration(milliseconds: 2),
+              curve: Curves.easeInOut,
+            );
+          },
+          child: Icon(Icons.arrow_upward),
+          backgroundColor: Color(0xff464D40),
+          mini: true,
+        ),
+      )
           : null,
       bottomSheet: Container(
         padding: const EdgeInsets.only(right: 10, left: 10),
@@ -942,7 +921,6 @@ class _CommDetailState extends State<CommDetail> {
     );
   }
 }
-
 
 class CommDetail extends StatefulWidget {
   final String document;

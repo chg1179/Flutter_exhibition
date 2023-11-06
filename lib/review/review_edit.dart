@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:typed_data';
-import '../firebase_storage/img_upload.dart'; // 필요에 따라 경로를 수정해야 할 수 있습니다.
+import '../firebase_storage/img_upload.dart';
 
 class ReviewEdit extends StatefulWidget {
   final String? documentId;

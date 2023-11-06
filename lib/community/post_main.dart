@@ -7,9 +7,11 @@ import 'package:exhibition_project/community/post_search.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../exhibition/ex_list.dart';
 import '../firebase_options.dart';
 import '../main.dart';
+import '../model/user_model.dart';
 import '../myPage/mypage.dart';
 import '../review/review_list.dart';
 import 'post_mypage.dart';
@@ -49,9 +51,6 @@ class _CommMainState extends State<CommMain> {
 
   int _currentIndex = 0;
 
-  // 댓글수 카운트
-  Map<String, int> commentCounts = {};
-
   bool isDataLoaded = false;
 
   String _formatTimestamp(Timestamp timestamp) {
@@ -71,12 +70,19 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
+
   @override
   void initState() {
     super.initState();
     if (!isDataLoaded) {
       loadInitialData();
     }
+  }
+
+// 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
   }
 
   Future<void> loadInitialData() async {
@@ -88,10 +94,7 @@ class _CommMainState extends State<CommMain> {
     selectedTag = '전체';
 
     List<String> documentIds = await getPostDocumentIds();
-    calculateCommentCounts(documentIds);
 
-    //댓글수 로드 함수
-    await loadCommentCounts();
     isDataLoaded = true;
 
     setState(() {});
@@ -220,47 +223,8 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-  // 댓글수 length로 불러오기
-  Future<int> getCommentCount(String docId) async {
-    try {
-      final QuerySnapshot commentQuery = await FirebaseFirestore.instance
-          .collection('post')
-          .doc(docId)
-          .collection('comment')
-          .get();
-      return commentQuery.docs.length;
-    } catch (e) {
-      print('댓글 수 조회 중 오류 발생: $e');
-      return 0;
-    }
-  }
 
-  // 해당 게시글 아이디별 댓글수
-  Future<void> calculateCommentCounts(List<String> documentIds) async {
-    for (String documentId in documentIds) {
-      if (!commentCounts.containsKey(documentId)) {
-        try {
-          int commentCount = await getCommentCount(documentId);
-          commentCounts[documentId] = commentCount;
-        } catch (e) {
-          print('댓글 수 조회 중 오류 발생: $e');
-          commentCounts[documentId] = 0;
-        }
-      }
-    }
-    setState(() {});
-  }
-
-
-  Future<void> loadCommentCounts() async {
-    if (isDataLoaded) {
-      return; // 이미 데이터가 로드된 경우 중복 호출 방지
-    }
-    List<String> documentIds = await getPostDocumentIds();
-    await calculateCommentCounts(documentIds);
-  }
-
-  Widget buildIcons(String docId, int commentCount, int viewCount) {
+  Widget buildIcons(String docId, int viewCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -271,9 +235,7 @@ class _CommMainState extends State<CommMain> {
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded,
-                commentCount.toString(),
-              ),
+                Icons.chat_bubble_rounded, '0'),
               SizedBox(width: 5),
             ],
           ),
@@ -324,7 +286,7 @@ class _CommMainState extends State<CommMain> {
           return Center(child: Text('에러 발생: ${snap.error}'));
         }
         if (!snap.hasData) {
-          return Center(child: Text('데이터 없음'));
+          return Center(child: Text(''));
         }
 
         final filteredDocs = snap.data!.docs.where((doc) {
@@ -437,7 +399,7 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons(docId, commentCounts[docId] ?? 0, viewCount),
+                    buildIcons(docId, viewCount),
                     FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
                                 .collection('post')
@@ -449,7 +411,7 @@ class _CommMainState extends State<CommMain> {
                             return Center(child: Text('에러 발생: ${hashtagSnap.error}'));
                           }
                           if (!hashtagSnap.hasData) {
-                            return Center(child: Text('데이터 없음'));
+                            return Center(child: Text(''));
                           }
                           return Wrap(
                             spacing: 5,
