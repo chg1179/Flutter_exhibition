@@ -68,7 +68,8 @@ class _MyCalendarState extends State<MyCalendar> {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('user')
         .doc(_userDocument.id)
-        .collection('events')
+        .collection('like')
+        .orderBy('likeDate', descending: true)
         .get();
 
     List<Event> events = [];
@@ -86,7 +87,18 @@ class _MyCalendarState extends State<MyCalendar> {
       _updateEventList(_selectedDay);
     });
   }
+  Future<int> getSubcollectionLength() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('events')
+        .get();
 
+    int subcollectionLength = querySnapshot.size;
+
+    return subcollectionLength;
+  }
   List<Event> getEventsForSelectedDate(
       DateTime selectedDate, List<Event> allEvents) {
     return allEvents.where((event) {
@@ -124,6 +136,22 @@ class _MyCalendarState extends State<MyCalendar> {
       ),
       body: Column(
         children: [
+          FutureBuilder<int>(
+            future: getSubcollectionLength(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('에러 발생: ${snapshot.error}'));
+              }
+
+              int subcollectionLength = snapshot.data ?? 0;
+
+              return Text('$subcollectionLength번째 기록중 📝');
+            },
+          ),
+
           TableCalendar(
             calendarFormat: _calendarFormat,
             focusedDay: _focusedDay,
@@ -174,59 +202,59 @@ class _MyCalendarState extends State<MyCalendar> {
           Expanded(
             child: _events[_selectedDay] != null && _events[_selectedDay]!.isNotEmpty
                 ?StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('user')
-                      .doc(user?.userNo)
-                      .collection('events')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(child: Text('에러 발생: ${snapshot.error}'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(child: Text('데이터 없음'));
-                    }
-                    // 'events' 컬렉션의 모든 문서를 가져와서 'eventName' 필드 출력
-                    snapshot.data!.docs.forEach((eventDoc) {
-                      var data = eventDoc.data() as Map<String, dynamic>?;
-                      var evtTitle2 = data?['evtTitle'] ?? 'No Event Name';
-                      evtTitle = evtTitle2;  // eventName에 Firebase에서 가져온 값을 할당
-                    });
+              stream: FirebaseFirestore.instance
+                  .collection('user')
+                  .doc(user?.userNo)
+                  .collection('events')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('에러 발생: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(child: Text('데이터 없음'));
+                }
 
-                    return ListView(
-              children: _events[_selectedDay]!.map((event) {
+                return ListView(
+                  children: snapshot.data!.docs.map((eventDoc) {
+                    var data = eventDoc.data() as Map<String, dynamic>;
+                    var evtTitle = data['evtTitle'] ?? 'No Event Name';
+                    var evtContent = data['evtContent'] ?? '';
+                    var evtDate = (data['evtDate'] as Timestamp).toDate();
+
                     return Card(
                       child: ListTile(
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(event.evtTitle),
-                            Text(event.evtContent, style: TextStyle(color: Colors.grey, fontSize: 12)),
+                            Text(evtTitle),
+                            Text(evtContent, style: TextStyle(color: Colors.grey, fontSize: 12)),
                             Text(
-                              'Firebase에서 뽑은 값: ${evtTitle}',  // eventName 대신 Firebase에서 가져온 값을 넣으세요
-                              style: TextStyle(color: Colors.black, fontSize: 16),  // 스타일을 원하는대로 설정하세요
+                              'Firebase에서 뽑은 값: $evtTitle',
+                              style: TextStyle(color: Colors.black, fontSize: 16),
                             ),
                           ],
                         ),
                         subtitle: Text(
-                          DateFormat('yyyy-MM-dd HH:mm').format(event.evtDate),
+                          DateFormat('yyyy-MM-dd HH:mm').format(evtDate),
                           style: TextStyle(color: Colors.grey, fontSize: 12),
                         ),
                         trailing: IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {
-                            _deleteEvent(event);
+                            // _deleteEvent(event); // 이벤트 삭제 기능 구현 필요
                           },
                         ),
                       ),
                     );
-              }).toList(),
-            );
-                  }
-                )
+                  }).toList(),
+                );
+              },
+            )
+
                 : Center(
               child: Text('등록된 일정이 없습니다'),
             ),
