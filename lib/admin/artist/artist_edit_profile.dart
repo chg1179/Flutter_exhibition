@@ -65,11 +65,11 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
     if (widget.document != null) {
       Map<String, dynamic> data = getMapData(widget.document!);
       if (widget.document!.exists) {
-        _nameController.text = data['artistName'] != null ? data['artistName'] : '';
-        _englishNameController.text = data['artistEnglishName'] != null ? data['artistEnglishName'] : '';
-        _nationalityController.text = data['artistNationality'] != null ? data['artistNationality'] : '';
-        _expertiseController.text = data['expertise'] != null ? data['expertise'] : '';
-        _introduceController.text = data['artistIntroduce'] != null ? data['artistIntroduce'] : '';
+        _nameController.text = data['artistName'];
+        _englishNameController.text = data['artistEnglishName'];
+        _nationalityController.text = data['artistNationality'];
+        _expertiseController.text = data['expertise'];
+        _introduceController.text = data['artistIntroduce'];
         selectImgURL = await data['imageURL'];
         print(selectImgURL);
         setState(() {
@@ -226,8 +226,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       allFieldsFilled = _nameController.text.isNotEmpty &&
           _englishNameController.text.isNotEmpty &&
           _nationalityController.text.isNotEmpty &&
-          _expertiseController.text.isNotEmpty &&
-          _introduceController.text.isNotEmpty;
+          _expertiseController.text.isNotEmpty;
     });
   }
 
@@ -276,9 +275,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
       } : null, // 버튼이 비활성 상태인 경우 onPressed를 null로 설정
       style: allFieldsFilled
           ? fullGreenButtonStyle()
-          : ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.grey), // 모든 값을 입력했다면 그린 색상으로 활성화
-      ),
+          : fullGreyButtonStyle(), // 모든 값을 입력했다면 그린 색상으로 활성화,
       child: boldGreyButtonContainer('정보 저장'),
     );
   }

@@ -17,6 +17,12 @@ ButtonStyle fullLightGreenButtonStyle() {
     minimumSize: MaterialStateProperty.all<Size>(Size(double.infinity, 10)), // 버튼의 최소 크기
   );
 }
+ButtonStyle fullGreyButtonStyle() {
+  return ButtonStyle(
+    backgroundColor: MaterialStateProperty.all<Color>(Colors.grey), // 버튼 색상(회색)
+    minimumSize: MaterialStateProperty.all<Size>(Size(double.infinity, 10)), // 버튼의 최소 크기
+  );
+}
 Container boldGreyButtonContainer(String txt){
   return Container(
     padding: const EdgeInsets.all(15),

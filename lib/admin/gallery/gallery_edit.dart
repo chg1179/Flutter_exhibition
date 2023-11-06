@@ -63,16 +63,16 @@ class _GalleryEditState extends State<GalleryEdit> {
     if (widget.document != null) {
       Map<String, dynamic> data = getMapData(widget.document!);
       if (widget.document!.exists) {
-        _galleryNameController.text = data['galleryName'] != null ? data['galleryName'] : '';
-        _addrController.text = data['addr'] != null ? data['addr'] : '';
-        _detailsAddressController.text = data['detailsAddress'] != null ? data['detailsAddress'] : '';
-        _galleryCloseController.text = data['galleryClose'] != null ? data['galleryClose'] : '';
-        _startTimeController.text = data['startTime'] != null ? data['startTime'] : '';
-        _endTimeController.text = data['endTime'] != null ? data['endTime'] : '';
-        _galleryPhoneController.text = data['galleryPhone'] != null ? data['galleryPhone'] : '';
-        _galleryEmailController.text = data['galleryEmail'] != null ? data['galleryEmail'] : '';
-        _webSiteController.text = data['webSite'] != null ? data['webSite'] : '';
-        _galleryIntroduceController.text = data['galleryIntroduce'] != null ? data['galleryIntroduce'] : '';
+        _galleryNameController.text = data['galleryName'];
+        _addrController.text = data['addr'];
+        _detailsAddressController.text = data['detailsAddress'];
+        _galleryCloseController.text = data['galleryClose'];
+        _startTimeController.text = data['startTime'];
+        _endTimeController.text = data['endTime'];
+        _galleryPhoneController.text = data['galleryPhone'];
+        _galleryEmailController.text = data['galleryEmail'];
+        _webSiteController.text = data['webSite'];
+        _galleryIntroduceController.text = data['galleryIntroduce'];
 
         selectImgURL = await data['imageURL'];
         setState(() {

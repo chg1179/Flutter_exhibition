@@ -51,30 +51,30 @@ class _GalleryViewState extends State<GalleryView> {
                         ? Image.network(galleryData['imageURL'], width: 80, height: 80, fit: BoxFit.cover)
                         : Image.asset('assets/ex/ex1.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
-                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
+                  Text('갤러리 이미지', style: TextStyle(fontSize: 13),)
                 ],
               ),
-              Text(galleryData['galleryName'] != null ? '갤러리명 : ${galleryData['galleryName']}' : '등록된 갤러리명이 없습니다.'),
+              Text(galleryData['galleryName'] != '' ? '갤러리명 : ${galleryData['galleryName']}' : '등록된 갤러리명이 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['region'] != null ? '지역 : ${galleryData['region']}' : '등록된 지역이 없습니다.'),
+              Text(galleryData['region'] != '' ? '지역 : ${galleryData['region']}' : '등록된 지역이 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['addr'] != null && galleryData['detailsAddress'] != null
+              Text(galleryData['addr'] != '' && galleryData['detailsAddress'] != ''
                   ? '주소 : ${galleryData['addr']}, ${galleryData['detailsAddress']}'
-                  : galleryData['detailsAddress'] != null
+                  : galleryData['detailsAddress'] != ''
                     ? '주소 : 등록된 주소가 없습니다.'
                     : '주소 : ${galleryData['addr']}' ),
               SizedBox(height: 10),
-              Text(galleryData['galleryClose'] != null ? '휴관일 : ${galleryData['galleryClose']}' : '휴관일 : 없음'),
+              Text(galleryData['galleryClose'] == '' ? '휴관일 : ${galleryData['galleryClose']}' : '휴관일 : 없음'),
               SizedBox(height: 10),
-              Text(galleryData['startTime'] != null || galleryData['endTime'] != null ? '운영 시간 : ${galleryData['startTime']} ~ ${galleryData['endTime']}' : '운영 시간 : 등록된 운영 시간이 없습니다.'),
+              Text(galleryData['startTime'] != '' || galleryData['endTime'] != '' ? '운영 시간 : ${galleryData['startTime']} ~ ${galleryData['endTime']}' : '운영 시간 : 등록된 운영 시간이 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['galleryPhone'] != null ? '연락처 : ${galleryData['galleryPhone']}' : '연락처 : 등록된 연락처가 없습니다.'),
+              Text(galleryData['galleryPhone'] != '' ? '연락처 : ${galleryData['galleryPhone']}' : '연락처 : 등록된 연락처가 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['galleryEmail'] != null ? '이메일 : ${galleryData['galleryEmail']}' : '이메일 : 등록된 이메일이 없습니다.'),
+              Text(galleryData['galleryEmail'] != '' ? '이메일 : ${galleryData['galleryEmail']}' : '이메일 : 등록된 이메일이 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['webSite'] != null ? '웹사이트 : ${galleryData['webSite']}' : '웹사이트 : 등록된 주소가 없습니다.'),
+              Text(galleryData['webSite'] != '' ? '웹사이트 : ${galleryData['webSite']}' : '웹사이트 : 등록된 주소가 없습니다.'),
               SizedBox(height: 10),
-              Text(galleryData['galleryIntroduce'] != null ? '소개 : ${galleryData['galleryIntroduce']}' : '소개 : 등록된 소개 글이 없습니다.'),
+              Text(galleryData['galleryIntroduce'] != '' ? '소개 : ${galleryData['galleryIntroduce']}' : '소개 : 등록된 소개 글이 없습니다.'),
               SizedBox(height: 10),
               Center(
                 child: ElevatedButton(
