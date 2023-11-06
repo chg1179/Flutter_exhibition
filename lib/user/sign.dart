@@ -15,7 +15,7 @@ class _SignPageState extends State<SignPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () => onWillPopDialog(context),
+      onWillPop: () => chooseMessageDialog(context, '종료하시겠습니까?', '종료'),
       child: Scaffold(
         body: Stack(
           children: <Widget>[

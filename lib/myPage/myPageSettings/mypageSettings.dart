@@ -1,3 +1,4 @@
+import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/model/user_model.dart';
 import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/myPageSettings/individualTerms.dart';
@@ -168,12 +169,15 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           ListTile(
             title: Text("로그아웃"),
             onTap: () async {
-              user.signOut();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => SignPage()),
-              );
-              print("로그아웃.");
+              bool logoutConfirmed = await chooseMessageDialog(context, "로그아웃 하시겠습니까?", "로그아웃");
+              if (logoutConfirmed) {
+                user.signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => SignPage()),
+                );
+                print("로그아웃.");
+              }
             },
           ),
           Divider(),

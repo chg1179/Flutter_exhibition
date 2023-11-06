@@ -29,7 +29,7 @@ void removeCheckList(BuildContext context, Map<String, bool> checkedList, String
   CollectionReference collectionName = fs.collection(collectionStr);
 
   if (checkedList.containsValue(true)) { // 선택된 항목이 하나라도 있을 때
-    bool? confirmation = await chooseMessageDialog(context, '정말 삭제하시겠습니까?');
+    bool? confirmation = await chooseMessageDialog(context, '정말 삭제하시겠습니까?', '삭제');
 
     if (confirmation == true) { // '삭제'를 선택한 경우
       // checkedList의 'document.id'를 가져와 삭제
