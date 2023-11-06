@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../firebase_storage/img_upload.dart';
+import '../firebase_storage/image_upload.dart';
 
 class ExOneLineReview extends StatefulWidget {
   final String document;

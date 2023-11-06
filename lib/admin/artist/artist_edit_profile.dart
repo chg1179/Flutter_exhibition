@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/firebase_storage/img_upload.dart';
+import 'package:exhibition_project/firebase_storage/image_upload.dart';
 import 'package:exhibition_project/firestore_connect/artist_query.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/firestore_connect/user_query.dart';

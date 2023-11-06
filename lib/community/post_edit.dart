@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
-import '../firebase_storage/img_upload.dart';
+import '../firebase_storage/image_upload.dart';
 import '../model/user_model.dart';
 import 'post_detail.dart';
 import 'post_main.dart';

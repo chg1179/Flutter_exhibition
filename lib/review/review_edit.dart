@@ -6,7 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
 import 'dart:typed_data';
-import '../firebase_storage/img_upload.dart';
+import '../firebase_storage/image_upload.dart';
 
 class ReviewEdit extends StatefulWidget {
   final String? documentId;
