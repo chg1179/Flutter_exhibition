@@ -23,6 +23,14 @@ Stream<QuerySnapshot> getChildStreamData(DocumentSnapshot document, String paren
       .snapshots();
 }
 
+// 조건에 맞는 값을 추출
+Future<QuerySnapshot> getEqualData(String collectionName, String conditionName, String conditionData) async {
+  return FirebaseFirestore.instance
+      .collection(collectionName)
+      .where(conditionName, isEqualTo: conditionData)
+      .get();
+}
+
 // 선택된 리스트들을 Firestore에서 삭제하는 메서드
 void removeCheckList(BuildContext context, Map<String, bool> checkedList, String collectionStr) async {
   FirebaseFirestore fs = FirebaseFirestore.instance;

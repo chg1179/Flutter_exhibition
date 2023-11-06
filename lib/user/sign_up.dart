@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../dialog/show_message.dart';
-import '../firestore_connect/user.dart';
+import '../firestore_connect/user_query.dart';
 import '../hash/hash_password.dart';
 import 'sign_in.dart';
 import '../style/button_styles.dart';
@@ -249,6 +249,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final checkData = await _fs.collection('user').where(fieldName, isEqualTo: value).get();
     return checkData.docs.isNotEmpty;
   }
+  
   Future<void> checkAndSetDuplicates() async {
     bool isEmailDuplicate = await checkDuplicateField('email', _emailController.text);
     bool isPhoneDuplicate = await checkDuplicateField('phone', _phoneController.text);
@@ -273,7 +274,12 @@ class _SignUpPageState extends State<SignUpPage> {
           });
           // 중복 체크
           await checkAndSetDuplicates();
-          if(duplicateEmail || duplicatePhone || duplicateNickName) return null;
+          if(duplicateEmail || duplicatePhone || duplicateNickName){
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('중복을 확인해 주세요.'))
+            );
+            return null;
+          }
 
           // 모든 약관에 동의해야 회원 가입 가능
           for(var checked in _termsChecked) {
@@ -302,6 +308,9 @@ class _SignUpPageState extends State<SignUpPage> {
             print(e.toString());
           }
         } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('입력 조건을 확인해 주세요.'))
+          );
           // 중복 메세지가 뜬 뒤 값을 수정하여 추가 메세지가 나올 때 중복으로 메세지가 출력되지 않도록 false으로 설정
           if(!(_key.currentState!.validate())) {
             await checkAndSetDuplicates();

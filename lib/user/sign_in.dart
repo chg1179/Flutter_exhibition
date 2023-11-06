@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -113,9 +114,15 @@ class _SignInCheckState extends State<SignInCheck> {
           color: Color.fromRGBO(70, 77, 64, 1.0), // 입력 텍스트 색상
         ),
       ),
+      onSubmitted: (value) {
+        if (kind == 'email') {
+          FocusScope.of(context).nextFocus(); // 비밀번호 필드로 이동
+        } else if (kind == 'pwd') {
+          _login(); // 로그인 시도
+        }
+      },
     );
   }
-
   void _login() async {
     String email = _emailController.text;
     String password = _pwdController.text;
@@ -131,9 +138,8 @@ class _SignInCheckState extends State<SignInCheck> {
       );
       return null;
     }
-    final userEmail = await _fs.collection('user')
-        .where('email', isEqualTo: email)
-        .get();
+    final userEmail = await getEqualData('user', 'email', email); //이메일 비교
+
     if (userEmail.docs.isNotEmpty) {
       final userDocument = userEmail.docs.first;
       final userHashPassword = userDocument.get('password');

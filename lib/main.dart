@@ -97,7 +97,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
     print('userNo 세션 : ${user.userNo}');
-    print('userNo 세션 : ${user.status}');
+    print('userStatus 세션 : ${user.status}');
     return StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {

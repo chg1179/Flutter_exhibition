@@ -55,15 +55,15 @@ class _ArtistViewState extends State<ArtistView> {
                   Text('프로필 이미지', style: TextStyle(fontSize: 13),)
                 ],
               ),
-              Text('작가명 : ${artistData['artistName']}'),
+              Text(artistData['artistName'] != null ? '작가명 : ${artistData['artistName']}' : '작가명 : 등록된 작가명이 없습니다.'),
               SizedBox(height: 10),
-              Text('영어명 : ${artistData['artistEnglishName']}'),
+              Text(artistData['artistEnglishName'] != null ? '영어명 : ${artistData['artistEnglishName']}' : '영어명 : 등록된 영어명이 없습니다.'),
               SizedBox(height: 10),
-              Text('국적 : ${artistData['artistNationality']}'),
+              Text(artistData['artistNationality'] != null ? '국적 : ${artistData['artistNationality']}' : '국적 : 등록된 국적이 없습니다.'),
               SizedBox(height: 10),
-              Text('전공 : ${artistData['expertise']}'),
+              Text(artistData['expertise'] != null ? '전공 : ${artistData['expertise']}' : '전공 : 등록된 전공이 없습니다.'),
               SizedBox(height: 15),
-              Text('소개 : ${artistData['artistIntroduce']}'),
+              Text(artistData['artistIntroduce'] != null ? '소개 : ${artistData['artistIntroduce']}' : '소개: 등록된 소개 글이 없습니다.'),
               SizedBox(height: 15),
               Text('학력'),
               listContent(widget.document, 'artist', 'artist_education', 'year', 'content', false),
@@ -76,6 +76,7 @@ class _ArtistViewState extends State<ArtistView> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
+                    Navigator.of(context).pop();
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => ArtistEditPage(document: widget.document)),

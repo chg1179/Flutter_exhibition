@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/firebase_storage/img_upload.dart';
-import 'package:exhibition_project/firestore_connect/artist.dart';
+import 'package:exhibition_project/firestore_connect/artist_query.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
-import 'package:exhibition_project/firestore_connect/user.dart';
+import 'package:exhibition_project/firestore_connect/user_query.dart';
 import 'package:exhibition_project/style/button_styles.dart';
-import 'package:exhibition_project/widget/text_widgets.dart';
+import 'package:exhibition_project/widget/image_widgets.dart';
+import 'package:exhibition_project/widget/text_and_textfield.dart';
 import 'package:country_calling_code_picker/picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -42,7 +43,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   final TextEditingController _expertiseController = TextEditingController();
   final TextEditingController _introduceController = TextEditingController();
   bool allFieldsFilled = false; // 모든 값을 입력하지 않으면 비활성화
-  Map<String, String> formData = {};
+  Map<String, String> formData = {}; // 컨테이너에 값을 넣어 파라미터로 전달
   final ImageSelector selector = ImageSelector();//이미지
   late ImageUploader uploader;
   XFile? _imageFile;
@@ -62,14 +63,14 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   // 수정하는 경우에 저장된 값을 필드에 출력
   Future<void> settingText() async {
     if (widget.document != null) {
-      Map<String, dynamic> artistData = getMapData(widget.document!);
+      Map<String, dynamic> data = getMapData(widget.document!);
       if (widget.document!.exists) {
-        _nameController.text = artistData['artistName'];
-        _englishNameController.text = artistData['artistEnglishName'];
-        _nationalityController.text = artistData['artistNationality'];
-        _expertiseController.text = artistData['expertise'];
-        _introduceController.text = artistData['artistIntroduce'];
-        selectImgURL = await artistData['imageURL'];
+        _nameController.text = data['artistName'] != null ? data['artistName'] : '';
+        _englishNameController.text = data['artistEnglishName'] != null ? data['artistEnglishName'] : '';
+        _nationalityController.text = data['artistNationality'] != null ? data['artistNationality'] : '';
+        _expertiseController.text = data['expertise'] != null ? data['expertise'] : '';
+        _introduceController.text = data['artistIntroduce'] != null ? data['artistIntroduce'] : '';
+        selectImgURL = await data['imageURL'];
         print(selectImgURL);
         setState(() {
           allFieldsFilled = true; // 이미 모든 정보를 입력한 사용자를 불러옴
@@ -106,11 +107,12 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
 
   // 동기 맞추기
   void _init() async{
-    final country = await getDefaultCountry(context);
     setState(() {
       // 편리성을 위해 한국으로 국적 초기화. 국가 이름, 이미지, 국가 코드, 다이얼링 코드
-      _country = Country('Korea (Republic of)','assets/flags/kr_flag.png', 'KR', '82');
-      _nationalityController.text = _country!.name; // Null check
+      if(widget.document == null) {
+        _country = Country('Korea (Republic of)', 'assets/flags/kr_flag.png', 'KR', '82');
+        _nationalityController.text = _country?.name ?? ''; // Null check
+      }
       _nameController.addListener(updateButtonState);
       _englishNameController.addListener(updateButtonState);
       _nationalityController.addListener(updateButtonState);
@@ -127,7 +129,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Center(
           child: Text(
-            '작가 정보',
+            '작가 정보 수정',
             style: TextStyle(
                 color: Color.fromRGBO(70, 77, 64, 1.0),
                 fontWeight: FontWeight.bold),
@@ -159,26 +161,32 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                                 children: [
                                   ClipOval(
                                     child: _imageFile != null
-                                        ? _buildImageWidget()
+                                        ? buildImageWidget(
+                                          // 이미지 빌더 호출
+                                          imageFile: _imageFile,
+                                          imgPath: imgPath,
+                                          selectImgURL: selectImgURL,
+                                          defaultImgURL: 'assets/ex/ex1.png',
+                                        )
                                         : (widget.document != null && selectImgURL != null)
                                           ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
                                           : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
                                   ),
-                                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
+                                  Text('작가 이미지', style: TextStyle(fontSize: 13),)
                                 ],
                               )
                             ),
                           ),
                           SizedBox(height: 30),
-                          textAndTextField('작가명', _nameController, 'name'),
+                          TextAndTextField('작가명', _nameController, 'name'),
                           SizedBox(height: 30),
-                          textAndTextField('영어명', _englishNameController, 'englishName'),
+                          TextAndTextField('영어명', _englishNameController, 'englishName'),
                           SizedBox(height: 30),
-                          textAndTextField('분　야', _expertiseController, 'expertise'),
+                          TextAndTextField('분　야', _expertiseController, 'expertise'),
                           SizedBox(height: 30),
-                          textAndTextField('국　적', _nationalityController, 'nationality'),
+                          NationalityTextAndTextField('국　적', _nationalityController, 'nationality', _countrySelect),
                           SizedBox(height: 30),
-                          textAndTextField('소　개', _introduceController, 'introduce'),
+                          TextAndTextField('소　개', _introduceController, 'introduce'),
                         ],
                       )
                   ),
@@ -194,44 +202,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
         ),
       ),
     );
-  }
-
-  // 이미지 미리보기
-  Widget _buildImageWidget() {
-    if (imgPath != null) {
-      if (kIsWeb) {
-        // 웹 플랫폼에서는 Image.network 사용
-        return Center(
-          child: CircleAvatar(
-            radius: 25,
-            backgroundImage: NetworkImage(imgPath!),
-          ),
-        );
-      } else {
-        // 앱에서는 Image.file 사용
-        return Center(
-          child: CircleAvatar(
-            radius: 25,
-            backgroundImage: FileImage(File(imgPath!)),
-          ),
-        );
-      }
-    } else {
-      return (selectImgURL != null)
-          ? Image.network(selectImgURL!)
-          : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover);
-    }
-  }
-
-  // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트
-  void updateButtonState() async {
-    setState(() {
-      allFieldsFilled = _nameController.text.isNotEmpty &&
-          _englishNameController.text.isNotEmpty &&
-          _nationalityController.text.isNotEmpty &&
-          _expertiseController.text.isNotEmpty &&
-          _introduceController.text.isNotEmpty;
-    });
   }
 
   // 국가 선택
@@ -250,54 +220,15 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
     }
   }
 
-  Widget textAndTextField(String txt, final ctr, String kind){
-    return Row(
-      children: [
-        textFieldLabel('$txt'),
-        Expanded(
-          child: textFieldInput(ctr, kind),
-        ),
-        if(kind == 'nationality') SizedBox(width: 30),
-        if(kind == 'nationality')
-          ElevatedButton(
-            onPressed: () => _countrySelect(),
-            style: greenButtonStyle(),
-            child: Text("국가선택")
-          ),
-      ],
-    );
-  }
-
-
-  TextFormField textFieldInput(final ctr, String kind) {
-    final isIntroduce = kind == 'introduce';
-    final isNationality = kind == 'nationality';
-    final borderSide = BorderSide(
-      color: Color.fromRGBO(70, 77, 64, 1.0),
-      width: 1.0,
-    );
-    return TextFormField(
-        enabled: !isNationality,
-        controller: ctr,
-        autofocus: true,
-        maxLines: isIntroduce ? 5 : 1, // 소개 입력란은 세로가 넓게 지정
-        inputFormatters: [
-          isIntroduce ? LengthLimitingTextInputFormatter(1000) : LengthLimitingTextInputFormatter(30), // 최대 길이 설정
-        ],
-        decoration: InputDecoration(
-          hintText: isNationality ? '국가를 선택해 주세요.' : null,
-          labelStyle: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          focusedBorder: isIntroduce
-              ? OutlineInputBorder(borderSide: borderSide)
-              : UnderlineInputBorder(borderSide: borderSide),
-          enabledBorder: isIntroduce
-              ? OutlineInputBorder(borderSide: borderSide)
-              : UnderlineInputBorder(borderSide: borderSide),
-        ),
-    );
+  // 텍스트 필드 값이 변경될 때마다 allFieldsFilled를 다시 계산하여 버튼의 활성화 상태를 업데이트
+  void updateButtonState() async {
+    setState(() {
+      allFieldsFilled = _nameController.text.isNotEmpty &&
+          _englishNameController.text.isNotEmpty &&
+          _nationalityController.text.isNotEmpty &&
+          _expertiseController.text.isNotEmpty &&
+          _introduceController.text.isNotEmpty;
+    });
   }
 
   Widget submitButton() {

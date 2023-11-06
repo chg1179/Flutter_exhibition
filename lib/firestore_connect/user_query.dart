@@ -4,9 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 // Firestore에 사용자 정보 추가
 Future<void> addUserFirestore(String collectionStr, String email, String hashedPassword, String randomSalt, String nickName, String phone, bool eventChecked) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
-  final CollectionReference collectionName = _fs.collection(collectionStr);
+  final CollectionReference user = _fs.collection(collectionStr);
 
-  await collectionName.add({
+  await user.add({
     'email': email,
     'password': hashedPassword,
     'randomSalt' : randomSalt,

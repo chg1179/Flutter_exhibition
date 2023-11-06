@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artist/artist_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
-import 'package:exhibition_project/firestore_connect/artist.dart';
+import 'package:exhibition_project/firestore_connect/artist_query.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
@@ -60,7 +60,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Center(
           child: Text(
-            '작가 상세 정보',
+            '작가 상세 정보 수정',
             style: TextStyle(
                 color: Color.fromRGBO(70, 77, 64, 1.0),
                 fontWeight: FontWeight.bold),
@@ -142,11 +142,13 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
           await deleteSubCollection('artist', widget.documentId!, 'artist_awards');
         }
         // 입력된 세부 정보 추가
-        await addDetails(educationControllers, 'artist', 'artist_education');
-        await addDetails(historyControllers, 'artist', 'artist_history');
-        await addDetails(awardsControllers, 'artist', 'artist_awards');
-        await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
+        if(educationControllers.isNotEmpty) await addDetails(educationControllers, 'artist', 'artist_education');
+        if(historyControllers.isNotEmpty) await addDetails(historyControllers, 'artist', 'artist_history');
+        if(awardsControllers.isNotEmpty) await addDetails(awardsControllers, 'artist', 'artist_awards');
+
+        // 저장 완료 메세지
         Navigator.of(context).pop();
+        await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
       },
       style: fullGreenButtonStyle(),
       child: boldGreyButtonContainer('저장하기'),
