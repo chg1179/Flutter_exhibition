@@ -53,6 +53,14 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int _currentIndex = 0;
   bool _isSearchVisible = false;
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -64,6 +72,25 @@ class _HomeState extends State<Home> {
     setState(() {
       _isSearchVisible = !_isSearchVisible;
     });
+  }
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
   }
 
   @override
