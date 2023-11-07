@@ -63,16 +63,13 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
     return counts;
   }
 
-  double calculateGroupScore(List<int> counts, List<double> weights) {
-    return counts[0] * weights[0] +
-        counts[1] * weights[1] +
-        counts[2] * weights[2] +
-        counts[3] * weights[3] +
-        counts[4] * weights[4];
-  }
-
-
-
+  // double calculateGroupScore(List<int> counts, List<double> weights) {
+  //   return counts[0] * weights[0] +
+  //       counts[1] * weights[1] +
+  //       counts[2] * weights[2] +
+  //       counts[3] * weights[3] +
+  //       counts[4] * weights[4];
+  // }
 
   final List<String> questions = [
     '여러각도에서 관찰할 수 있는 전시가  더 끌리는 편이다.',
@@ -103,24 +100,40 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   }
 
   void onAnswerSelected(int questionIndex, int answerIndex) {
+
     setState(() {
       selectedAnswerIndices[questionIndex] = answerIndex;
-
       if (_tabController.index < _tabController.length - 1) {
         _tabController.animateTo(_tabController.index + 1);
       }
-      print('그룹 점수:');
-      print('그룹1: $group1Score (반대: $group1OppositeScore)');
-      print('그룹2: $group2Score (반대: $group2OppositeScore)');
-      print('그룹3: $group3Score (반대: $group3OppositeScore)');
-      print('그룹4: $group4Score (반대: $group4OppositeScore)');
+      // print('그룹 점수:');
+      // print('그룹1: $group1Score (반대: $group1OppositeScore)');
+      // print('그룹2: $group2Score (반대: $group2OppositeScore)');
+      // print('그룹3: $group3Score (반대: $group3OppositeScore)');
+      // print('그룹4: $group4Score (반대: $group4OppositeScore)');
     });
   }
 
+  double calculateGroupScore(List<int> groupIndices) {
+    double score = 0;
+    for (int i = 0; i < groupIndices.length; i++) {
+      score += weights1[groupIndices[i]];
+
+    }
+    return score;
+  }
+
+  double calculateOppositeGroupScore(List<int> groupIndices) {
+    double score = 0;
+    for (int i = 0; i < groupIndices.length; i++) {
+      score += weights2[groupIndices[i]];
+    }
+    return score;
+  }
+
+
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -163,6 +176,37 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
               if (calculateProgress() * 100 == 100)
                 ElevatedButton(
                   onPressed: () async {
+
+                    // 반복문이나 함수로 수정해서 쓰세요
+                    for (int i = 0; i < 4; i++) {
+                      int start = i * 3;
+                      int end = start + 3;
+                      double rate1 = calculateGroupScore(selectedAnswerIndices.sublist(start, end));
+                      double rate2 = calculateOppositeGroupScore(selectedAnswerIndices.sublist(start, end));
+
+                      double score = (rate1 / (rate1 + rate2)) * 100;
+                      double oppositeScore = (rate2 / (rate1 + rate2)) * 100;
+
+                      switch (i) {
+                        case 0:
+                          group1Score = score;
+                          group1OppositeScore = oppositeScore;
+                          break;
+                        case 1:
+                          group2Score = score;
+                          group2OppositeScore = oppositeScore;
+                          break;
+                        case 2:
+                          group3Score = score;
+                          group3OppositeScore = oppositeScore;
+                          break;
+                        case 3:
+                          group4Score = score;
+                          group4OppositeScore = oppositeScore;
+                          break;
+                      }
+                    }
+
                     await FirebaseFirestore.instance
                         .collection('user')
                         .doc('LkZ2WsbF9BAwhrOc7HAw.id')
@@ -178,7 +222,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                       'h': group4OppositeScore,
                     });
                     // Print the calculated values
-                    print('a: 1');
+                    print('a: $group1Score');
                     print('b: $group1OppositeScore');
                     print('c: $group2Score');
                     print('d: $group2OppositeScore');
@@ -186,7 +230,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                     print('f: $group3OppositeScore');
                     print('g: $group4Score');
                     print('h: $group4OppositeScore');
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                   },
                   child: Text('결과 저장하기'),
                 )
