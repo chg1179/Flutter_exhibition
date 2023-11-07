@@ -29,13 +29,10 @@ class FirstPage extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(13.0),
-                      child: Text('오늘의 전시🌤️', style: TextStyle(fontSize: 18,color: Color(0xffD4D8C8),fontWeight: FontWeight.bold)),
                     ),
-                    Center(
-                      child: Container(
-                        child: MainList(), // MainList에 전시 정보 전달
-                        height: 400,
-                      ),
+                    Container(
+                      child: MainList(), // MainList에 전시 정보 전달
+                      height: 400,
                     ),
                   ],
                 ),
