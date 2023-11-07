@@ -4,19 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:exhibition_project/main/main_add_view.dart';
-
 import 'main_add_view_detail.dart';
-void main() {
-  // Firestore 초기화
-  final FirebaseFirestore _fs = FirebaseFirestore.instance;
-
-  // "exhibition" 컬렉션 가져오기
-  final CollectionReference collectionName = _fs.collection('exhibition');
-
-  runApp(FirstPage());
-}
-
 
 class FirstPage extends StatelessWidget {
   @override

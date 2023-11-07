@@ -95,12 +95,12 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
-    print('userNo 세션 : ${user.userNo}');
-    print('userStatus 세션 : ${user.status}');
     return StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (BuildContext context, AsyncSnapshot<User?> authSnapshot) {
+        final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
+        print('userNo 세션 : ${user.userNo}');
+        print('userStatus 세션 : ${user.status}');
         if (!user.isSignIn) {
           // 로그인이 안 된 경우
           return const SignPage();

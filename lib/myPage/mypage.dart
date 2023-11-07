@@ -13,25 +13,18 @@ import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:exhibition_project/myPage/mypage_add_view.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:exhibition_project/user/home.dart';
+import 'package:exhibition_project/user/sign.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../model/user_model.dart';
 
-
-void main() {
-  runApp(MyPage());
-}
-
 class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: mypagetest(),
-    );
+    return mypagetest();
   }
 }
-
 
 class mypagetest extends StatefulWidget {
   mypagetest({Key? key});
@@ -108,369 +101,451 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
 
 
-  @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
-
-    return MaterialApp(
-
-      debugShowCheckedModeBanner: false,
-      home: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
+    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.ㅅ
+    if (!user.isSignIn) {
+      // 로그인이 안 된 경우
+      return const SignPage();
+    } else {
+      return FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('user')
+            .doc(user.userNo)
+            .get(),
         builder: (context, snapshot) {
-          dynamic nickName = snapshot.data?.get('nickName');
+          // _loadUserData() 메서드가 완료된 뒤 업데이트
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData) {
+              _userDocument = snapshot.data!;
+              _userNickName = _userDocument.get('nickName') ?? 'No Nickname';
+            } else if (snapshot.hasError) {
+              print('에러');
+            }
+            // 나머지 UI 빌드
+          } else {
+            return CircularProgressIndicator(); // 데이터 불러오는 중 로딩 표시
+          }
           return DefaultTabController(
-            length: 3,
-            child: Builder(
-              builder: (BuildContext scaffoldContext) {
-                return Scaffold(
-                  appBar: AppBar(
-                    elevation: 0,
-                    title: Text(''),
-                    backgroundColor: Colors.transparent,
-                    leading: IconButton(
-                      icon: Icon(Icons.arrow_back),
-                      color: Colors.black,
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-                      },
+              length: 3,
+              child: Builder(
+                builder: (BuildContext scaffoldContext) {
+                  return Scaffold(
+                    appBar: AppBar(
+                      elevation: 0,
+                      backgroundColor: Colors.transparent,
+                      leading: IconButton(
+                        icon: Icon(Icons.arrow_back),
+                        color: Colors.black,
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(
+                              builder: (context) => Home()));
+                        },
+                      ),
+                      actions: [
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => IsNotification()));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Image.asset(
+                              'assets/icons/alram.png',
+                              width: 20,
+                              height: 20,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 7),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(
+                                    builder: (context) => MyPageSettings())
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 20),
+                            child: Image.asset(
+                              'assets/icons/setting.gif',
+                              width: 20,
+                              height: 20,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    actions: [
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => IsNotification()));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Image.asset(
-                            'assets/icons/alram.png',
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 7),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) => MyPageSettings())
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 20),
-                          child: Image.asset(
-                            'assets/icons/setting.gif',
-                            width: 20,
-                            height: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  body: ListView(
-                    children: <Widget>[
-                      Center(
-                        child: Column(
-                          children: [
-                            //프로필사진
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 30,
-                                      backgroundImage: AssetImage('assets/main/가로1.jpg'),
-                                    ),
-                                    SizedBox(height: 5),
-                                    Text(_userNickName!,style: TextStyle(fontSize: 12,fontWeight: FontWeight.bold),),
-                                    //Text('${user.userNo}')
-                                  ],
-                                ),
-                                SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Row(
-                                      children: [
-                                        SizedBox(width: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            // 첫 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                            _showFollowersDialog(context, '후기글', 7);
-                                            print(user.userNo);
-                                          },
-                                          child: Column(
-                                            children: [
-                                              Text('7', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              Text('후기글', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                            _showFollowersDialog(context, '팔로워', 100);
-                                          },
-                                          child: Column(
-                                            children: [
-                                              Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              Text('팔로워', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 10),
-                                        GestureDetector(
-                                          onTap: () {
-                                            // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                            _showFollowersDialog(context, '팔로잉', 100);
-                                          },
-                                          child: Column(
-                                            children: [
-                                              Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
-                                              Text('팔로잉', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                )
-
-                              ],
-                            ),
-                            SizedBox(height: 20),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: ExhibitionTemperature(),
-                            ),
-                            TemperatureBar(temperature: temperature),
-                            SizedBox(height: 16),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15, right: 15),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Column(
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => BeBackEx()));
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(10.0),
-                                          child: Image.asset(
-                                            'assets/icons/ticket.png',
-                                            width: 30,
-                                            height: 30,
-                                          ),
-                                        ),
-                                      ),
-                                      Text('다녀온 전시',style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  SizedBox(width: 7),
-                                  Column(
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => LikeEx()));
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(10.0),
-                                          child: Image.asset(
-                                            'assets/icons/heart.png',
-                                            width: 30,
-                                            height: 30,
-                                          ),
-                                        ),
-                                      ),
-                                      Text('좋아요 한 전시',style: TextStyle(fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  SizedBox(width: 7),
-                                  Column(
-                                    children: [
-                                      InkWell(
-                                        onTap: () {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(builder: (context) => MyCalendar()));
-                                        },
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(10.0),
-                                          child: Image.asset(
-                                            'assets/icons/calender.png',
-                                            width: 30,
-                                            height: 30,
-                                          ),
-                                        ),
-                                      ),
-                                      Text('캘린더',style: TextStyle(fontWeight: FontWeight.bold),),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: 10),
-                            GridView.builder(
-                              shrinkWrap: true,  // 추가
-                              physics: NeverScrollableScrollPhysics(),  // 추가
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                              ),
-                              itemCount: 9,
-                              itemBuilder: (context, index) {
-                                if (index < 8) {
-                                  return Image.asset('assets/main/전시2.jpg');
-                                  //마이후기 사진 리스트 8개 넘기기
-                                  //마이후기 사진 리스트 8개 넘기기
-                                } else {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageAddView2(),));
-                                      print('더보기 클릭하셨습니다');
-                                    },
-                                    child: Container(
-                                      color: Colors.grey.withOpacity(0.3),
-                                      child: Center(
-                                        child: Text('더보기', style: TextStyle(color: Colors.black)),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('나의 취향분석',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
-                                  IconButton(
-                                      onPressed: (){
-                                        //취향분석 상세페이지로 이동
-                                        //취향분석 상세페이지로 이동
-                                        Navigator.push(context, MaterialPageRoute(builder: (context) => JtbiResult()));
-                                      },
-                                      icon: Icon(Icons.arrow_forward_ios)
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Center(
-                              child: Row(
+                    body: ListView(
+                      children: <Widget>[
+                        Center(
+                          child: Column(
+                            children: [
+                              //프로필사진
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('사진',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16,color: Colors.deepPurpleAccent)),
-                                  Text(' 장르를 선호하시네요',style: TextStyle(fontWeight: FontWeight.w600,fontSize: 15))
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('나의 컬렉션',style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
-                                  IconButton(
-                                      onPressed: (){
-                                        Navigator.push(context, MaterialPageRoute(builder: (context) => MyCollection()));
-                                        // 컬렉션 상세페이지로 이동
-                                      },
-                                      icon: Icon(Icons.arrow_forward_ios)
+                                children: <Widget>[
+                                  Column(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 30,
+                                        backgroundImage: AssetImage(
+                                            'assets/main/가로1.jpg'),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Text(_userNickName ?? '', style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold),),
+                                      //Text('${user.userNo}')
+                                    ],
                                   ),
+                                  SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment
+                                        .start,
+                                    children: <Widget>[
+                                      Row(
+                                        children: [
+                                          SizedBox(width: 10),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // 첫 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                              _showFollowersDialog(
+                                                  context, '후기글', 7);
+                                              print(user.userNo);
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Text('7', style: TextStyle(
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                                Text('후기글', style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                              _showFollowersDialog(
+                                                  context, '팔로워', 100);
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Text('100', style: TextStyle(
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                                Text('팔로워', style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                              ],
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                              _showFollowersDialog(
+                                                  context, '팔로잉', 100);
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Text('100', style: TextStyle(
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                                Text('팔로잉', style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight
+                                                        .bold)),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  )
+
                                 ],
                               ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => MyCollection()));
-                              },
-                              child: Container(
-                                child: TabBar(
-                                  controller: _tabController,
-                                  tabs: [
-                                    Tab(text: '작품'),
-                                    Tab(text: '작가'),
-                                    Tab(text: '전시관')
+                              SizedBox(height: 20),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: ExhibitionTemperature(),
+                              ),
+                              TemperatureBar(temperature: temperature),
+                              SizedBox(height: 16),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 15, right: 15),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceEvenly,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        BeBackEx()));
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Image.asset(
+                                              'assets/icons/ticket.png',
+                                              width: 30,
+                                              height: 30,
+                                            ),
+                                          ),
+                                        ),
+                                        Text('다녀온 전시', style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    SizedBox(width: 7),
+                                    Column(
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        LikeEx()));
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Image.asset(
+                                              'assets/icons/heart.png',
+                                              width: 30,
+                                              height: 30,
+                                            ),
+                                          ),
+                                        ),
+                                        Text('좋아요 한 전시', style: TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                    SizedBox(width: 7),
+                                    Column(
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyCalendar()));
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Image.asset(
+                                              'assets/icons/calender.png',
+                                              width: 30,
+                                              height: 30,
+                                            ),
+                                          ),
+                                        ),
+                                        Text('캘린더', style: TextStyle(
+                                            fontWeight: FontWeight.bold),),
+                                      ],
+                                    ),
                                   ],
-                                  indicator: BoxDecoration(
-                                      border: Border(bottom: BorderSide(color: Colors.black, width: 2.0),)
-                                  ),
-                                  labelColor: Colors.black,
-                                  labelStyle: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                               ),
-                            )
-                          ],
+
+                              SizedBox(height: 10),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                // 추가
+                                physics: NeverScrollableScrollPhysics(),
+                                // 추가
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                ),
+                                itemCount: 9,
+                                itemBuilder: (context, index) {
+                                  if (index < 8) {
+                                    return Image.asset('assets/main/전시2.jpg');
+                                    //마이후기 사진 리스트 8개 넘기기
+                                    //마이후기 사진 리스트 8개 넘기기
+                                  } else {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  MyPageAddView2(),));
+                                        print('더보기 클릭하셨습니다');
+                                      },
+                                      child: Container(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        child: Center(
+                                          child: Text('더보기', style: TextStyle(
+                                              color: Colors.black)),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween,
+                                  children: [
+                                    Text('나의 취향분석', style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),),
+                                    IconButton(
+                                        onPressed: () {
+                                          //취향분석 상세페이지로 이동
+                                          //취향분석 상세페이지로 이동
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      JtbiResult()));
+                                        },
+                                        icon: Icon(Icons.arrow_forward_ios)
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('사진', style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.deepPurpleAccent)),
+                                    Text(' 장르를 선호하시네요', style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 15))
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween,
+                                  children: [
+                                    Text('나의 컬렉션', style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16),),
+                                    IconButton(
+                                        onPressed: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MyCollection()));
+                                          // 컬렉션 상세페이지로 이동
+                                        },
+                                        icon: Icon(Icons.arrow_forward_ios)
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => MyCollection()));
+                                },
+                                child: Container(
+                                  child: TabBar(
+                                    controller: _tabController,
+                                    tabs: [
+                                      Tab(text: '작품'),
+                                      Tab(text: '작가'),
+                                      Tab(text: '전시관')
+                                    ],
+                                    indicator: BoxDecoration(
+                                        border: Border(bottom: BorderSide(
+                                            color: Colors.black, width: 2.0),)
+                                    ),
+                                    labelColor: Colors.black,
+                                    labelStyle: TextStyle(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  bottomNavigationBar: BottomNavigationBar(
-                    currentIndex: _currentIndex,
-                    onTap: _onTabTapped,
-                    items: [
-                      BottomNavigationBarItem(
-                        icon: IconButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-                            },
-                            icon : Icon(Icons.home),
-                            color: Colors.black
+                      ],
+                    ),
+                    bottomNavigationBar: BottomNavigationBar(
+                      currentIndex: _currentIndex,
+                      onTap: _onTabTapped,
+                      items: [
+                        BottomNavigationBarItem(
+                          icon: IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => Home()));
+                              },
+                              icon: Icon(Icons.home),
+                              color: Colors.black
+                          ),
+                          label: '',
                         ),
-                        label: '',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: IconButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
-                            },
-                            icon : Icon(Icons.account_balance, color: Colors.black)
+                        BottomNavigationBarItem(
+                          icon: IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => Ex_list()));
+                              },
+                              icon: Icon(Icons.account_balance,
+                                  color: Colors.black)
+                          ),
+                          label: '',
                         ),
-                        label: '',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: IconButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
-                            },
-                            icon : Icon(Icons.comment),
-                            color: Colors.black
+                        BottomNavigationBarItem(
+                          icon: IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => CommMain()));
+                              },
+                              icon: Icon(Icons.comment),
+                              color: Colors.black
+                          ),
+                          label: '',
                         ),
-                        label: '',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: IconButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
-                            },
-                            icon : Icon(Icons.library_books),
-                            color: Colors.black
+                        BottomNavigationBarItem(
+                          icon: IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => ReviewList()));
+                              },
+                              icon: Icon(Icons.library_books),
+                              color: Colors.black
+                          ),
+                          label: '',
                         ),
-                        label: '',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: IconButton(
-                            onPressed: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
-                            },
-                            icon : Icon(Icons.account_circle),
-                            color: Colors.black
+                        BottomNavigationBarItem(
+                          icon: IconButton(
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(
+                                    builder: (context) => MyPage()));
+                              },
+                              icon: Icon(Icons.account_circle),
+                              color: Colors.black
+                          ),
+                          label: '',
                         ),
-                        label: '',
-                      ),
-                    ],
-                  ),
-                );
-              },
-            )
+                      ],
+                    ),
+                  );
+                },
+              )
           );
         }
-      )
-      );
+
+    );
+  }
   }
 
   void _showFollowersDialog(BuildContext context, String title, int count) {

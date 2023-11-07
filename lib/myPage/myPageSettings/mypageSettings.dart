@@ -168,11 +168,7 @@ class _MyPageSettingsState extends State<MyPageSettings> {
               bool logoutConfirmed = await chooseMessageDialog(context, "로그아웃 하시겠습니까?", "로그아웃");
               if (logoutConfirmed) {
                 user.signOut();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => SignPage()),
-                      (route) => false, // 모든 스택을 지우고 홈 페이지로 가기 위해 조건을 항상 false로 설정
-                );
+                Navigator.popUntil(context, (route) => route.isFirst);
                 print("로그아웃.");
               }
             },
