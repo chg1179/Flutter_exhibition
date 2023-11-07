@@ -684,7 +684,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   ),
                                   onPressed: (){
                                     if(_userNickName!=""){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document,)));
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document, ReId: "new")));
                                     } else {
                                       showDialog(
                                         context: context,
@@ -773,7 +773,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 InkWell(
                                                     onTap: (){
                                                       if(_userNickName == userNick){
-                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReviewUpdate(document: widget.document, ReId : review.id)));
+                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document, ReId : review.id)));
                                                       }
                                                     },
                                                     child: Text(_userNickName == userNick ? "수정" : "", style: TextStyle(color: Colors.grey[500]),)

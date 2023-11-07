@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../model/user_model.dart';
 
 class ExExpactationReview extends StatefulWidget {
   final String document;
+  final String ReId;
 
-  const ExExpactationReview({required this.document});
+  const ExExpactationReview({required this.document, required this.ReId});
 
   @override
   State<ExExpactationReview> createState() => _ExExpactationReviewState();
@@ -20,6 +20,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
   bool txtCheck = false;
   late DocumentSnapshot _userDocument;
   late String? _userNickName;
+  Map<String, dynamic>? _expactationReviewData;
 
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
@@ -55,6 +56,22 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     }
   }
 
+  void _getReviewData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).collection('expactationReview').doc(widget.ReId).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _expactationReviewData = documentSnapshot.data() as Map<String, dynamic>;
+          _review.text = _expactationReviewData?['content'];
+        });
+      } else {
+        print('기대평 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
   void _init() async{
     setState(() {
       _review.addListener(updateButtonState);
@@ -73,12 +90,11 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     _loadUserData();
     _init();
     _getExDetailData();
+    _getReviewData();
   }
 
   Future<void> addExpactationReview() async {
     try {
-      String userId = 'user123';
-
       Map<String, dynamic> reviewData = {
         'content': _review.text,
         'userNick': _userNickName,
@@ -111,6 +127,46 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
       );
     } catch (e) {
       print('기대평 등록 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> updateExpactationReview() async {
+    try {
+      Map<String, dynamic> reviewData = {
+        'content': _review.text,
+        'uDateTime': FieldValue.serverTimestamp(),
+      };
+
+      // Update review data
+      await _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('expactationReview')
+          .doc(widget.ReId)
+          .update(reviewData);
+
+      _review.clear();
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('성공적으로 수정되었습니다.', style: TextStyle(fontSize: 16),),
+            actions: <Widget>[
+              TextButton(
+                child: Text('확인', style: TextStyle(color: Color(0xff464D40)),),
+                onPressed: () {
+                  Navigator.pop(context); // 다이얼로그 닫기
+                  Navigator.pop(context); // 전시회 페이지로 이동
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('리뷰 업데이트 중 오류 발생: $e');
     }
   }
 
@@ -182,26 +238,32 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
                       shadowColor: Colors.transparent,
                     ) : ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
                     onPressed: (){
-                      txtCheck
-                        ? addExpactationReview()
-                        :showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('기대평 내용을 작성해주세요.', style: TextStyle(fontSize: 16)),
-                            actions: <Widget>[
-                              TextButton(
-                                child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                      if (txtCheck) {
+                        if (widget.ReId == "new") {
+                          addExpactationReview();
+                        } else {
+                          updateExpactationReview();
+                        }
+                      } else{
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('기대평 내용을 작성해주세요.', style: TextStyle(fontSize: 16)),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                     },
-                    child: Text("기대평 등록", style: TextStyle(fontSize: 18),)
+                    child: Text(widget.ReId=="new" ? "기대평 등록" : "기대평 수정", style: TextStyle(fontSize: 18),)
                 ),
               ),
               SizedBox(height: 30,)
