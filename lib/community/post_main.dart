@@ -56,7 +56,6 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -76,7 +75,7 @@ class _CommMainState extends State<CommMain> {
 
     _loadUserData();
     setState(() {});
-    _commentCnt();
+    _getcommentCnt();
   }
 
   String? _userNickName;
@@ -96,22 +95,24 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-  Future<void> _commentCnt() async {
+  Future<void> _getcommentCnt() async {
     try {
       final postId = await FirebaseFirestore.instance
           .collection('post')
           .id;
 
-      final querySnapshot = await FirebaseFirestore.instance
+      final documentRef = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
           .collection('comment')
           .orderBy('write_date', descending: false)
           .get();
 
-      final _commentCnt = querySnapshot.size;
+      final _commentCnt = documentRef.size;
 
       commentCnt = _commentCnt;
+
+      setState(() {});
 
     } catch(e) {
       print('댓글 갯수 불러올 수 없음 : $e');
@@ -257,7 +258,7 @@ class _CommMainState extends State<CommMain> {
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded, commentCnt as String),
+                Icons.chat_bubble_rounded, commentCnt.toString()),
               SizedBox(width: 5),
             ],
           ),
