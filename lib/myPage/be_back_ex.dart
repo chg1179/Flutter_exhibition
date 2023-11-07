@@ -1,8 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 class BeBackEx extends StatefulWidget {
   BeBackEx({super.key});
@@ -13,38 +17,62 @@ class BeBackEx extends StatefulWidget {
 
 class _BeBackExState extends State<BeBackEx> {
   final _search = TextEditingController();
+  late DocumentSnapshot _userDocument;
 
-  final List<Map<String, dynamic>> _exList = [
-    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex1.png'},
-    {'title': '김유경: Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.10.26', 'posterPath' : 'ex/ex2.png'},
-    {'title': '원본 없는 판타지', 'place' : '온수공간/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex3.png'},
-    {'title': '강태구몬, 닥설랍, 진택 : The Instant kids', 'place' : '러브 컨템포러리 아트/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex4.jpg'},
-    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex5.jpg'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex1.png'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex2.png'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.11.15', 'lastDate' : '2023.12.15', 'posterPath' : 'ex/ex3.png'},
-  ];
+  final List<Map<String, dynamic>> _exList = [];
 
 
-  String getOngoing(String lastDate, String startDate) {
+  String getOngoing(DateTime endDate, DateTime startDate) {
     DateFormat dateFormat = DateFormat('yyyy.MM.dd'); // 입력된 'lastDate' 형식에 맞게 설정
 
     DateTime currentDate = DateTime.now();
-    DateTime exLastDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
-    DateTime exStartDate = dateFormat.parse(startDate);
+    String endDateString = dateFormat.format(endDate);
+    String startDateString = dateFormat.format(startDate);
 
     // 비교
-    if(currentDate.isBefore(exStartDate)){
+    if(currentDate.isBefore(startDate)){
       return "예정";
-    }else if(currentDate.isBefore(exLastDate)) {
+    }else if(currentDate.isBefore(endDate)) {
       return "진행중";
     } else {
       return "종료";
     }
   }
 
+  /// 유저 - 다녀온 컬렉션 연결
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document =
+    await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+  Future<void> getEventsForUser() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(_userDocument.id)
+        .collection('visit')
+        .orderBy('visitDate', descending: true)
+        .get();
+
+    // Firestore에서 가져온 데이터를 사용하여 _exList를 채우는 코드 추가
+    _exList.clear(); // 기존 목록을 비웁니다.
+  }
+  /// 다녀온 전시회 길이구하기
+  Future<int> getSubcollectionLength() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('visit')
+        .get();
+
+    int subcollectionLength = querySnapshot.size;
+
+    return subcollectionLength;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserModel?>(context, listen: false);
     int _currentIndex = 0;
 
     void _onTabTapped(int index) {
@@ -96,71 +124,134 @@ class _BeBackExState extends State<BeBackEx> {
                   0xff000000)))
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 330, // 각 열의 최대 너비
-                    crossAxisSpacing: 15.0, // 열 간의 간격
-                    mainAxisSpacing: 20.0, // 행 간의 간격
-                    childAspectRatio: 2/5.1
-                ),
-                itemCount: _exList.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: (){
-                      print("${_exList[index]['title']} 눌럿다");
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.all(5.0),
+            child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('user')
+                    .doc(user?.userNo)
+                    .collection('visit')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('에러 발생: ${snapshot.error}'));
+                  }
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Center(
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(5),
-                              topRight: Radius.circular(5),
-                            ),
-                            child: Image.asset("assets/${_exList[index]['posterPath']}"),
+                          Icon(
+                            Icons.sentiment_satisfied_alt, // 원하는 이모지 아이콘 선택
+                            size: 64, // 이모지 크기 설정
+                            color: Colors.grey, // 이모지 색상 설정
                           ),
-                          Container(
-                              alignment: Alignment.centerLeft,
-                              padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
-                              decoration: BoxDecoration(
-                              ),
-                              child: Text(getOngoing(_exList[index]['lastDate'],_exList[index]['startDate']),
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    decorationStyle: TextDecorationStyle.double,
-                                    decorationColor: Color(0xff464D40),
-                                    decorationThickness: 1.5,
-                                  )
-                              )
-                          ),
-                          ListTile(
-                            title: Padding(
-                              padding: const EdgeInsets.only(top: 5, bottom: 5),
-                              child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                          Text(
+                            '아직 다녀온 전시가 없으시군요!',
+                            style: TextStyle(
+                              fontSize: 18, // 큰 글씨 폰트 크기
+                              color: Colors.black, // 글자 색상 설정
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Text(_exList[index]['place'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Text("${_exList[index]['startDate']} ~ ${_exList[index]['lastDate']}"),
-                                ),
-                              ],
+                          ),
+                          Text(
+                            '다녀온 전시회를 이곳에 담아 추억하세요!',
+                            style: TextStyle(
+                              fontSize: 11, // 작은 글씨 폰트 크기
+                              color: Colors.grey, // 회색
                             ),
                           ),
                         ],
                       ),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
+                    child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 330, // 각 열의 최대 너비
+                          crossAxisSpacing: 15.0, // 열 간의 간격
+                          mainAxisSpacing: 20.0, // 행 간의 간격
+                          childAspectRatio: 2/5.1
+                      ),
+                      //itemCount: _exList.length,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        /// user-visit collection 변수 호출
+                        var doc = snapshot.data!.docs[index];
+                        var data = doc.data() as Map<String, dynamic>;
+
+                        // 필드 값을 가져와 변수에 할당
+                        var exTitle = data['exTitle'] ?? '';
+                        var startDate = data['startDate'] as Timestamp;
+                        var endDate = data['endDate'] as Timestamp;
+                        var addr = data['addr'] ?? '';
+                        var exImage = data['exImage'] ?? '';
+                        var visitDate = data['visitDate'] as Timestamp;
+
+                        // Timestamp를 DateTime으로 변환
+                        DateTime startDateDateTime = startDate.toDate();
+                        DateTime endDateDateTime = endDate.toDate();
+                        DateTime visitDateTime = visitDate.toDate();
+
+                        return InkWell(
+                          onTap: (){
+                            print("$exTitle 눌럿다 다되면 이동시켜라");
+                            ///연결만 시키면 되는데 이거 본사람 당첨
+                            //Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id) ));
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.all(5.0),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(5),
+                                    topRight: Radius.circular(5),
+                                  ),
+                                  child: Image.network(exImage),
+                                ),
+                                Container(
+                                    alignment: Alignment.centerLeft,
+                                    padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
+                                    decoration: BoxDecoration(
+                                    ),
+                                    child: Text(getOngoing(endDateDateTime, startDateDateTime),
+                                        style: TextStyle(
+                                          decoration: TextDecoration.underline,
+                                          decorationStyle: TextDecorationStyle.double,
+                                          decorationColor: Color(0xff464D40),
+                                          decorationThickness: 1.5,
+                                        )
+                                    )
+                                ),
+                                ListTile(
+                                  title: Padding(
+                                    padding: const EdgeInsets.only(top: 5, bottom: 5),
+                                    child: Text(exTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                                  ),
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 5),
+                                        child: Text(addr, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 5),
+                                        child: Text("${DateFormat('yyyy.MM.dd').format(startDateDateTime)} ~ ${DateFormat('yyyy.MM.dd').format(endDateDateTime)}"),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   );
-                },
-              ),
+                }
             ),
           )
         ],
@@ -216,4 +307,17 @@ class _BeBackExState extends State<BeBackEx> {
       ),
     );
   }
+}
+
+class exVisit {
+  final String exTitle;
+  final DateTime visitDate;
+  final String exImage;
+  final String addr;
+  final String docId;
+  final DateTime startDate;
+  final DateTime endDate;
+
+  exVisit(this.exTitle, this.exImage, this.visitDate,
+      this.addr, this.docId, this.startDate, this.endDate,);
 }
