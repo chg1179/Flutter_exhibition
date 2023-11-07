@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MaterialApp(
-    home: CommProfile(),
-  ));
-}
-
 class CommProfile extends StatelessWidget {
-  CommProfile({Key? key}) : super(key: key);
 
+  CommProfile({Key? key}) : super(key: key);
 
   List<Map<String, String>> _imgList = [
     {'image': 'assets/ex/ex1.png'},

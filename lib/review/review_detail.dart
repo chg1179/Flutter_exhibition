@@ -1,9 +1,10 @@
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-
+import 'package:intl/intl.dart';
 
 class ReviewDetail extends StatefulWidget {
   final String? document;
@@ -14,6 +15,23 @@ class ReviewDetail extends StatefulWidget {
 }
 
 class _ReviewDetailState extends State<ReviewDetail> {
+
+  String _formatTimestamp(Timestamp timestamp) {
+    final currentTime = DateTime.now();
+    final commentTime = timestamp.toDate();
+
+    final difference = currentTime.difference(commentTime);
+
+    if (difference.inDays > 0) {
+      return DateFormat('yyyy-MM-dd').format(commentTime);
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}시간 전';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}분 전';
+    } else {
+      return '방금 전';
+    }
+  }
 
   // 메뉴 아이콘 클릭
   void _showMenu() {
@@ -129,56 +147,131 @@ class _ReviewDetailState extends State<ReviewDetail> {
           final title = data['title'] as String;
           final content = data['content'] as String;
           final imageURL = data['imageURL'] as String?;
+          final nickName = data['userNickName'] as String;
+          final isPublic = data['isPublic'] == 'Y' ? '공개' : '비공개';
 
           return SingleChildScrollView(
               child : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 25.0)),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundImage: AssetImage('assets/ex/ex1.png'),
-                            ),
-                            SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('hj', style: TextStyle(fontSize: 15)),
-                                //Text(document['nickName'], style: TextStyle(fontSize: 13)),
-                                Text('2023. 10. 19. 22:09 · 비공개', style: TextStyle(fontSize: 12, color: Colors.black45)),
-                              ],
-                            ),
-                          ],
+                  Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(title, style: TextStyle(fontSize: 25.0)),
                         ),
-                      ),
-                      Container(
-                        child: IconButton(
-                          onPressed: _showMenu,
-                          icon: Icon(Icons.more_vert, size: 20,),
-                          color: Colors.black45,
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 20,
+                                      backgroundImage: AssetImage('assets/ex/ex1.png'),
+                                    ),
+                                    SizedBox(width: 10),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(nickName, style: TextStyle(fontSize: 13)),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              _formatTimestamp(data['write_date'] as Timestamp),
+                                              style: TextStyle(fontSize: 12, color: Colors.black45),
+                                            ),
+                                            Text(' · $isPublic',style: TextStyle(fontSize: 12, color: Colors.black45))
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                child: IconButton(
+                                  onPressed: _showMenu,
+                                  icon: Icon(Icons.more_vert, size: 20,),
+                                  color: Colors.black45,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 20),
+                        Container(
+                            height:1.0,
+                            width: MediaQuery.of(context).size.width,
+                            color: Colors.black12
+                        ),
+                        SizedBox(height: 20),
+                        if (imageURL != null && imageURL.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Image.network(imageURL),
+                          ),
+                        SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Text(content),
+                        ),
+                        SizedBox(height: 30),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: InkWell(
+                            child: Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: Color(0xff464D40),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Text('# tag', style: TextStyle(color: Color(0xffD4D8C8), fontSize: 10.5, fontWeight: FontWeight.bold,),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Container(
+                            height:1.0,
+                            width: MediaQuery.of(context).size.width,
+                            color: Colors.black12
+                        ),
+                        SizedBox(height: 30),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 20),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile()));
+                      },
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundImage: AssetImage('assets/ex/ex1.png'),
+                          ),
+                          SizedBox(height: 10),
+                          Text(nickName, style: TextStyle(fontSize: 15)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 30),
                   Container(
                       height:1.0,
                       width: MediaQuery.of(context).size.width,
                       color: Colors.black12
                   ),
-                  SizedBox(height: 20),
-                  if (imageURL != null && imageURL.isNotEmpty)
-                    Image.network(imageURL),
-                  SizedBox(height: 20),
-                  Text(content),
-                  SizedBox(height: 30),
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    child: Text('이런 후기는 어떠세요?📝', style: TextStyle(fontWeight: FontWeight.bold),),
+                  )
                 ],
               )
           );
@@ -186,20 +279,26 @@ class _ReviewDetailState extends State<ReviewDetail> {
     );
   }
 
+  Future<bool> _onBackPressed() {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ReviewList()));
+    return Future.value(false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
-        title: Text('후기 상세보기', style: TextStyle(color: Colors.black, fontSize: 20)),
-        leading: null, // 뒤로가기 버튼을 제거합니다.
-        backgroundColor: Colors.white,
+        title: Icon(Icons.list_alt,color: Colors.black87,),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          color: Colors.black,
+          onPressed: _onBackPressed
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: _reviewDetailWidget(),
-      ),
+      body: _reviewDetailWidget(),
     );
   }
 }

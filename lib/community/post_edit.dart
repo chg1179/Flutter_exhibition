@@ -227,22 +227,6 @@ class _CommEditState extends State<CommEdit> {
     }
   }
 
-  // Future<void> addCustomHashtag(String hashtag, String postId) async {
-  //   final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
-  //
-  //   final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc(); // 문서 ID 자동 생성
-  //
-  //   // hashtag 문서가 이미 있는지 확인
-  //   final hashtagSnapshot = await hashtagDocRef.get();
-  //   if (!hashtagSnapshot.exists) {
-  //     // hashtag 문서가 없으면 추가
-  //     await hashtagDocRef.set({
-  //       'tag_name': hashtag,
-  //     });
-  //   }
-  // }
-
-
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
@@ -357,7 +341,6 @@ class _CommEditState extends State<CommEdit> {
       ),
     );
   }
-
 
   Widget _buildSelectedImage() {
     if (_imageFile != null) {

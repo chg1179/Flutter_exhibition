@@ -7,8 +7,15 @@ import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../model/user_model.dart';
+
+class CommDetail extends StatefulWidget {
+  final String document;
+  CommDetail({required this.document});
+
+  @override
+  State<CommDetail> createState() => _CommDetailState();
+}
 
 class _CommDetailState extends State<CommDetail> {
   bool _dataLoaded = false;
@@ -951,14 +958,7 @@ class _CommDetailState extends State<CommDetail> {
   }
 }
 
-class CommDetail extends StatefulWidget {
-  final String document;
-  CommDetail({required this.document});
 
-
-  @override
-  State<CommDetail> createState() => _CommDetailState();
-}
 
 class ReplyToggleButton extends StatefulWidget {
   final bool showAllReplies;

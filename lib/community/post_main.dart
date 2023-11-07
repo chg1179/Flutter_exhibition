@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
+import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/community/post_search.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -16,22 +17,6 @@ import '../myPage/mypage.dart';
 import '../review/review_list.dart';
 import 'post_mypage.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: CommMain(),
-    );
-  }
-}
 
 class CommMain extends StatefulWidget {
   const CommMain({super.key});
@@ -50,8 +35,9 @@ class _CommMainState extends State<CommMain> {
   String selectedTag = '전체';
 
   int _currentIndex = 0;
-
   bool isDataLoaded = false;
+
+  int commentCnt = 0;
 
   String _formatTimestamp(Timestamp timestamp) {
     final currentTime = DateTime.now();
@@ -90,6 +76,7 @@ class _CommMainState extends State<CommMain> {
 
     _loadUserData();
     setState(() {});
+    _commentCnt();
   }
 
   String? _userNickName;
@@ -106,6 +93,28 @@ class _CommMainState extends State<CommMain> {
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
         print('닉네임: $_userNickName');
       });
+    }
+  }
+
+  Future<void> _commentCnt() async {
+    try {
+      final postId = await FirebaseFirestore.instance
+          .collection('post')
+          .id;
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(postId)
+          .collection('comment')
+          .orderBy('write_date', descending: false)
+          .get();
+
+      final _commentCnt = querySnapshot.size;
+
+      commentCnt = _commentCnt;
+
+    } catch(e) {
+      print('댓글 갯수 불러올 수 없음 : $e');
     }
   }
 
@@ -237,7 +246,6 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-
   Widget buildIcons(String docId, int viewCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
@@ -249,7 +257,7 @@ class _CommMainState extends State<CommMain> {
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded, '0'),
+                Icons.chat_bubble_rounded, commentCnt as String),
               SizedBox(width: 5),
             ],
           ),
@@ -306,6 +314,7 @@ class _CommMainState extends State<CommMain> {
         final filteredDocs = snap.data!.docs.where((doc) {
           final title = doc['title'] as String;
           final content = doc['content'] as String;
+
 
           // 선택한 해시태그가 '전체'일 경우 모든 게시물 표시
           if (selectedTag == '전체') {
@@ -371,14 +380,19 @@ class _CommMainState extends State<CommMain> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 10,
-                              ),
-                              SizedBox(width: 5),
-                              Text(nickName, style: TextStyle(fontSize: 13)),
-                            ],
+                          GestureDetector(
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile()));
+                            },
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 10,
+                                ),
+                                SizedBox(width: 5),
+                                Text(nickName, style: TextStyle(fontSize: 13)),
+                              ],
+                            ),
                           ),
                           Text(
                             _formatTimestamp(doc['write_date'] as Timestamp),
@@ -434,7 +448,9 @@ class _CommMainState extends State<CommMain> {
                               final keyword = doc['tag_name'] as String;
                               return ElevatedButton(
                                 child: Text('# $keyword'),
-                                onPressed: () {},
+                                onPressed: () {
+
+                                },
                                 style: _unPushBtnStyle(),
                               );
                             }).toList(),

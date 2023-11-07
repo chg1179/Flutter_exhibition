@@ -4,18 +4,13 @@ import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_detail.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../community/post_main.dart';
 import '../exhibition/ex_list.dart';
 import '../firebase_options.dart';
+import '../model/user_model.dart';
 import '../myPage/mypage.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  runApp(MyApp());
-}
 
 class MyApp extends StatelessWidget {
   @override
@@ -36,6 +31,29 @@ class ReviewList extends StatefulWidget {
 class _ReviewListState extends State<ReviewList> {
   final _searchCtr = TextEditingController();
   int _currentIndex = 0;
+
+  String? _userNickName;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
 
   void _onTabTapped(int index) {
     setState(() {
@@ -113,7 +131,7 @@ class _ReviewListState extends State<ReviewList> {
             final screenWidth = MediaQuery.of(context).size.width;
 
             return Container(
-              padding: const EdgeInsets.all(5.0),
+              padding: const EdgeInsets.all(10.0),
               child: buildReviewItem(data, doc, index, screenWidth),
             );
           },
@@ -155,7 +173,23 @@ class _ReviewListState extends State<ReviewList> {
                 ),
               );
             },
-            title: Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold),),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold),),
+                IconButton(
+                  icon: Icon(Icons.favorite_border,
+                    color:Colors.red,
+                    size: 20,
+                  ),
+                  onPressed: () {
+                    setState(() {
+
+                    });
+                  },
+                )
+              ],
+            ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -172,21 +206,10 @@ class _ReviewListState extends State<ReviewList> {
                           backgroundImage: AssetImage(''),
                         ),
                         SizedBox(width: 5,),
-                        Text('hj', style: TextStyle(fontSize: 13, color: Colors.black)),
+                        Text(data['userNickName'], style: TextStyle(fontSize: 13, color: Colors.black)),
                       ],
                     ),
                     SizedBox(width: 10,),
-                    IconButton(
-                      icon: Icon(Icons.favorite_border, // 여기서 상태에 따라 아이콘 변경
-                      color:Colors.red, // 여기서 색상 변경
-                      size: 20,
-                    ),
-                      onPressed: () {
-                        setState(() {
-
-                        });
-                      },
-                    )
                   ],
                 )
               ],
@@ -264,9 +287,9 @@ class _ReviewListState extends State<ReviewList> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        centerTitle: true, // 이 속성을 추가하여 타이틀을 가운데 정렬
-        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 20)),
-        leading: null, // 뒤로가기 버튼을 제거합니다.
+        centerTitle: true,
+        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 15)),
+        leading: null,
         backgroundColor: Colors.white,
       ),
       body: Stack(
