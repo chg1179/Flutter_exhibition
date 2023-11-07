@@ -433,13 +433,6 @@ class _Ex_listState extends State<Ex_list> {
                     ),
                 ),
                 Spacer(),
-                // IconButton(
-                //   icon: Icon(Icons.search, color: Color(0xff464D40)),
-                //   onPressed: () {
-                //     print("돋보기 눌럿다");
-                //   },
-                // ),
-                // SizedBox(width: 10,),
                 Padding(
                   padding: const EdgeInsets.only(right: 5),
                   child: IconButton(

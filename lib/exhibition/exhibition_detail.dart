@@ -917,7 +917,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                               children: [
                                                                 Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
                                                                 if(uDateTime != cDateTime)
-                                                                Text("  ·  ${DateFormat('yy.MM.dd').format(cDateTime)} 수정", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
+                                                                Text("  ·  ${DateFormat('yy.MM.dd').format(uDateTime)} 수정", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
                                                               ],
                                                             )
                                                           ],
@@ -965,7 +965,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                               },
                                               child: Container(
                                                   width: MediaQuery.of(context).size.width - 40,
-                                                  height: 150,
+                                                  height: 200,
                                                   child: ClipRRect(
                                                       borderRadius: BorderRadius.circular(5),
                                                       child: Image.network(reviewImageURL, fit: BoxFit.cover,)
