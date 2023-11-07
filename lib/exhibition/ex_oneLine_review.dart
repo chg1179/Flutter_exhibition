@@ -3,12 +3,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../firebase_storage/image_upload.dart';
+import '../model/user_model.dart';
 
 class ExOneLineReview extends StatefulWidget {
   final String document;
+  final String ReId;
 
-  const ExOneLineReview({required this.document});
+  const ExOneLineReview({required this.document, required this.ReId});
 
   @override
   State<ExOneLineReview> createState() => _ExOneLineReviewState();
@@ -17,6 +20,7 @@ class ExOneLineReview extends StatefulWidget {
 class _ExOneLineReviewState extends State<ExOneLineReview> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
+  Map<String, dynamic>? _oneReviewData;
   final _review = TextEditingController();
   String _observationTime = "1시간";
   String _docentOr = "없음";
@@ -27,8 +31,11 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   XFile? _imageFile;
   String? imgPath;
   String? imageURL;
+  String? _downImageURL = "";
   late ImageUploader uploader;
   bool txtCheck = false;
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName;
 
   void _getExDetailData() async {
     try {
@@ -57,12 +64,55 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     });
   }
 
+  void _getReviewData() async {
+    try {
+      final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).collection('onelineReview').doc(widget.ReId).get();
+      if (documentSnapshot.exists) {
+        setState(() {
+          _oneReviewData = documentSnapshot.data() as Map<String, dynamic>;
+          _review.text = _oneReviewData?['content'];
+          _observationTime = _oneReviewData?['observationTime'];
+          _selectedValue = _oneReviewData?['docent'] == "있음" ? 1 : 0;
+          _downImageURL = _oneReviewData?['imageURL'];
+        });
+      } else {
+        print('리뷰 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+  void _getTagsForReview() async {
+    final tagsSnapshot = await _firestore
+        .collection('exhibition')
+        .doc(widget.document)
+        .collection('onelineReview')
+        .doc(widget.ReId)
+        .collection('tags')
+        .get();
+
+    if (tagsSnapshot.docs.isNotEmpty) {
+      List<String> tagList = []; // 'tagName'을 저장할 리스트
+      for (var doc in tagsSnapshot.docs) {
+        tagList.add(doc['tagName'] as String); // 각 문서에서 'tagName'을 리스트에 추가
+      }
+
+      setState(() {
+        selectedTags = tagList; // Firestore 문서에서 얻은 태그명 리스트를 _tagData['tags']에 설정
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _init();
+    _loadUserData();
     uploader = ImageUploader('ex_onelineReview_image');
     _getExDetailData();
+    _getReviewData();
+    _getTagsForReview();
   }
 
   Future<void> getImage() async {
@@ -87,6 +137,25 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     }
   }
 
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
   Widget _buildImageWidget() {
     if (imgPath != null) {
       if (kIsWeb) {
@@ -98,8 +167,8 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               child: Image.network(
                 imgPath!,
                 fit: BoxFit.cover, // 이미지가 위젯 영역에 맞게 맞추도록 설정
-                width: MediaQuery.of(context).size.width - 20, // 이미지 폭
-                height: MediaQuery.of(context).size.width - 20, // 이미지 높이
+                width: 200, // 이미지 폭
+                height: 200, // 이미지 높이
               ),
             )
           ],
@@ -107,8 +176,8 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
       } else {
         // 앱에서는 Image.file 사용
         return Container(
-          width: MediaQuery.of(context).size.width - 20,
-          height: MediaQuery.of(context).size.width - 20,
+          width: 200,
+          height: 200,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(5),
             // 기타 다른 데코레이션 설정 (예: 그림자, 색상 등)
@@ -127,8 +196,6 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     }
   }
 
-
-
   void handleTagSelection(String tag) {
     setState(() {
       if (selectedTags.contains(tag)) {
@@ -141,14 +208,22 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
 
   Future<void> addOnelineReview() async {
     try {
-      String userId = 'user123';
+      if (_imageFile != null) {
+        try {
+          await uploadImage();
+        } catch (e) {
+          print('이미지 업로드 중 오류 발생: $e');
+        }
+      }
 
       Map<String, dynamic> reviewData = {
         'content': _review.text,
-        'userNo': userId,
+        'userNick': _userNickName,
         'cDateTime': FieldValue.serverTimestamp(),
+        'uDateTime': FieldValue.serverTimestamp(),
         'observationTime': _observationTime,
         'docent': _docentOr,
+        'imageURL': imageURL,
       };
 
       // Add review data
@@ -185,6 +260,86 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
       );
     } catch (e) {
       print('리뷰 등록 중 오류 발생: $e');
+    }
+  }
+
+  Future<void> updateOnelineReview() async {
+    try {
+      if (_imageFile != null) {
+        try {
+          await uploadImage();
+        } catch (e) {
+          print('이미지 업로드 중 오류 발생: $e');
+        }
+      }
+
+      Map<String, dynamic> reviewData = {
+        'content': _review.text,
+        'uDateTime': FieldValue.serverTimestamp(),
+        'observationTime': _observationTime,
+        'docent': _docentOr,
+        'imageURL' : imageURL
+      };
+
+      // Update review data
+      await _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('onelineReview')
+          .doc(widget.ReId)
+          .update(reviewData);
+
+      // Remove existing tags
+      await _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('onelineReview')
+          .doc(widget.ReId)
+          .collection('tags')
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+      // Add updated tags
+      CollectionReference tagsCollection = _firestore
+          .collection('exhibition')
+          .doc(widget.document)
+          .collection('onelineReview')
+          .doc(widget.ReId)
+          .collection('tags');
+
+      for (String tag in selectedTags) {
+        await tagsCollection.add({'tagName': tag});
+      }
+
+      _review.clear();
+      setState(() {
+        selectedTags.clear();
+      });
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('리뷰가 성공적으로 수정되었습니다.', style: TextStyle(fontSize: 16),),
+            actions: <Widget>[
+              TextButton(
+                child: Text('확인', style: TextStyle(color: Color(0xff464D40)),),
+                onPressed: () {
+                  Navigator.pop(context); // 다이얼로그 닫기
+                  Navigator.pop(context); // 전시회 페이지로 이동
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('리뷰 업데이트 중 오류 발생: $e');
     }
   }
 
@@ -229,20 +384,35 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
               Text("전시와 관련된 사진을 업로드 해주세요.", style: TextStyle(color: Colors.grey, fontSize: 13),),
               SizedBox(height: 20),
               InkWell(
-                onTap: (){
+                onTap: () {
                   getImage();
                 },
-                child:
-                _imageFile != null ? _buildImageWidget() :
-                Container(
-                  width: MediaQuery.of(context).size.width - 20,
-                  height: MediaQuery.of(context).size.width - 20,
+                child: _imageFile != null
+                  ? _buildImageWidget()
+                  : _downImageURL != null && _downImageURL != ""
+                  ? Container(
+                  width: 200,
+                  height: 200,
                   decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xffc0c0c0),width: 1 ),
-                    color: Color(0xffececec),
-                    borderRadius: BorderRadius.all(Radius.circular(5))
+                    borderRadius: BorderRadius.circular(5),
                   ),
-                  child: Icon(Icons.photo_library, color: Color(0xff464D40), size: 30,)
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(5),
+                    child: Image.network(
+                      _downImageURL!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+                  : Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Color(0xffc0c0c0), width: 1),
+                    color: Color(0xffececec),
+                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                  ),
+                  child: Icon(Icons.photo_library, color: Color(0xff464D40), size: 30),
                 ),
               ),
               SizedBox(height: 40),
@@ -269,7 +439,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                         width: 2.0,
                       ),
                     ),
-                    hintText: "리뷰를 작성해주세요"
+                    hintText: "리뷰를 작성해주세요",
                 ),
               ),
               SizedBox(height: 10,),
@@ -500,27 +670,33 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
                       elevation: 0,
                       shadowColor: Colors.transparent,
                     ) : ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
-                    onPressed: (){
-                      txtCheck ?
-                      addOnelineReview() 
-                      :showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text('리뷰 내용을 작성해주세요.'),
-                            actions: <Widget>[
-                              TextButton(
-                                child: Text('확인'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                    onPressed: () {
+                      if (txtCheck) {
+                        if (widget.ReId == "new") {
+                          addOnelineReview();
+                        } else {
+                          updateOnelineReview();
+                        }
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('리뷰 내용을 작성해주세요.', style: TextStyle(fontSize: 16)),
+                              actions: <Widget>[
+                                TextButton(
+                                  child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      }
                     },
-                    child: Text("리뷰 등록", style: TextStyle(fontSize: 18),)
+                    child: Text(widget.ReId=="new" ? "리뷰 등록" : "리뷰 수정", style: TextStyle(fontSize: 18),)
                 ),
               ),
               SizedBox(height: 30,)

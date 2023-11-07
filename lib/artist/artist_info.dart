@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';

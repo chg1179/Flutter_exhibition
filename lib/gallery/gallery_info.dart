@@ -80,8 +80,8 @@ class _GalleryInfoState extends State<GalleryInfo> {
                     Container(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.asset(
-                          "assets/ex/ex1.png",
+                        child: Image.network(
+                          _galleryData?["imageURL"],
                           fit: BoxFit.fitWidth,
                         ),
                       ),

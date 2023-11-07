@@ -58,12 +58,9 @@ class _ExExpactationReviewUpdateState extends State<ExExpactationReviewUpdate> {
 
   Future<void> updateExpactationReview() async {
     try {
-      String userId = 'user123';
-
       Map<String, dynamic> reviewData = {
         'content': _review.text,
-        'userNo': userId,
-        'cDateTime': FieldValue.serverTimestamp(),
+        'uDateTime': FieldValue.serverTimestamp(),
       };
 
       // Update review data

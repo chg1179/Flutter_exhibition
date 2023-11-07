@@ -2,15 +2,17 @@ import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review_update.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
-import 'package:exhibition_project/exhibition/ex_oneLine_review_update.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
+import 'package:exhibition_project/user/sign_in.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import '../model/user_model.dart';
 
 class ExhibitionDetail extends StatefulWidget {
   final String document;
@@ -28,20 +30,21 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   Map<String, dynamic>? _exArtistData;
   Map<String, dynamic>? _galleryData;
   Map<String, dynamic>? _exImageData;
-  bool _isLoading = true;
   int onelineReviewCount = 0;
   int expactationReviewCount = 0;
   bool _galleryLoading = true;
-
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName = "";
+  late String? _userStatus = "";
 
   @override
   void initState() {
     super.initState();
+    _loadUserData();
     getOnelineReviewCount();
     getExpactationReviewCount();
     _getExDetailData();
     _getGalleryInfo();
-
   }
 
   void _getExDetailData() async {
@@ -50,8 +53,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       if (documentSnapshot.exists) {
         setState(() {
           _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
-          print("아티스트넘버 : ${_exDetailData?['artistNo']}");
-          _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
         });
       } else {
         print('전시회 정보를 찾을 수 없습니다.');
@@ -59,7 +60,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
       setState(() {
-        _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
       });
     }
   }
@@ -104,7 +104,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           final galleryDocument = await _firestore.collection('gallery').doc(galleryId).get();
           if (galleryDocument.exists) {
             _galleryData = galleryDocument.data() as Map<String, dynamic>?;
-            print('Gallery Info: $_galleryData');
             _getArtistData();
             setState(() {
               _galleryLoading = false; // 갤러리 데이터 로딩이 완료됨을 나타내는 플래그
@@ -240,11 +239,33 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     );
   }
 
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName'); // 닉네임이 없을 경우 기본값 설정
+        _userStatus = _userDocument.get('status');
+        print('닉네임: $_userNickName');
+        print('권한: $_userStatus');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
   @override
   Widget build(BuildContext context) {
     final double appBarHeight = AppBar().preferredSize.height;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double totalHeight = appBarHeight + statusBarHeight;
+    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
 
     Widget _onGoing(){
       String _ongoing = getExhibitionStatus();
@@ -337,7 +358,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                           radius: 40,
                           backgroundImage: _exArtistData?['imageURL'] != null
                               ? NetworkImage(_exArtistData?['imageURL']!)
-                              : AssetImage("assets/ex/basicLogo.png") as ImageProvider, // ImageProvider로 타입 캐스팅
+                              : AssetImage("assets/ex/ex1.png") as ImageProvider, // ImageProvider로 타입 캐스팅
                         ),
                         SizedBox(height: 8),
                         Text(_exArtistData?['artistName'] ?? ''), // 데이터가 null인 경우 공백 문자열로 표시
@@ -662,7 +683,32 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     ),
                                   ),
                                   onPressed: (){
-                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document,)));
+                                    if(_userNickName!=""){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document,)));
+                                    } else {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('로그인 후 작성 가능합니다.', style: TextStyle(fontSize: 16),),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('취소', style: TextStyle(color: Colors.grey)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text('로그인', style: TextStyle(color: Color(0xff464D40))),
+                                                onPressed: () {
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignInCheck(),));
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }
                                   },
                                   child: Text("기대평 작성", style: TextStyle(fontSize: 16),)
                               ),
@@ -679,8 +725,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   snapshot.data!.docs.forEach((review) {
                                     Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
                                     String reviewText = reviewData['content'];
-                                    String userNick = reviewData['userNo'];
+                                    String userNick = reviewData['userNick'];
                                     DateTime cDateTime = reviewData['cDateTime'].toDate();
+                                    DateTime uDateTime = reviewData['uDateTime'].toDate();
 
                                     ExpactationReviewWidgets.add(
                                       Padding(
@@ -709,7 +756,13 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [
                                                             Text("${userNick}", style: TextStyle(fontSize: 16, fontWeight:FontWeight.bold, color: Colors.grey[800]),),
-                                                            Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),)
+                                                            Row(
+                                                              children: [
+                                                                Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
+                                                                if(cDateTime != uDateTime)
+                                                                  Text("  ·  ${DateFormat('yy.MM.dd').format(uDateTime)} 수정", style: TextStyle(color: Colors.grey[600], fontSize: 13))
+                                                              ],
+                                                            ),
                                                           ],
                                                         ),
                                                       ],
@@ -718,17 +771,22 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 ),
                                                 Spacer(),
                                                 InkWell(
-                                                  onTap: (){
-                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReviewUpdate(document: widget.document, ReId : review.id)));
-                                                  },
-                                                  child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
+                                                    onTap: (){
+                                                      if(_userNickName == userNick){
+                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReviewUpdate(document: widget.document, ReId : review.id)));
+                                                      }
+                                                    },
+                                                    child: Text(_userNickName == userNick ? "수정" : "", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
-                                                Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
+                                                if (_userNickName == userNick)
+                                                  Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
-                                                  onTap: (){
-                                                    _deleteExpactationConfirmation(review.reference);
-                                                  },
-                                                  child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
+                                                    onTap: () {
+                                                      if(_userNickName == userNick){
+                                                        _deleteExpactationConfirmation(review.reference);
+                                                      }
+                                                    },
+                                                    child: Text(_userNickName == userNick || _userStatus == "A" ? "삭제" : "", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 SizedBox(width: 15,)
                                               ],
@@ -775,16 +833,33 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ),
                                     ),
                                   ),
-                                  onPressed: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document)),
-                                    );
-                                    // 이전 화면으로 돌아왔을 때 데이터를 업데이트
-                                    setState(() {
-                                      // 데이터 업데이트 로직이 있어야 함
-                                      initState();
-                                    });
+                                  onPressed: () {
+                                    if(_userNickName!=""){
+                                      Navigator.push(context,MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document, ReId : "new")));
+                                    }else {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text('로그인 후 작성 가능합니다.', style: TextStyle(fontSize: 16),),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                child: Text('취소', style: TextStyle(color: Colors.grey)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text('로그인', style: TextStyle(color: Color(0xff464D40))),
+                                                onPressed: () {
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignInCheck(),));
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    }
                                   },
                                   child: Text("리뷰 작성", style: TextStyle(fontSize: 16),)
                               ),
@@ -802,10 +877,12 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     // 리뷰 데이터 가져오기
                                     Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
                                     String reviewText = reviewData['content'];
-                                    String userNick = reviewData['userNo'];
+                                    String userNick = reviewData['userNick'];
                                     DateTime cDateTime = reviewData['cDateTime'].toDate();
+                                    DateTime uDateTime = reviewData['uDateTime'].toDate();
                                     String docent = reviewData['docent'];
                                     String observationTime = reviewData['observationTime'];
+                                    String reviewImageURL = reviewData['imageURL'] ?? "";
 
                                     // 태그 데이터 가져오기
                                     Stream<QuerySnapshot> tagsStream = review.reference.collection('tags').snapshots();
@@ -837,7 +914,13 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                           crossAxisAlignment: CrossAxisAlignment.start,
                                                           children: [
                                                             Text("${userNick}", style: TextStyle(fontSize: 16, fontWeight:FontWeight.bold, color: Colors.grey[800]),),
-                                                            Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),)
+                                                            Row(
+                                                              children: [
+                                                                Text("${DateFormat('yy.MM.dd EE', 'ko').format(cDateTime)}", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
+                                                                if(uDateTime != cDateTime)
+                                                                Text("  ·  ${DateFormat('yy.MM.dd').format(cDateTime)} 수정", style: TextStyle(color: Colors.grey[600], fontSize: 13),),
+                                                              ],
+                                                            )
                                                           ],
                                                         ),
                                                       ],
@@ -847,21 +930,27 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 Spacer(),
                                                 InkWell(
                                                     onTap: (){
-                                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReviewUpdate(document: widget.document, ReId : review.id)));
+                                                      if(_userNickName == userNick){
+                                                        Navigator.push(context, MaterialPageRoute(builder: (context) => ExOneLineReview(document: widget.document, ReId : review.id)));
+                                                      }
                                                     },
-                                                    child: Text("수정", style: TextStyle(color: Colors.grey[500]),)
+                                                    child: Text(_userNickName == userNick ? "수정" : "", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
+                                                if (_userNickName == userNick)
                                                 Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
                                                     onTap: () {
-                                                      _deleteReviewConfirmation(review.reference);
+                                                      if(_userNickName == userNick){
+                                                        _deleteReviewConfirmation(review.reference);
+                                                      }
                                                     },
-                                                    child: Text("삭제", style: TextStyle(color: Colors.grey[500]),)
+                                                    child: Text(_userNickName == userNick || _userStatus == "A" ? "삭제" : "", style: TextStyle(color: Colors.grey[500]),)
                                                 ),
                                                 SizedBox(width: 15,)
                                               ],
                                             ),
                                             SizedBox(height: 15,),
+                                            if(reviewImageURL!="")
                                             InkWell(
                                               onTap: () {
                                                 showDialog(
@@ -869,7 +958,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                   builder: (BuildContext context) {
                                                     return Dialog(
                                                       child: Container(
-                                                        child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover),
+                                                        child: Image.network(reviewImageURL, fit: BoxFit.cover),
                                                       ),
                                                     );
                                                   },
@@ -880,7 +969,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                   height: 150,
                                                   child: ClipRRect(
                                                       borderRadius: BorderRadius.circular(5),
-                                                      child: Image.asset('assets/main/전시3.jpg', fit: BoxFit.cover,)
+                                                      child: Image.network(reviewImageURL, fit: BoxFit.cover,)
                                                   )
                                               ),
                                             ),
@@ -919,7 +1008,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                     ),
                                                   );
                                                 });
-
                                                 return Wrap(
                                                   spacing: 5.0,
                                                   runSpacing: 5.0,
