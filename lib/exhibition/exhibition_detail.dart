@@ -1,6 +1,5 @@
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
-import 'package:exhibition_project/exhibition/ex_expactation_review_update.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
