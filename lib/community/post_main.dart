@@ -37,7 +37,7 @@ class _CommMainState extends State<CommMain> {
   int _currentIndex = 0;
   bool isDataLoaded = false;
 
-  int commentCnt = 0;
+  Map<String, int> commentCounts = {};
 
   String _formatTimestamp(Timestamp timestamp) {
     final currentTime = DateTime.now();
@@ -75,7 +75,8 @@ class _CommMainState extends State<CommMain> {
 
     _loadUserData();
     setState(() {});
-    _getcommentCnt();
+    await loadCommentCnt();
+    await loadCommentCnt();
   }
 
   String? _userNickName;
@@ -95,28 +96,63 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-  Future<void> _getcommentCnt() async {
+  // 게시글 아이디 리스트로 가져오기
+  Future<List<String>> getPostId() async {
     try {
-      final postId = await FirebaseFirestore.instance
-          .collection('post')
-          .id;
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      return postIds;
+    } catch (e) {
+      print('게시물 ID를 불러오는 동안 오류 발생: $e');
+      return [];
+    }
+  }
 
-      final documentRef = await FirebaseFirestore.instance
+  // 게시글 당 댓글 수 가져오기
+  Future<int> getcommentCnt(String postId) async {
+    try {
+      final QuerySnapshot commentQuery = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
           .collection('comment')
-          .orderBy('write_date', descending: false)
           .get();
-
-      final _commentCnt = documentRef.size;
-
-      commentCnt = _commentCnt;
-
-      setState(() {});
-
-    } catch(e) {
-      print('댓글 갯수 불러올 수 없음 : $e');
+      return commentQuery.docs.length;
+    } catch (e) {
+      print('댓글 수 조회 중 오류 발생: $e');
+      return 0;
     }
+  }
+
+  // 게시글 아이디 불러오기
+  Future<List<String>> getPostDocumentIds() async {
+    try {
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      return documentIds;
+    } catch (e) {
+      print('게시물 ID를 불러오는 동안 오류 발생: $e');
+      return [];
+    }
+  }
+
+  Future<void> commentCnt(List<String> postIds) async {
+    for (String postId in postIds) {
+      if (!commentCounts.containsKey(postId)) {
+        try {
+          int commentCnt = await getcommentCnt(postId);
+          commentCounts[postId] = commentCnt;
+        } catch (e) {
+          print('댓글수 조회 중 오류 발생: $e');
+          commentCounts[postId] = 0;
+        }
+      }
+    }
+    setState(() {});
+  }
+
+  Future<void> loadCommentCnt() async {
+    List<String> postId = await getPostDocumentIds();
+    await commentCnt(postId);
   }
 
   // 세션으로 document 값 구하기
@@ -235,17 +271,7 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  // 게시글 아이디 불러오기
-  Future<List<String>> getPostDocumentIds() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-      final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
-      return documentIds;
-    } catch (e) {
-      print('게시물 ID를 불러오는 동안 오류 발생: $e');
-      return [];
-    }
-  }
+
 
   Widget buildIcons(String docId, int viewCount) {
     return Padding(
@@ -258,7 +284,7 @@ class _CommMainState extends State<CommMain> {
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded, commentCnt.toString()),
+                Icons.chat_bubble_rounded, commentCounts[docId].toString()),
               SizedBox(width: 5),
             ],
           ),
@@ -528,6 +554,7 @@ class _CommMainState extends State<CommMain> {
           mini: true,
         ),
         bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
           items: [

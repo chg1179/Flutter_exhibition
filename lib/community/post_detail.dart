@@ -28,6 +28,7 @@ class _CommDetailState extends State<CommDetail> {
   bool _showFloatingButton = false;
   Map<String, dynamic>? _postData;
   List<Map<String, dynamic>> _comments = [];
+  int commentCnt = 0;
 
   String _formatTimestamp(Timestamp timestamp) {
     final currentTime = DateTime.now();
@@ -73,6 +74,7 @@ class _CommDetailState extends State<CommDetail> {
   void initState() {
     super.initState();
     _loadData();
+    getCommentCnt();
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
         setState(() {
@@ -142,6 +144,17 @@ class _CommDetailState extends State<CommDetail> {
     } catch (e) {
       print('댓글을 불러오는 중 오류가 발생했습니다: $e');
     }
+  }
+
+  // 게시글 당 댓글 수 가져오기
+  void getCommentCnt() async {
+    QuerySnapshot commentSnapshot = await FirebaseFirestore.instance
+        .collection('post')
+        .doc(widget.document)
+        .collection('comment')
+        .get();
+
+    commentCnt = commentSnapshot.docs.length;
   }
 
   Future<bool> _onBackPressed() {
@@ -279,7 +292,7 @@ class _CommDetailState extends State<CommDetail> {
             children: [
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, ''),
+              buildIconsItem(Icons.chat_bubble_rounded, commentCnt.toString()),
               SizedBox(width: 5),
             ],
           ),
