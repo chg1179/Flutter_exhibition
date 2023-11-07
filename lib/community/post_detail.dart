@@ -544,6 +544,7 @@ class _CommDetailState extends State<CommDetail> {
                               : '날짜 없음', // 또는 다른 대체 텍스트
                           style: TextStyle(fontSize: 10),
                         ),
+                        if (_userNickName == userNickName)
                         GestureDetector(
                           onTap: () {
                             _showCommentMenu(commentData, documentId, commentText);
@@ -899,10 +900,11 @@ class _CommDetailState extends State<CommDetail> {
             child: Icon(Icons.share, color: Color(0xff464D40), size: 20),
           ),
           SizedBox(width: 15),
-          GestureDetector(
-            onTap: _showMenu,
-            child: Icon(Icons.more_vert, color: Color(0xff464D40), size: 20),
-          ),
+          if (_userNickName == _postData?['userNickName']) // 닉네임 비교
+            GestureDetector(
+              onTap: _showMenu,
+              child: Icon(Icons.more_vert, color: Color(0xff464D40), size: 20),
+            ),
           SizedBox(width: 15),
         ],
       ),
