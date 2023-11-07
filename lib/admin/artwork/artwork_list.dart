@@ -41,6 +41,7 @@ class _ArtworkListState extends State<ArtworkList> {
         setChildImgTextList(
           'artist',
           'artist_artwork',
+          'artistName',
           'artTitle',
           (DocumentSnapshot document) => ArtworkViewPage(document: document),
           checkedList,

@@ -49,9 +49,9 @@ class _ArtworkViewState extends State<ArtworkView> {
                   ClipOval(
                     child: artworkData['imageURL'] != null
                         ? Image.network(artworkData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                        : Image.asset('assets/ex/ex1.png', width: 80, height: 80, fit: BoxFit.cover),
+                        : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
-                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
+                  Text('작품 이미지', style: TextStyle(fontSize: 13),)
                 ],
               ),
               Text('작품명 : ${artworkData['artTitle']}'),

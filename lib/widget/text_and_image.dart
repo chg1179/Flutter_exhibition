@@ -99,30 +99,28 @@ Widget setImgTextList(
   );
 }
 
-// 하위 컬렉션의 리스트 출력
+// 상위 켈렉션의 하위 컬렉션 값을 받아옴
 Widget setChildImgTextList(
     String parentCollection,
     String childCollection,
-    String name,
+    String parentName,
+    String childName,
     Widget Function(DocumentSnapshot) pageBuilder,
     Map<String, bool> checkedList,
     void Function(Map<String, bool>) onChecked,
     void Function() loadMoreItems,
     int displayLimit,
     ) {
-  return StreamBuilder<List<QuerySnapshot>>(
-    stream: getSubCollectionStreamData(parentCollection, childCollection, name, false),
-    builder: (BuildContext context, AsyncSnapshot<List<QuerySnapshot>> snap) {
+  return StreamBuilder(
+    stream: getStreamData(parentCollection, parentName, false),
+    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
       if (!snap.hasData) {
         return Center(child: CircularProgressIndicator());
       }
-      List<QueryDocumentSnapshot> allDocs = snap.data!
-          .expand((snapshot) => snapshot.docs) // Access 'docs' for each QuerySnapshot
-          .toList();
-
-      int itemsToShow = displayLimit < allDocs.length
+      // 일정 갯수씩 출력
+      int itemsToShow = displayLimit < snap.data!.docs.length
           ? displayLimit
-          : allDocs.length;
+          : snap.data!.docs.length;
       return Column(
         children: [
           SingleChildScrollView(
@@ -132,12 +130,14 @@ Widget setChildImgTextList(
               shrinkWrap: true,
               itemCount: itemsToShow,
               itemBuilder: (context, index) {
-                DocumentSnapshot document = allDocs[index];
+                DocumentSnapshot document = snap.data!.docs[index];
                 Map<String, dynamic> data = getMapData(document);
-                String text = data[name].toString();
+                String documentId = document.id;
+                String text = data[parentName].toString();
+                // 너무 긴 제목은 생략하여 표시
                 String truncatedText = text.length <= 15 ? text : text.substring(0, 15);
-                if (text.length > 15) truncatedText += '...';
-                if (data[name] == null) return Container();
+                if(text.length > 15) truncatedText += '...';
+                if (data[parentName] == null) return Container();
                 return Row(
                   children: [
                     CheckBoxItem(
@@ -151,49 +151,44 @@ Widget setChildImgTextList(
                     ),
                     SizedBox(width: 10),
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(5),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => pageBuilder(document)),
-                            );
-                          },
-                          child: Row(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
-                                child: data['imageURL'] != null
-                                    ? Image.network(data['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
-                                    : Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover),
-                              ),
-                              SizedBox(width: 18),
-                              Text(truncatedText, style: TextStyle(fontSize: 16)),
-                            ],
+                        child: Padding(
+                          padding: EdgeInsets.all(5),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => pageBuilder(document)),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: data['imageURL'] != null
+                                      ? Image.network(data['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
+                                      : Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover),
+                                ),
+                                SizedBox(width: 18),
+                                Text(truncatedText, style: TextStyle(fontSize: 16)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ),
+                        )
                     ),
                   ],
                 );
               },
             ),
           ),
-          if (displayLimit < allDocs.length)
+          if (displayLimit < snap.data!.docs.length)
             ElevatedButton(
               onPressed: loadMoreItems,
               style: ButtonStyle(
-                elevation: MaterialStateProperty.all(0),
-                backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                overlayColor: MaterialStateProperty.all(Colors.transparent),
+                elevation: MaterialStateProperty.all(0), // 그림자 비활성화
+                backgroundColor: MaterialStateProperty.all(Colors.transparent), // 버튼의 배경색을 투명하게 설정
+                overlayColor: MaterialStateProperty.all(Colors.transparent), // 버튼을 누르거나 호버할 때의 색을 투명하게 설정
               ),
-              child: Text(
-                "더 보기",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(70, 77, 64, 1.0),
-                ),
+              child: Text("더 보기", style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)), // 버튼 텍스트 색상을 설정할 수 있습니다.
               ),
             ),
           SizedBox(height: 15),

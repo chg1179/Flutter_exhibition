@@ -50,7 +50,7 @@ class _ArtistViewState extends State<ArtistView> {
                   ClipOval(
                     child: artistData['imageURL'] != null
                         ? Image.network(artistData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                        : Image.asset('assets/ex/ex1.png', width: 80, height: 80, fit: BoxFit.cover),
+                        : Image.asset('assets/logo/logo_basic.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Text('프로필 이미지', style: TextStyle(fontSize: 13),)
                 ],

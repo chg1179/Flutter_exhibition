@@ -49,7 +49,7 @@ class _GalleryViewState extends State<GalleryView> {
                   ClipOval(
                     child: galleryData['imageURL'] != null
                         ? Image.network(galleryData['imageURL'], width: 80, height: 80, fit: BoxFit.cover)
-                        : Image.asset('assets/ex/ex1.png', width: 80, height: 80, fit: BoxFit.cover),
+                        : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Text('갤러리 이미지', style: TextStyle(fontSize: 13),)
                 ],
