@@ -233,6 +233,7 @@ class _LikeExState extends State<LikeEx> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, // 이 부분을 추가합니다.
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
