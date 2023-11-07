@@ -128,7 +128,6 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
         children: [
           Container(
             padding: EdgeInsets.only(left: 15),
-            width: 130,
             child: Text(
               title,
               style: TextStyle(
@@ -185,6 +184,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
     double inkWidth = screenWidth / 2;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(250.0),
         child: AppBar(
@@ -200,8 +200,8 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
           ],
           flexibleSpace: Stack(
             children: [
-              Image.asset(
-                'assets/main/가로1.jpg',
+              Image.network(
+                _artistData?['imageURL'],
                 width: double.infinity,
                 height: double.infinity,
                 fit: BoxFit.cover,
@@ -211,7 +211,15 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                 left: 0,
                 right: 0,
                 child: Container(
-                  color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.black,
+                        width: 0.2, // 테두리의 두께 조절
+                      ),
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -249,7 +257,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: AssetImage('assets/main/전시1.png'),
+                      image: NetworkImage(_artistData?['imageURL']),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -272,32 +280,32 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   children: [
                     _artistEducationData == null ? SizedBox()
                         : Container(
-                      color: Colors.white,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 100,
-                            padding: EdgeInsets.only(left: 15, top: 15),
-                            child: Text("학력", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),),
+                          color: Colors.white,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 100,
+                                padding: EdgeInsets.only(left: 15, top: 20),
+                                child: Text("학력", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),),
+                              ),
+                              Container(
+                                padding: EdgeInsets.only(top: 15),
+                                width: 300,
+                                height: _artistEducationData!.length * 30.toDouble(),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: _artistEducationData!.map((data) {
+                                    return Container(
+                                      padding: EdgeInsets.all(2),
+                                      child: Text("${data['year']} ${data['content']}"),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ],
                           ),
-                          Container(
-                            padding: EdgeInsets.only(top: 10),
-                            width: 400,
-                            height: _artistEducationData!.length * 40,
-                            child: ListView.builder(
-                              itemCount: _artistEducationData?.length,
-                              itemBuilder: (context, index) {
-                                return Container(
-                                  padding: EdgeInsets.all(5),
-                                  child: Text("- ${_artistEducationData?[index]['year']} ${_artistEducationData?[index]['content']}"),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
                     _artistHistoryData == null ? SizedBox()
                         : Container(
                       color: Colors.white,
@@ -311,16 +319,16 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           ),
                           Container(
                             padding: EdgeInsets.only(top: 10),
-                            width: 400,
-                            height: _artistHistoryData!.length * 40,
-                            child: ListView.builder(
-                              itemCount: _artistHistoryData?.length,
-                              itemBuilder: (context, index) {
+                            width: 300,
+                            height: _artistHistoryData!.length * 40.toDouble(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _artistHistoryData!.map((data) {
                                 return Container(
-                                  padding: EdgeInsets.all(5),
-                                  child: Text("- ${_artistHistoryData?[index]['year']} ${_artistHistoryData?[index]['content']}"),
+                                  padding: EdgeInsets.all(2),
+                                  child: Text("${data['year']}  ${data['content']}"),
                                 );
-                              },
+                              }).toList(),
                             ),
                           ),
                         ],
@@ -339,14 +347,14 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           ),
                           Container(
                             padding: EdgeInsets.only(top: 10),
-                            width: 400,
+                            width: 300,
                             height: _artistAwardData!.length * 40,
                             child: ListView.builder(
                               itemCount: _artistAwardData?.length,
                               itemBuilder: (context, index) {
                                 return Container(
-                                  padding: EdgeInsets.all(5),
-                                  child: Text("- ${_artistAwardData?[index]['year']} ${_artistAwardData?[index]['content']}"),
+                                  padding: EdgeInsets.all(3),
+                                  child: Text("${_artistAwardData?[index]['year']} ${_artistAwardData?[index]['content']}"),
                                 );
                               },
                             ),
@@ -354,6 +362,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                         ],
                       ),
                     ),
+                    Divider(),
                     TabBar(
                       controller: _tabController,
                       tabs: [
@@ -416,6 +425,9 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                           itemCount: documents.length,
                                           itemBuilder: (context, index) {
                                             return InkWell(
+                                              onTap: (){
+                                                Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: documents[index].id)));
+                                              },
                                               child: Card(
                                                 margin: const EdgeInsets.all(5.0),
                                                 child: Column(
@@ -425,7 +437,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                                         topLeft: Radius.circular(5),
                                                         topRight: Radius.circular(5),
                                                       ),
-                                                      child: Image.asset("assets/ex/ex1.png"),
+                                                      child: Image.network(documents[index]['imageURL']),
                                                     ),
                                                     ListTile(
                                                       title: Padding(

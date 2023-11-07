@@ -311,14 +311,14 @@ class _SearchState extends State<Search> {
                       padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
                       child: Row(
                         children: [
-                          Image.asset(
-                            "assets/ex/ex1.png",
+                          Image.network(
+                            exhibition['imageURL'],
                             width: 80,
                             height: 80,
                           ),
                           SizedBox(width: 30),
                           Container(
-                            width: MediaQuery.of(context).size.width * 0.65,
+                            width: MediaQuery.of(context).size.width * 0.6,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -364,7 +364,7 @@ class _SearchState extends State<Search> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundImage: AssetImage("assets/ex/ex1.png"),
+                            backgroundImage: NetworkImage(artist['imageURL']),
                             radius: 40,
                           ),
                           SizedBox(width: 30),
@@ -407,7 +407,7 @@ class _SearchState extends State<Search> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundImage: AssetImage("assets/ex/ex1.png"),
+                            backgroundImage: NetworkImage(gallery['imageURL']),
                             radius: 40,
                           ),
                           SizedBox(width: 30),

@@ -105,20 +105,21 @@ class _Ex_listState extends State<Ex_list> {
               itemBuilder: (context, index) {
                 final doc = snap.data!.docs[index];
                 final exTitle = doc['exTitle'] as String;
+                final imageURL = doc['imageURL'] as String;
                 Timestamp startTimestamp = doc['startDate'] as Timestamp;
                 DateTime startDate = startTimestamp.toDate();
                 Timestamp endTimestamp = doc['endDate'] as Timestamp;
                 DateTime endDate = endTimestamp.toDate();
 
-                String? imagePath;
-
-                final data = doc.data() as Map<String, dynamic>;
-                if (data.containsKey('imagePath')) {
-                  imagePath = data['imagePath'] as String;
-                } else {
-                  // 'imagePath' 필드가 문서 데이터에 존재하지 않는 경우, 이곳에서 처리할 수 있습니다
-                  imagePath = null;
-                }
+                // String? imagePath;
+                //
+                // final data = doc.data() as Map<String, dynamic>;
+                // if (data.containsKey('imagePath')) {
+                //   imagePath = data['imagePath'] as String;
+                // } else {
+                //   // 'imagePath' 필드가 문서 데이터에 존재하지 않는 경우, 이곳에서 처리할 수 있습니다
+                //   imagePath = null;
+                // }
 
                 final galleryNo = doc['galleryNo'] as String;
 
@@ -155,7 +156,7 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: Image.asset("assets/ex/ex1.png"),
+                                    child: Image.network(imageURL),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
@@ -229,7 +230,7 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: Image.asset("assets/ex/ex1.png"),
+                                    child: Image.network(imageURL),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,

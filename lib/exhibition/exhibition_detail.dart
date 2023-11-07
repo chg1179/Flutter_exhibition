@@ -1,3 +1,4 @@
+import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review_update.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
@@ -69,7 +70,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       if (documentSnapshot.exists) {
         setState(() {
           _exArtistData = documentSnapshot.data() as Map<String, dynamic>;
-          print(_exArtistData);
         });
       } else {
         print('작가 정보를 찾을 수 없습니다.');
@@ -324,15 +324,23 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
               child: Row(
                 children: [
                   InkWell(
-                    onTap: (){},
-                    child: Column(
+                    onTap: (){
+                      if(_exArtistData?['imageURL']!=null) {
+                        Navigator.push(context, MaterialPageRoute(builder: (
+                            context) =>
+                            ArtistInfo(document: _exDetailData?['artistNo'])));
+                      }
+                    },
+                    child:  Column(
                       children: [
                         CircleAvatar(
-                          radius: 40, // 반지름 크기 조절
-                          backgroundImage: AssetImage("assets/"),
+                          radius: 40,
+                          backgroundImage: _exArtistData?['imageURL'] != null
+                              ? NetworkImage(_exArtistData?['imageURL']!)
+                              : AssetImage("assets/ex/basicLogo.png") as ImageProvider, // ImageProvider로 타입 캐스팅
                         ),
-                        SizedBox(height: 8,),
-                        Text(_exArtistData?['artistName'])
+                        SizedBox(height: 8),
+                        Text(_exArtistData?['artistName'] ?? ''), // 데이터가 null인 경우 공백 문자열로 표시
                       ],
                     ),
                   )
@@ -381,9 +389,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   Container(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: Image.asset(
-                        //_exImageData?['imageURL'],
-                        "assets/ex/ex1.png",
+                      child: Image.network(
+                        _exDetailData?['imageURL'],
                         fit: BoxFit.fitWidth,
                       ),
                     ),
@@ -488,7 +495,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ),
                                     ),
                                     onPressed: (){
-                                      openURL(_exDetailData!['exPage'].toString());
+                                      if(_exDetailData!['exPage']!=null) {
+                                        openURL(_exDetailData!['exPage']
+                                            .toString());
+                                      }
                                     },
                                     child: Text("전시회 홈페이지")
                                 ),
@@ -607,27 +617,26 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   _profile(),
                   _TabBar(),
                   Container(
-                    height: MediaQuery.of(context).size.height - (totalHeight+50),
+                    height: MediaQuery.of(context).size.height - (totalHeight + 50),
                     child: TabBarView(
                       children: [
                         SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 20),
-                                child: Text("*사전예약, 세부 사항 등은 해당 전시관으로 문의부탁드립니다.", style: TextStyle(color: Color(0xff464D40)),),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Image.asset(""),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text("전시 소개다"),
-                              ),
-                            ],
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 10, bottom: 30),
+                                  child: Text("*사전예약, 세부 사항 등은 해당 전시관으로 문의부탁드립니다.", style: TextStyle(color: Color(0xff464D40)),),
+                                ),
+                                _exDetailData?['contentURL'] != "" ? Image.network(_exDetailData?['contentURL'], fit: BoxFit.cover, width: MediaQuery.of(context).size.width - 20,) : SizedBox(),
+                                SizedBox(height: 30),
+                                _exDetailData?['content'] == null ? SizedBox() : Text(_exDetailData?['content']),
+                                SizedBox(height: 50,)
+                              ],
+                            ),
                           ),
                         ),
                         SingleChildScrollView(
