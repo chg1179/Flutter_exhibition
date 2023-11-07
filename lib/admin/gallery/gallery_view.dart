@@ -64,7 +64,7 @@ class _GalleryViewState extends State<GalleryView> {
                     ? '주소 : 등록된 주소가 없습니다.'
                     : '주소 : ${galleryData['addr']}' ),
               SizedBox(height: 10),
-              Text(galleryData['galleryClose'] == '' ? '휴관일 : ${galleryData['galleryClose']}' : '휴관일 : 없음'),
+              Text(galleryData['galleryClose'] != '' ? '휴관일 : ${galleryData['galleryClose']}' : '휴관일 : 연중무휴'),
               SizedBox(height: 10),
               Text(galleryData['startTime'] != '' || galleryData['endTime'] != '' ? '운영 시간 : ${galleryData['startTime']} ~ ${galleryData['endTime']}' : '운영 시간 : 등록된 운영 시간이 없습니다.'),
               SizedBox(height: 10),

@@ -184,7 +184,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                           SizedBox(height: 30),
                           TextAndTextField('분　야', _expertiseController, 'expertise'),
                           SizedBox(height: 30),
-                          NationalityTextAndTextField('국　적', _nationalityController, 'nationality', _countrySelect),
+                          ButtonTextAndTextField('국　적', '국가선택', _nationalityController, 'nationality', _countrySelect),
                           SizedBox(height: 30),
                           TextAndTextField('소　개', _introduceController, 'introduce'),
                         ],
@@ -273,9 +273,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
           print(e.toString());
         }
       } : null, // 버튼이 비활성 상태인 경우 onPressed를 null로 설정
-      style: allFieldsFilled
-          ? fullGreenButtonStyle()
-          : fullGreyButtonStyle(), // 모든 값을 입력했다면 그린 색상으로 활성화,
+      style: allFieldsFilled ? fullGreenButtonStyle() : fullGreyButtonStyle(), // 모든 값을 입력했다면 그린 색상으로 활성화,
       child: boldGreyButtonContainer('정보 저장'),
     );
   }

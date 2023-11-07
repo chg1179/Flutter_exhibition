@@ -4,7 +4,7 @@ import 'package:exhibition_project/admin/common_list.dart';
 import 'package:exhibition_project/admin/exhibition/exhibition_edit.dart';
 import 'package:exhibition_project/admin/exhibition/exhibition_view.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
-import 'package:exhibition_project/widget/list_widgets.dart';
+import 'package:exhibition_project/widget/text_and_image.dart';
 import 'package:flutter/material.dart';
 
 class ExhibitionListPage extends StatelessWidget {

@@ -4,7 +4,7 @@ import 'package:exhibition_project/admin/artwork/artwork_view.dart';
 import 'package:exhibition_project/admin/common_add_delete_button.dart';
 import 'package:exhibition_project/admin/common_list.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
-import 'package:exhibition_project/widget/list_widgets.dart';
+import 'package:exhibition_project/widget/text_and_image.dart';
 import 'package:flutter/material.dart';
 
 class ArtworkListPage extends StatelessWidget {
@@ -38,8 +38,9 @@ class _ArtworkListState extends State<ArtworkList> {
     return CommonList(
       title: '작품',
       children: [
-        setImgTextList(
-          'artwork',
+        setChildImgTextList(
+          'artist',
+          'artist_artwork',
           'artTitle',
           (DocumentSnapshot document) => ArtworkViewPage(document: document),
           checkedList,

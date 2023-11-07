@@ -54,8 +54,19 @@ class _GalleryEditState extends State<GalleryEdit> {
   @override
   void initState() {
     super.initState();
+    _init();
     uploader = ImageUploader('gallery_images');
     settingText();
+  }
+
+  // 동기 맞추기
+  void _init() async{
+    setState(() {
+      _galleryNameController.addListener(updateButtonState);
+      _addrController.addListener(updateButtonState);
+      _startTimeController.addListener(updateButtonState);
+      _endTimeController.addListener(updateButtonState);
+    });
   }
 
   // 수정하는 경우에 저장된 값을 필드에 출력
@@ -107,6 +118,32 @@ class _GalleryEditState extends State<GalleryEdit> {
     } else {
       print('No image selected.');
     }
+  }
+
+  // 시간 선택
+  Future<void> _selectTime(BuildContext context, String kind) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (picked != null) {
+      final int hour = picked.hour;
+      final int minute = picked.minute;
+      final String formattedTime = '${_formatTime(hour)}:${_formatTime(minute)}';
+
+      setState(() {
+        if(kind == 'start')
+          _startTimeController.text = formattedTime;
+        else if(kind == 'end')
+          _endTimeController.text = formattedTime;
+      });
+    }
+  }
+
+  // 선택한 시간을 24시간 형식으로 변경
+  String _formatTime(int time) {
+    return time < 10 ? '0$time' : '$time';
   }
 
   @override
@@ -170,19 +207,19 @@ class _GalleryEditState extends State<GalleryEdit> {
                           SizedBox(height: 30),
                           TextAndTextField('주소', _addrController, 'englishName'),
                           SizedBox(height: 30),
-                          TextAndTextField('상세주소', _detailsAddressController, 'englishName'),
+                          TextAndTextField('상세주소', _detailsAddressController, 'detailsAddress'),
                           SizedBox(height: 30),
-                          TextAndTextField('휴관일', _galleryCloseController, 'englishName'),
+                          TextAndTextField('휴관일', _galleryCloseController, 'galleryClose'),
                           SizedBox(height: 30),
-                          TextAndTextField('시작시간', _startTimeController, 'englishName'),
+                          ButtonTextAndTextField('시작시간', '시간선택', _startTimeController, 'time', ()=>_selectTime(context, 'start')),
                           SizedBox(height: 30),
-                          TextAndTextField('마감시간', _endTimeController, 'englishName'),
+                          ButtonTextAndTextField('종료시간', '시간선택', _endTimeController, 'time', ()=>_selectTime(context, 'end')),
                           SizedBox(height: 30),
-                          TextAndTextField('연락처', _galleryPhoneController, 'englishName'),
+                          TextAndTextField('연락처', _galleryPhoneController, 'phone'),
                           SizedBox(height: 30),
-                          TextAndTextField('이메일', _galleryEmailController, 'englishName'),
+                          TextAndTextField('이메일', _galleryEmailController, 'galleryEmail'),
                           SizedBox(height: 30),
-                          TextAndTextField('웹사이트', _webSiteController, 'englishName'),
+                          TextAndTextField('웹사이트', _webSiteController, 'webSite'),
                           SizedBox(height: 30),
                           TextAndTextField('소개', _galleryIntroduceController, 'introduce'),
                           SizedBox(height: 30),
@@ -192,7 +229,7 @@ class _GalleryEditState extends State<GalleryEdit> {
                   // 추가
                   Container(
                       margin: EdgeInsets.all(20),
-                      //child: submitButton()
+                      child: submitButton()
                   ),
                 ],
               ),
@@ -208,14 +245,8 @@ class _GalleryEditState extends State<GalleryEdit> {
     setState(() {
       allFieldsFilled = _galleryNameController.text.isNotEmpty &&
           _addrController.text.isNotEmpty &&
-          _detailsAddressController.text.isNotEmpty &&
-          _galleryCloseController.text.isNotEmpty &&
           _startTimeController.text.isNotEmpty &&
-          _endTimeController.text.isNotEmpty &&
-          _galleryPhoneController.text.isNotEmpty &&
-          _galleryEmailController.text.isNotEmpty &&
-          _webSiteController.text.isNotEmpty &&
-          _galleryIntroduceController.text.isNotEmpty;
+          _endTimeController.text.isNotEmpty;
     });
   }
 
@@ -277,11 +308,7 @@ class _GalleryEditState extends State<GalleryEdit> {
           print(e.toString());
         }
       } : null, // 버튼이 비활성 상태인 경우 onPressed를 null로 설정
-      style: allFieldsFilled
-          ? fullGreenButtonStyle()
-          : ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(Colors.grey), // 모든 값을 입력했다면 그린 색상으로 활성화
-      ),
+      style: allFieldsFilled ? fullGreenButtonStyle() : fullGreyButtonStyle(), // 모든 값을 입력했다면 그린 색상으로 활성화,
       child: boldGreyButtonContainer('정보 저장'),
     );
   }

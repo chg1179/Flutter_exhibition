@@ -23,6 +23,30 @@ Stream<QuerySnapshot> getChildStreamData(DocumentSnapshot document, String paren
       .snapshots();
 }
 
+// 하위 컬렉션의 전체 리스트 출력
+Stream<List<QuerySnapshot>> getSubCollectionStreamData(String parentCollection, String childCollection, String condition, bool orderBool) async* {
+  QuerySnapshot parentDocs = await FirebaseFirestore.instance.collection(parentCollection).get();
+  List<QuerySnapshot> subCollectionSnapshots = [];
+  for (var doc in parentDocs.docs) {
+    QuerySnapshot subCollectionSnapshot = await FirebaseFirestore.instance
+        .collection(parentCollection)
+        .doc(doc.id)
+        .collection(childCollection)
+        .orderBy(condition, descending: orderBool)
+        .get();
+    subCollectionSnapshots.add(subCollectionSnapshot);
+  }
+  // 정렬 (로딩 및 정렬 시간이 너무 많이 걸려 생략)
+  /*
+  subCollectionSnapshots.sort((a, b) {
+    var aTitle = a.docs.first.get(condition).toString();
+    var bTitle = b.docs.first.get(condition).toString();
+    return orderBool ? bTitle.compareTo(aTitle) : aTitle.compareTo(bTitle);
+  });
+  */
+  yield subCollectionSnapshots;
+}
+
 // 조건에 맞는 값을 추출
 Future<QuerySnapshot> getEqualData(String collectionName, String conditionName, String conditionData) async {
   return FirebaseFirestore.instance
@@ -65,11 +89,11 @@ void removeCheckList(BuildContext context, Map<String, bool> checkedList, String
 }
 
 // 하위 컬렉션명을 받아 모두 삭제
-Future<void> deleteAllSubCollection(String parentCollection, String documentId, List<String> subCollections) async {
+Future<void> deleteAllSubCollection(String parentCollection, String documentId, List<String> childCollections) async {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  for (String subCollection in subCollections) {
-    await firestore.collection(parentCollection).doc(documentId).collection(subCollection).get()
+  for (String childCollection in childCollections) {
+    await firestore.collection(parentCollection).doc(documentId).collection(childCollection).get()
         .then((snapshot) {
       for (DocumentSnapshot ds in snapshot.docs) {
         ds.reference.delete();
@@ -150,4 +174,3 @@ Future<void> updateImageURL(String parentCollection, String documentId, String d
     'folderName' : folderName,
   });
 }
-
