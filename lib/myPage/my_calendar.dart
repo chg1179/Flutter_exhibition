@@ -47,7 +47,11 @@ class _MyCalendarState extends State<MyCalendar> {
 
   TextEditingController _eventController = TextEditingController();
   TextEditingController _memoController = TextEditingController();
-  
+
+  Widget _buildEventMarker(DateTime date, List events) {
+    // 원 모양 아이콘을 대신하여 원하지 않는 아이콘을 표시하지 않도록 빈 Container를 반환
+    return Container();
+  }
 
   @override
   void initState() {
@@ -95,6 +99,9 @@ class _MyCalendarState extends State<MyCalendar> {
         doc.id,
       ));
     });
+
+    // 이벤트를 날짜(일수)순으로 정렬
+    events.sort((a, b) => a.evtDate.compareTo(b.evtDate));
 
     setState(() {
       allEvents = events;
@@ -210,8 +217,9 @@ class _MyCalendarState extends State<MyCalendar> {
               ),
             ),
             eventLoader: (day) {
-              return _events[day] ?? [];
+              return [];
             },
+
           ),
           Expanded(
             child: _events[_selectedDay] != null && _events[_selectedDay]!.isNotEmpty
@@ -234,7 +242,7 @@ class _MyCalendarState extends State<MyCalendar> {
 
                 return GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4, // 네모 상자 열 수
+                    crossAxisCount: 3, // 네모 상자 열 수
                     mainAxisSpacing: 5.0, // 상자 수직 간격
                     crossAxisSpacing: 5.0, // 상자 가로 간격
                   ),
@@ -247,51 +255,32 @@ class _MyCalendarState extends State<MyCalendar> {
                     var evtDate = (data['evtDate'] as Timestamp).toDate(); // evtDate 추출
                     var event = Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id);
 
-
                     return GestureDetector(
-                        onTap: () {
-                          _showEventDetailsDialog(event);
-                        },
-                    child: Card(
-                      child: Container(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.network(
-                              '$evtImage',
-                              width: 85,
-                              height: 85,
-                              fit: BoxFit.cover,
-                            ),
-
-                            /*Text(
-                              evtTitle,
-                              style: TextStyle(
-                                fontSize: 18.0,
-                                fontWeight: FontWeight.bold,
+                      onTap: () {
+                        _showEventDetailsDialog(event);
+                      },
+                      child: Card(
+                        color: Colors.transparent,
+                        elevation: 0,// 배경 투명으로 설정
+                        child: Container(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center, // 그림을 가운데 정렬
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Image.network(
+                                '$evtImage',
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.contain,
                               ),
-                            ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              evtContent,
-                              style: TextStyle(fontSize: 16.0),
-                            ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              '일정 날짜: ${DateFormat('yyyy-MM-dd').format(evtDate)}', // 날짜 표시
-                              style: TextStyle(fontSize: 16.0),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                _deleteEvent(Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id));
-                              },
-                            ),*/
-                          ],
+                              Text(
+                                '${DateFormat('dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
+                                style: TextStyle(fontSize: 12.0),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                     )
                     );
                   },
                 );
@@ -307,81 +296,96 @@ class _MyCalendarState extends State<MyCalendar> {
   }
 
   void _updateEventList(DateTime selectedDay) {
-    // 선택한 날짜에 해당하는 이벤트만 필터링
-    final eventsForSelectedDay = getEventsForSelectedDate(selectedDay, allEvents);
+    final eventsForSelectedMonth = getEventsForSelectedMonth(selectedDay, allEvents);
 
-    // 이벤트 목록 업데이트
     setState(() {
+      _focusedDay = DateTime(selectedDay.year, selectedDay.month, 1);
       _selectedDay = selectedDay;
-      _events[selectedDay] = eventsForSelectedDay;
+      _events[selectedDay] = eventsForSelectedMonth;
     });
   }
-
-
+  List<Event> getEventsForSelectedMonth(DateTime selectedDay, List<Event> allEvents) {
+    return allEvents.where((event) {
+      return event.evtDate.year == selectedDay.year && event.evtDate.month == selectedDay.month;
+    }).toList();
+  }
 
   void _addEvent(BuildContext context) {
     final userSession = Provider.of<UserModel?>(context, listen: false);
     String evtTitle = _eventController.text;
     String evtContent = _memoController.text;
+    String? imageUrl; // 이미지 URL을 저장하는 변수
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('캘린더 기록하기'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: _eventController,
-                decoration: InputDecoration(labelText: '제목'),
-                onChanged: (text) {
-                  evtTitle = text;
-                },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('캘린더 기록하기'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (imageUrl != null) // 이미지 URL이 있을 때만 미리보기 표시
+                    Image.network(
+                      imageUrl!,
+                      fit: BoxFit.contain,
+                      width: 100, // 이미지의 너비 조정 (원하는 크기로 변경)
+                      height: 100, // 이미지의 높이 조정 (원하는 크기로 변경)
+                    ),
+                  TextField(
+                    controller: _eventController,
+                    decoration: InputDecoration(labelText: '제목'),
+                    onChanged: (text) {
+                      evtTitle = text;
+                    },
+                  ),
+                  TextField(
+                    controller: _memoController,
+                    decoration: InputDecoration(labelText: '내용'),
+                    onChanged: (text) {
+                      evtContent = text;
+                    },
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      imageUrl = await _showImageScrollDialog(context);
+                      setState(() {}); // 화면을 다시 그리도록 강제 업데이트
+                    },
+                    child: Text('좋아요한 전시사진 업로드'),
+                  ),
+                ],
               ),
-              TextField(
-                controller: _memoController,
-                decoration: InputDecoration(labelText: '내용'),
-                onChanged: (text) {
-                  evtContent = text;
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  _showImageScrollDialog(context);
-                },
-                child: Text('좋아요한 전시사진 업로드'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('취소'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (evtTitle.isNotEmpty) {
-                  _addEventToFirestore(evtTitle, evtContent, _selectedDay);
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text('저장'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('취소'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (evtTitle.isNotEmpty) {
+                      _addEventToFirestore(evtTitle, evtContent, _selectedDay,imageUrl);
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text('저장'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
 
-  void _showImageScrollDialog(BuildContext context) {
+  Future<String?> _showImageScrollDialog(BuildContext context) async {
     final userSession = Provider.of<UserModel?>(context, listen: false);
     final userNo = userSession?.userNo;
     if (userSession != null && userSession.isSignIn) {
       // userNo가 null도 아니고 비어 있지 않을 때 실행할 코드
-    showDialog(
+      final imageUrl = await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -444,6 +448,7 @@ class _MyCalendarState extends State<MyCalendar> {
         );
       },
     );
+      return imageUrl;
   } else {
       // userNo가 Infinity 또는 NaN인 경우 처리
       showDialog(
@@ -463,13 +468,14 @@ class _MyCalendarState extends State<MyCalendar> {
           );
         },
       );
+      return null;
     }
   }
 
 
 
 
-  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay) {
+  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl) {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
       FirebaseFirestore.instance
@@ -477,10 +483,11 @@ class _MyCalendarState extends State<MyCalendar> {
           .doc(user.userNo)
           .collection('events')
           .add({
-        'evtTitle': evtTitle,
-        'evtDate': selectedDay,
-        'evtContent': evtContent,
-      })
+              'evtTitle': evtTitle,
+              'evtImage': imageUrl,
+              'evtDate': selectedDay,
+              'evtContent': evtContent,
+         })
        .then((documentReference) {
         final event = Event(evtTitle, selectedDay, evtContent, documentReference.id);
         final events = _events[selectedDay] ?? [];
@@ -622,6 +629,4 @@ class _MyCalendarState extends State<MyCalendar> {
       },
     );
   }
-
-
 }
