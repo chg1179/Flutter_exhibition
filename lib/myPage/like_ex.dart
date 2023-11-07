@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:provider/provider.dart';
 
+import '../exhibition/exhibition_detail.dart';
 import '../model/user_model.dart';
 
 class LikeEx extends StatefulWidget {
@@ -19,29 +20,20 @@ class _LikeExState extends State<LikeEx> {
   final _search = TextEditingController();
   late DocumentSnapshot _userDocument;
 
-  final List<Map<String, dynamic>> _exList = [
-    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex1.png'},
-    {'title': '김유경: Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.10.26', 'posterPath' : 'ex/ex2.png'},
-    {'title': '원본 없는 판타지', 'place' : '온수공간/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex3.png'},
-    {'title': '강태구몬, 닥설랍, 진택 : The Instant kids', 'place' : '러브 컨템포러리 아트/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex4.jpg'},
-    {'title': '차승언 개인전 <<Your love is better than life>>', 'place' : '씨알콜렉티브/서울', 'startDate':'2023.10.26', 'lastDate' : '2023.11.29', 'posterPath' : 'ex/ex5.jpg'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex1.png'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.10.25', 'lastDate' : '2023.11.12', 'posterPath' : 'ex/ex2.png'},
-    {'title': 'Tropical Maladys', 'place' : '상업화랑 용산/서울', 'startDate' : '2023.11.15', 'lastDate' : '2023.12.15', 'posterPath' : 'ex/ex3.png'},
-  ];
+  final List<Map<String, dynamic>> _exList = [];
 
 
-  String getOngoing(String lastDate, String startDate) {
+  String getOngoing(DateTime endDate, DateTime startDate) {
     DateFormat dateFormat = DateFormat('yyyy.MM.dd'); // 입력된 'lastDate' 형식에 맞게 설정
 
     DateTime currentDate = DateTime.now();
-    DateTime exLastDate = dateFormat.parse(lastDate); // 'lastDate'를 DateTime 객체로 변환
-    DateTime exStartDate = dateFormat.parse(startDate);
+    String endDateString = dateFormat.format(endDate);
+    String startDateString = dateFormat.format(startDate);
 
     // 비교
-    if(currentDate.isBefore(exStartDate)){
+    if(currentDate.isBefore(startDate)){
       return "예정";
-    }else if(currentDate.isBefore(exLastDate)) {
+    }else if(currentDate.isBefore(endDate)) {
       return "진행중";
     } else {
       return "종료";
@@ -61,6 +53,9 @@ class _LikeExState extends State<LikeEx> {
         .collection('like')
         .orderBy('likeDate', descending: true)
         .get();
+
+    // Firestore에서 가져온 데이터를 사용하여 _exList를 채우는 코드 추가
+    _exList.clear(); // 기존 목록을 비웁니다.
   }
   /// 좋아요한 전시회 길이구하기
   Future<int> getSubcollectionLength() async {
@@ -164,15 +159,22 @@ class _LikeExState extends State<LikeEx> {
 
                       // 필드 값을 가져와 변수에 할당
                       var exTitle = data['exTitle'] ?? '';
-                      var startDate = data['startDate'] ?? '';
-                      var endDate = data['endDate'] ?? '';
+                      var startDate = data['startDate'] as Timestamp;
+                      var endDate = data['endDate'] as Timestamp;
                       var addr = data['addr'] ?? '';
                       var exImage = data['exImage'] ?? '';
-                      var likeDate = data['likeDate'] ?? '';
+                      var likeDate = data['likeDate'] as Timestamp;
+
+                      // Timestamp를 DateTime으로 변환
+                      DateTime startDateDateTime = startDate.toDate();
+                      DateTime endDateDateTime = endDate.toDate();
+                      DateTime likeDateTime = likeDate.toDate();
 
                       return InkWell(
                         onTap: (){
-                          print("${_exList[index]['title']} 눌럿다");
+                          print("$exTitle 눌럿다 다되면 이동시켜라");
+                          ///연결만 시키면 되는데 이거 본사람 당첨
+                          //Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id) ));
                         },
                         child: Card(
                           margin: const EdgeInsets.all(5.0),
@@ -183,14 +185,14 @@ class _LikeExState extends State<LikeEx> {
                                   topLeft: Radius.circular(5),
                                   topRight: Radius.circular(5),
                                 ),
-                                child: Image.asset("assets/${_exList[index]['posterPath']}"),
+                                child: Image.network(exImage),
                               ),
                               Container(
                                   alignment: Alignment.centerLeft,
                                   padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
                                   decoration: BoxDecoration(
                                   ),
-                                  child: Text(getOngoing(_exList[index]['lastDate'],_exList[index]['startDate']),
+                                  child: Text(getOngoing(endDateDateTime, startDateDateTime),
                                       style: TextStyle(
                                         decoration: TextDecoration.underline,
                                         decorationStyle: TextDecorationStyle.double,
@@ -202,18 +204,18 @@ class _LikeExState extends State<LikeEx> {
                               ListTile(
                                 title: Padding(
                                   padding: const EdgeInsets.only(top: 5, bottom: 5),
-                                  child: Text(_exList[index]['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
+                                  child: Text(exTitle, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 5),
-                                      child: Text(_exList[index]['place'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
+                                      child: Text(addr, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 5),
-                                      child: Text("${_exList[index]['startDate']} ~ ${_exList[index]['lastDate']}"),
+                                      child: Text("${DateFormat('yyyy.MM.dd').format(startDateDateTime)} ~ ${DateFormat('yyyy.MM.dd').format(endDateDateTime)}"),
                                     ),
                                   ],
                                 ),
