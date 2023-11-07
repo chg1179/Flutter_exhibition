@@ -26,7 +26,7 @@ class _CommEditState extends State<CommEdit> {
   late ImageUploader uploader;
   XFile? _imageFile;
   String? downloadURL;
-  bool _showCustomHashtagInput = false;
+  bool _showCustomHashtagInput = true;
 
   List<String> _tagList = [
     '전시',

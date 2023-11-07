@@ -202,13 +202,14 @@ class _ReviewDetailState extends State<ReviewDetail> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 20),
-                        Container(
-                            height:1.0,
-                            width: MediaQuery.of(context).size.width,
-                            color: Colors.black12
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Container(
+                              height:1.0,
+                              width: MediaQuery.of(context).size.width,
+                              color: Colors.black12
+                          ),
                         ),
-                        SizedBox(height: 20),
                         if (imageURL != null && imageURL.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.all(10.0),
@@ -298,7 +299,10 @@ class _ReviewDetailState extends State<ReviewDetail> {
           onPressed: _onBackPressed
         ),
       ),
-      body: _reviewDetailWidget(),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: _reviewDetailWidget(),
+      ),
     );
   }
 }

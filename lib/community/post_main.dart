@@ -24,6 +24,7 @@ class CommMain extends StatefulWidget {
 }
 
 class _CommMainState extends State<CommMain> {
+  Map<String, bool> isLikedMap = {};
   bool isLiked = false;
   List<String> _tagList = [
     '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
@@ -72,9 +73,12 @@ class _CommMainState extends State<CommMain> {
     isDataLoaded = true;
 
     _loadUserData();
+
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+    final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    _likeCheck(postIds as String);
     setState(() {});
-    await loadCommentCnt();
-    await loadCommentCnt();
+    // await loadCommentCnt();
   }
 
   String? _userNickName;
@@ -94,17 +98,17 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-  // 게시글 아이디 리스트로 가져오기
-  Future<List<String>> getPostId() async {
-    try {
-      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-      final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-      return postIds;
-    } catch (e) {
-      print('게시물 ID를 불러오는 동안 오류 발생: $e');
-      return [];
-    }
-  }
+  // // 게시글 아이디 리스트로 가져오기
+  // Future<List<String>> getPostId() async {
+  //   try {
+  //     final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+  //     final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+  //     return postIds;
+  //   } catch (e) {
+  //     print('게시물 ID를 불러오는 동안 오류 발생: $e');
+  //     return [];
+  //   }
+  // }
 
   // 게시글 당 댓글 수 가져오기
   Future<int> getcommentCnt(String postId) async {
@@ -170,6 +174,69 @@ class _CommMainState extends State<CommMain> {
       selectedButtonIndex = index;
       selectedTag = _tagList[index];
     });
+  }
+
+  void _likeCheck(String postId) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    final likeYnSnapshot = await FirebaseFirestore.instance
+        .collection('post')
+        .doc(postId)
+        .collection('likes')
+        .where('userId', isEqualTo: user?.userNo)
+        .get();
+    if (likeYnSnapshot.docs.isNotEmpty) {
+      setState(() {
+        isLikedMap[postId] = true;
+      });
+    } else {
+      setState(() {
+        isLikedMap[postId] = false;
+      });
+    }
+  }
+
+  // 좋아요 버튼을 누를 때 호출되는 함수
+  Future<void> toggleLike(String postId) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      DocumentReference postDoc = FirebaseFirestore.instance.collection('post').doc(postId);
+      CollectionReference postRef = postDoc.collection('likes');
+
+      final currentIsLiked = isLikedMap[postId] ?? false; // 현재 상태 가져오기
+
+      if (!currentIsLiked) {
+        await postRef.add({'userId' : user.userNo});
+        await postDoc.update({
+          'likeCount': FieldValue.increment(1),
+        });
+      } else {
+        await postDoc.collection('likes').doc(user.userNo!).delete();
+        await postDoc.update({
+          'likeCount' : FieldValue.increment(-1)
+        });
+      }
+
+      setState(() {
+        isLikedMap[postId] = !currentIsLiked; // 현재 상태를 토글합니다.
+      });
+    }
+  }
+
+  // 게시글 좋아요 버튼을 표시하는 부분
+  Widget buildLikeButton(String docId, int likeCount) {
+    final currentIsLiked = isLikedMap[docId] ?? false; // 현재 상태 가져오기
+
+    return GestureDetector(
+      onTap: () {
+        toggleLike(docId); // 해당 게시물의 좋아요 토글 함수 호출
+      },
+      child: buildIconsItem(
+        currentIsLiked ? Icons.favorite : Icons.favorite_border,
+        likeCount.toString(),
+        currentIsLiked ? Colors.red : null,
+      ),
+    );
   }
 
   ButtonStyle _unPushBtnStyle() {
@@ -271,7 +338,7 @@ class _CommMainState extends State<CommMain> {
 
 
 
-  Widget buildIcons(String docId, int viewCount) {
+  Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -282,21 +349,15 @@ class _CommMainState extends State<CommMain> {
               buildIconsItem(Icons.visibility, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded, commentCounts[docId].toString()),
+                Icons.chat_bubble_rounded,  (commentCounts[docId] ?? 0).toString()),
               SizedBox(width: 5),
+
             ],
           ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                isLiked = !isLiked;
-              });
-            },
-            child: buildIconsItem(
-              isLiked ? Icons.favorite : Icons.favorite_border,
-              '0',
-              isLiked ? Colors.red : null,
-            ),
+          Row(
+            children: [
+              buildLikeButton(docId, likeCount),
+            ],
           ),
         ],
       ),
@@ -364,12 +425,9 @@ class _CommMainState extends State<CommMain> {
             final title = doc['title'] as String;
             final content = doc['content'] as String;
             final nickName = doc['userNickName'] as String;
-
-
             String docId = doc.id;
-
             int viewCount = doc['viewCount'] as int? ?? 0;
-
+            int likeCount = doc['likeCount'] as int? ?? 0;
 
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
@@ -453,7 +511,7 @@ class _CommMainState extends State<CommMain> {
                           ),
                         ),
                       ),
-                    buildIcons(docId, viewCount),
+                    buildIcons(docId, viewCount, likeCount),
                     FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
                                 .collection('post')
