@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:provider/provider.dart';
-
-import '../exhibition/exhibition_detail.dart';
 import '../model/user_model.dart';
 
 class LikeEx extends StatefulWidget {
@@ -139,7 +137,32 @@ class _LikeExState extends State<LikeEx> {
                   return Center(child: Text('에러 발생: ${snapshot.error}'));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('데이터 없음'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.sentiment_satisfied_alt, // 원하는 이모지 아이콘 선택
+                          size: 64, // 이모지 크기 설정
+                          color: Colors.grey, // 이모지 색상 설정
+                        ),
+                        Text(
+                          '아직 좋아요한 전시가 없으시군요!',
+                          style: TextStyle(
+                            fontSize: 18, // 큰 글씨 폰트 크기
+                            color: Colors.black, // 글자 색상 설정
+                          ),
+                        ),
+                        Text(
+                          '좋아요한 전시회를 모아볼 수 있어요!',
+                          style: TextStyle(
+                            fontSize: 11, // 작은 글씨 폰트 크기
+                            color: Colors.grey, // 회색
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 }
                 return Padding(
                   padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
