@@ -126,7 +126,12 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                         child: Row(
                           children: [
                             SizedBox(width: 10),
+                            _artistInfo?['imageURL'] == null ?
                             CircleAvatar(
+                              radius: 30, // 반지름 크기 조절
+                              backgroundImage: AssetImage("assets/main/logo_green.png"),
+                            )
+                            : CircleAvatar(
                               radius: 30, // 반지름 크기 조절
                               backgroundImage: NetworkImage(_artistInfo?['imageURL']),
                             ),
@@ -206,7 +211,11 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                                               ),
                                               Padding(
                                                 padding: const EdgeInsets.only(top: 8, bottom: 5, left: 5, right: 5),
-                                                child: Text('${artwork?['artTitle']}'),
+                                                child: Text('${artwork?['artTitle']}', style: TextStyle(fontWeight: FontWeight.bold),),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(bottom: 5, left: 5, right: 5),
+                                                child: Text('${artwork?['artType']}', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
                                               ),
                                             ],
                                           ),

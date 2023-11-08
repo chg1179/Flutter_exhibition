@@ -200,10 +200,12 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
           ],
           flexibleSpace: Stack(
             children: [
-              Image.network(
+              _artistData?['imageURL'] == null
+              ?Image.asset("assets/main/logo_green.png")
+              :Image.network(
                 _artistData?['imageURL'],
-                width: double.infinity,
-                height: double.infinity,
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width,
                 fit: BoxFit.cover,
               ),
               Positioned(
@@ -248,21 +250,22 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   ),
                 ),
               ),
-              Positioned(
-                top: 130,
-                right: 26,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(_artistData?['imageURL']),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   top: 130,
+              //   right: 26,
+              //   child:
+              //   Container(
+              //     width: 80,
+              //     height: 80,
+              //     decoration: BoxDecoration(
+              //       shape: BoxShape.circle,
+              //       image: DecorationImage(
+              //         image: NetworkImage(_artistData?['imageURL']),
+              //         fit: BoxFit.cover,
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
