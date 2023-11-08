@@ -19,7 +19,7 @@ class CommDetail extends StatefulWidget {
 
 class _CommDetailState extends State<CommDetail> {
   bool _dataLoaded = false;
-  bool _isLiked = false;
+  Map<String, bool> isLikedMap = {};
 
   final _commentCtr = TextEditingController();
   final _firestore = FirebaseFirestore.instance;
@@ -96,6 +96,10 @@ class _CommDetailState extends State<CommDetail> {
         _dataLoaded = true;
       });
       await _loadUserData();
+
+      final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+      final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+      _likeCheck(postIds);
     }
   }
 
@@ -186,6 +190,85 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+  // 좋아요 체크
+  Future<void> _likeCheck(List<String> postIds) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    for (String postId in postIds) {
+      final likeYnSnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(postId)
+          .collection('likes')
+          .where('userId', isEqualTo: user?.userNo)
+          .get();
+
+      if (likeYnSnapshot.docs.isNotEmpty) {
+        setState(() {
+          isLikedMap[postId] = true;
+        });
+      } else {
+        setState(() {
+          isLikedMap[postId] = false;
+        });
+      }
+    }
+  }
+
+  // 좋아요 버튼을 누를 때 호출되는 함수
+  Future<void> toggleLike(String postId) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      DocumentReference postDoc = FirebaseFirestore.instance.collection('post').doc(postId);
+      CollectionReference postRef = postDoc.collection('likes');
+
+      final currentIsLiked = isLikedMap[postId] ?? false; // 현재 상태 가져오기
+
+      if (!currentIsLiked) {
+        // 좋아요 추가
+        await postRef.add({'userId' : user.userNo});
+        await postDoc.update({'likeCount' : FieldValue.increment(1)});
+
+      } else {
+        // 좋아요 삭제
+        QuerySnapshot likeSnapshot = await postRef.where('userId', isEqualTo: user.userNo).get();
+        for (QueryDocumentSnapshot doc in likeSnapshot.docs) {
+          await doc.reference.delete();
+          await postDoc.update({'likeCount' : FieldValue.increment(-1)});
+        }
+      }
+
+      // 좋아요 수 업데이트
+      QuerySnapshot likeSnapshot = await postRef.get();
+      int likeCount = likeSnapshot.size;
+      await postDoc.update({
+        'likeCount': likeCount,
+      });
+
+      setState(() {
+        isLikedMap[postId] = !currentIsLiked; // 현재 상태를 토글합니다.
+      });
+    }
+  }
+
+
+  // 게시글 좋아요 버튼을 표시하는 부분
+  Widget buildLikeButton(String docId, int likeCount) {
+    final currentIsLiked = isLikedMap[docId] ?? false; // 현재 상태 가져오기
+
+    return GestureDetector(
+      onTap: () {
+        toggleLike(docId); // 해당 게시물의 좋아요 토글 함수 호출
+      },
+      child: buildIconsItem(
+        currentIsLiked ? Icons.favorite : Icons.favorite_border,
+        likeCount.toString(),
+        currentIsLiked ? Colors.red : null,
+      ),
+    );
+  }
+
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -196,7 +279,7 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  Widget buildDetailContent(String title, String content, String writeDate, int viewCount, String userNickName) {
+  Widget buildDetailContent(String title, String content, String writeDate, int viewCount, String userNickName, int likeCount) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
@@ -206,7 +289,7 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
-          buildIcons(widget.document,viewCount),
+          buildIcons(widget.document,viewCount, likeCount),
         ],
       ),
     );
@@ -226,7 +309,7 @@ class _CommDetailState extends State<CommDetail> {
                 backgroundImage: AssetImage('assets/ex/ex1.png'),
               ),
               SizedBox(width: 5),
-              Text(userNickName, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(userNickName, style: TextStyle(fontSize: 13)),
             ],
           ),
           Text(
@@ -268,21 +351,21 @@ class _CommDetailState extends State<CommDetail> {
   }
 
 
-  //게시글 아이디 불러오기
-  Future<List<String>> getPostDocumentIds() async {
-    try {
-      final QuerySnapshot querySnapshot = await _firestore.collection('post').get();
-      final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
-      return documentIds;
-    } catch (e) {
-      print('게시물 ID를 불러오는 동안 오류 발생: $e');
-      return [];
-    }
-  }
+  // //게시글 아이디 불러오기
+  // Future<List<String>> getPostDocumentIds() async {
+  //   try {
+  //     final QuerySnapshot querySnapshot = await _firestore.collection('post').get();
+  //     final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
+  //     return documentIds;
+  //   } catch (e) {
+  //     print('게시물 ID를 불러오는 동안 오류 발생: $e');
+  //     return [];
+  //   }
+  // }
 
 
 
-  Widget buildIcons(String docId, int viewCount) {
+  Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
       child: Row(
@@ -296,17 +379,10 @@ class _CommDetailState extends State<CommDetail> {
               SizedBox(width: 5),
             ],
           ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _isLiked = !_isLiked;
-              });
-            },
-            child: buildIconsItem(
-              _isLiked ? Icons.favorite : Icons.favorite_border,
-              '0',
-              _isLiked ? Colors.red : null,
-            ),
+          Row(
+            children: [
+              buildLikeButton(docId, likeCount),
+            ],
           ),
         ],
       ),
@@ -590,6 +666,10 @@ class _CommDetailState extends State<CommDetail> {
                       .orderBy('write_date', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
+                    // _postData = documentSnapshot.data() as Map<String, dynamic>;
+                    // final timestamp = _postData?['write_date'] as Timestamp;
+                    // final formattedDate = _formatTimestamp(timestamp);
+                    // _postData?['write_date'] = formattedDate;
                     if (snapshot.hasError) {
                       return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
                     }
@@ -787,9 +867,13 @@ class _CommDetailState extends State<CommDetail> {
       final replies = data.docs.map((doc) {
         final replyData = doc.data() as Map<String, dynamic>;
         final replyText = replyData['reply'] as String;
+        final userNickName = replyData['userNickName'] as String;
+        final replyDate = replyData['write_date'];
 
         return {
           'replyText': replyText,
+          'userNickName' : userNickName,
+          'write_date' : replyDate,
         };
       }).toList();
 
@@ -823,6 +907,8 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget _buildReplyRow(Map<String, dynamic> replyData) {
     final replyText = replyData['replyText'] as String;
+    final userNickName = replyData['userNickName'] as String?;
+
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: EdgeInsets.only(left: 10),
@@ -838,34 +924,39 @@ class _CommDetailState extends State<CommDetail> {
             ),
           ),
           Container(
-            width: MediaQuery.of(context).size.width - 105,
             padding: EdgeInsets.only(top: 10, bottom: 10),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('hj', style: TextStyle(fontSize: 13)),
-                    SizedBox(height: 5),
-                    Text(
-                      replyData['write_date'] != null
-                          ? _formatTimestamp(replyData['write_date'] as Timestamp)
-                          : '날짜 없음', // 또는 다른 대체 텍스트
-                      style: TextStyle(fontSize: 10),
-                    ),
-                    Text(
-                      _addLineBreaks(replyText, MediaQuery.of(context).size.width),
-                      style: TextStyle(fontSize: 12),
+                    Text(userNickName!, style: TextStyle(fontSize: 10)),
+                    Row(
+                      children: [
+                        Text(
+                          replyData['write_date'] != null
+                              ? _formatTimestamp(replyData['write_date'] as Timestamp)
+                              : '날짜 없음', // 또는 다른 대체 텍스트
+                          style: TextStyle(fontSize: 10),
+                        ),
+                        if (_userNickName == userNickName)
+                          GestureDetector(
+                            onTap: () {
+                              // 수정 삭제 로직 추가
+                            },
+                            child: Icon(Icons.more_vert, size: 15),
+                          ),
+                      ],
                     ),
                   ],
                 ),
+                SizedBox(height: 5),
+                Text(
+                  _addLineBreaks(replyText, MediaQuery.of(context).size.width),
+                  style: TextStyle(fontSize: 12),
+                ),
               ],
-            ),
-          ),
-          Expanded(
-            child: Icon(
-              Icons.more_vert,
-              size: 15,
             ),
           ),
         ],
@@ -914,14 +1005,35 @@ class _CommDetailState extends State<CommDetail> {
           SliverToBoxAdapter(
             child: Column(
               children: [
-                if (_postData != null)
-                  buildDetailContent(
-                    _postData?['title'] ?? '',
-                    _postData?['content'] ?? '',
-                    _postData?['write_date'],
-                    _postData?['viewCount'] ?? 0,
-                    _postData?['userNickName'] ?? '',
-                  ),
+                StreamBuilder(
+                    stream: _firestore
+                        .collection('post')
+                        .doc(widget.document)
+                        .snapshots(),
+                    builder: (context, snapshot){
+                      if (snapshot.hasError) {
+                        return Text('댓글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                      }
+                      if(snapshot.hasData){
+                        final postData = snapshot.data;
+                        final title = postData?['title'] as String;
+                        final content = postData?['content'] as String;
+                        final nickName = postData?['userNickName'] as String;
+                        int viewCount = postData?['viewCount'] as int? ?? 0;
+                        int likeCount = postData?['likeCount'] as int? ?? 0;
+                        return buildDetailContent(
+                          title,
+                          content,
+                          _formatTimestamp(postData?['write_date'] as Timestamp),
+                          viewCount,
+                          nickName,
+                          likeCount
+                        );
+                      } else {
+                        return Container();
+                      }
+                    }
+                ),
                 StreamBuilder(
                   stream: _firestore
                       .collection('post')

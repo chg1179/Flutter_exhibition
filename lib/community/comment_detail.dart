@@ -2,6 +2,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 class CommentDetail extends StatefulWidget {
   final String? postId;
@@ -14,6 +17,30 @@ class CommentDetail extends StatefulWidget {
 }
 
 class _CommentDetailState extends State<CommentDetail> {
+
+  String? _userNickName;
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
+
   final _replyCtr = TextEditingController();
   List<Map<String, dynamic>> _reply = [];
   final _firestore = FirebaseFirestore.instance;
@@ -41,6 +68,7 @@ class _CommentDetailState extends State<CommentDetail> {
     print(widget.commentId);
     print(widget.postId);
     _loadReplys();
+    _loadUserData();
   }
 
   // 대댓글 불러오기
@@ -50,7 +78,7 @@ class _CommentDetailState extends State<CommentDetail> {
           .collection('post')
           .doc(widget.postId)
           .collection('comment')
-          .doc(widget.commentId) // Replace with the actual comment ID
+          .doc(widget.commentId)
           .collection('reply')
           .orderBy('write_date', descending: false)
           .get();
@@ -59,6 +87,7 @@ class _CommentDetailState extends State<CommentDetail> {
         return {
           'reply': data['reply'] as String,
           'write_date': data['write_date'] as Timestamp,
+          'userNickName' : data['userNickName'] as String
         };
       }).toList();
       
@@ -81,11 +110,12 @@ class _CommentDetailState extends State<CommentDetail> {
             .collection('post')
             .doc(widget.postId)
             .collection('comment')
-            .doc(widget.commentId) // Replace with the actual comment ID
+            .doc(widget.commentId)
             .collection('reply')
             .add({
           'reply': replyText,
           'write_date': FieldValue.serverTimestamp(),
+          'userNickName' : _userNickName!
         });
 
         _replyCtr.clear();
@@ -154,6 +184,7 @@ class _CommentDetailState extends State<CommentDetail> {
         children: data.docs.map((doc) {
           final replyData = doc.data() as Map<String, dynamic>;
           final replyText = replyData['reply'] as String;
+          final userNickName = replyData['userNickName'] as String;
 
           return Container(
             width: MediaQuery.of(context).size.width,
@@ -177,7 +208,7 @@ class _CommentDetailState extends State<CommentDetail> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('hj', style: TextStyle(fontSize: 13)),
+                          Text(userNickName, style: TextStyle(fontSize: 10)),
                           SizedBox(height: 5),
                           Text(
                             replyData['write_date'] != null
@@ -245,6 +276,7 @@ class _CommentDetailState extends State<CommentDetail> {
 
               final commentData = commentSnapshot.data as DocumentSnapshot;
               final commentText = commentData['comment'] as String;
+              final userNickName = commentData['userNickName'] as String;
 
               return Container(
                 margin: EdgeInsets.only(right: 10, left: 10),
@@ -255,7 +287,7 @@ class _CommentDetailState extends State<CommentDetail> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('hj', style: TextStyle(fontSize: 13)),
+                        Text(userNickName, style: TextStyle(fontSize: 13)),
                         Row(
                           children: [
                             Text(
@@ -266,7 +298,6 @@ class _CommentDetailState extends State<CommentDetail> {
                             ),
                             GestureDetector(
                               onTap: () {
-                                // Implement your action when the more button is tapped
                               },
                               child: Icon(Icons.more_vert, size: 15),
                             ),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_detail.dart';
@@ -199,15 +200,20 @@ class _ReviewListState extends State<ReviewList> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 8,
-                          backgroundImage: AssetImage(''),
-                        ),
-                        SizedBox(width: 5,),
-                        Text(data['userNickName'], style: TextStyle(fontSize: 13, color: Colors.black)),
-                      ],
+                    GestureDetector(
+                      onTap: (){
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: data['userNickName'],)));
+                      },
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 8,
+                            backgroundImage: AssetImage(''),
+                          ),
+                          SizedBox(width: 5,),
+                          Text(data['userNickName'], style: TextStyle(fontSize: 13, color: Colors.black)),
+                        ],
+                      ),
                     ),
                     SizedBox(width: 10,),
                   ],

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
 
@@ -16,6 +17,49 @@ class _PostSearchState extends State<PostSearch> {
   List<String> _tagList = [
     '전시', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
   ];
+
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String,dynamic>> _postList = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  // 게시글 데이터 불러오기
+  void _getPostData() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('post').get();
+
+      List<Map<String, dynamic>> postList = [];
+
+      if (querySnapshot.docs.isNotEmpty) {
+        postList = querySnapshot.docs
+            .map((doc) {
+          Map<String, dynamic> postData = doc.data() as Map<String, dynamic>;
+          postData['id'] = doc.id; // 문서의 ID를 추가
+          return postData;
+        })
+          .where((artist) {
+          return artist['title'].toString().contains(_searchCtr.text) ||
+              artist['content'].toString().contains(_searchCtr.text) ||
+              artist['hashtag'].toString().contains(_searchCtr.text);
+        })
+            .toList();
+      }
+
+      setState(() {
+        _postList = postList;
+      });
+
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
+      });
+    }
+  }
+
 
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
