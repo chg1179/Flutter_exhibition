@@ -1,11 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
+import 'package:exhibition_project/user/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:provider/provider.dart';
 
+import '../community/post_main.dart';
+import '../main.dart';
 import '../model/user_model.dart';
 
 class BeBackEx extends StatefulWidget {
@@ -264,23 +268,30 @@ class _BeBackExState extends State<BeBackEx> {
           BottomNavigationBarItem(
             icon: IconButton(
                 onPressed: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyApp()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                 },
                 icon : Icon(Icons.home),
-                color: Colors.black
+                color: Colors.grey
             ),
             label: '',
           ),
           BottomNavigationBarItem(
             icon: IconButton(
                 onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
                 },
-                icon : Icon(Icons.account_balance, color: Colors.black)
+                icon : Icon(Icons.account_balance, color: Colors.grey)
             ),
             label: '',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.comment,color: Colors.black),
+            icon: IconButton(
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+                },
+                icon : Icon(Icons.comment),
+                color: Colors.grey
+            ),
             label: '',
           ),
           BottomNavigationBarItem(
@@ -289,7 +300,7 @@ class _BeBackExState extends State<BeBackEx> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
                 },
                 icon : Icon(Icons.library_books),
-                color: Colors.black
+                color: Colors.grey
             ),
             label: '',
           ),
@@ -299,7 +310,7 @@ class _BeBackExState extends State<BeBackEx> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
                 },
                 icon : Icon(Icons.account_circle),
-                color: Colors.black
+                color: Color(0xff464D40)
             ),
             label: '',
           ),
