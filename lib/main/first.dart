@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -27,65 +28,63 @@ class FirstPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(13.0),
-                    ),
                     Container(
                       child: MainList(), // MainList에 전시 정보 전달
-                      height: 400,
+                      height: 470,
                     ),
+                    SizedBox(height: 25,)
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(13.0),
-                child: Text('지금 인기있는 전시🔥', style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.only(left: 15, top: 30, right: 15, bottom: 15),
+                child: Text('Best Exhibition', style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold)),
               ),
               Container(
                 child: popularEx(), // ImageList에 전시 정보 전달
-                height: 260,
+                height: 360,
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 13.0),
-                child: Text('요즘 많이 찾는 지역🔎', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 13.0, top: 5),
-                child: Text('최신 공간 소식을 받아세요🔔',
-                  style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
-                ),
+                padding: const EdgeInsets.only(left: 15, top: 20, right: 15, bottom: 15),
+                child: Text('요즘 많이 찾는 지역', style: TextStyle(fontSize:17,fontWeight: FontWeight.bold)),
               ),
               Container(
                 child: UserList(),
                 height: 110,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(13.0),
-                    child: Text('어떤 전시회가 좋을지 고민된다면?🤔', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => AddView()));
-                    },
-                    child: Text(
-                      '더보기',
-                      style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, top: 30, right: 10, bottom: 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('어떤 전시회가 좋을지 고민된다면?', style: TextStyle(fontSize:17,fontWeight: FontWeight.bold)),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => AddView()));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          '더보기',
+                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 child: recommendEx(), // ImageList에 전시 정보 전달
                 height: 300,
               ),
               Padding(
-                padding: const EdgeInsets.all(13.0),
-                child: Text('곧 종료되는 전시🕰️', style: TextStyle(fontSize:18,fontWeight: FontWeight.bold)),
+                padding: const EdgeInsets.only(left: 15, top: 20, right: 15, bottom: 15),
+                child: Text('곧 종료되는 전시️', style: TextStyle(fontSize:17,fontWeight: FontWeight.bold)),
               ),
-              Container(child: endExList(),height: 260,), // ImageList에 전시 정보 전달
+              Container(
+                child: endExList(),
+                height: 360,
+              ), // ImageList에 전시 정보 전달
             ],
           ),
         );
@@ -113,7 +112,7 @@ class _popularExState extends State<popularEx> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.85);
+    _pageController = PageController(viewportFraction: 1);
     startAutoSlide();
   }
 
@@ -161,7 +160,7 @@ class _popularExState extends State<popularEx> {
           return Center(child: Text('데이터 없음'));
         }
         return Container(
-          constraints: BoxConstraints(maxHeight: 400),
+          constraints: BoxConstraints(maxHeight: 450),
           child: PageView.builder(
             controller: _pageController,
             itemCount: (snapshot.data!.docs.length / 3).ceil(),
@@ -211,54 +210,41 @@ class _popularExState extends State<popularEx> {
 
                             return InkWell(
                               onTap: () {
-                                print('exTitle: ${data['exTitle']}');
-                                print('imageURL: $imageURL');
-                                print('galleryName: $galleryName');
-                                print('galleryRegion: $galleryRegion');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id)));
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 15.0),
-                                child: Container(
-                                  width: 150,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: data['imageURL'], // 이미지 URL
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                                      ),
-                                      /*
-                                       Image.network(
-                                         data['imageURL'],
-                                         width: 150,
-                                         height: 150,
-                                       ),*/
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text('$galleryName/$galleryRegion', style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 6.0),
-                                        child: Text('${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                      ),
-                                    ],
-                                  ),
+                              child: Container(
+                                width: 195,
+                                padding: EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: data['imageURL'], // 이미지 URL
+                                      width: 180,
+                                      height: 240,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                      errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 5, left: 3, right: 3),
+                                      child: Text(data['exTitle'], maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
+                                      child: Text('$galleryName/$galleryRegion', style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[800],
+                                      )),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
+                                      child: Text('${formatFirestoreDate(data['startDate'])} - ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[800],
+                                      )),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -280,7 +266,7 @@ class _popularExState extends State<popularEx> {
 
   String formatFirestoreDate(Timestamp timestamp) {
     DateTime date = timestamp.toDate();
-    final formatter = DateFormat('yyyy-MM-dd');
+    final formatter = DateFormat('yyyy.MM.dd');
     return formatter.format(date);
   }
 }
@@ -309,7 +295,7 @@ class MainList extends StatefulWidget {
   _MainListState createState() => _MainListState();
 }
 class _MainListState extends State<MainList> {
-  final PageController _controller = PageController(viewportFraction: 0.8);
+  final PageController _controller = PageController(viewportFraction:1);
   static const Duration attemptTimeout = Duration(seconds: 2);
   static const int maxAttempt = 3;
   int _currentPage = 0;
@@ -324,15 +310,24 @@ class _MainListState extends State<MainList> {
   void _startAutoScroll() {
     Future.delayed(Duration(seconds: 3)).then((_) {
       if (mounted) {
-        int nextPage = (_currentPage + 1) % widget.images.length;
-        _controller.animateToPage(
-          nextPage,
-          duration: Duration(milliseconds: 1000),
-          curve: Curves.easeOut,
-        ).then((_) {
-          _currentPage = nextPage;
-          _startAutoScroll(); // 슬라이드가 완료된 후 다음 슬라이드 시작
-        });
+        if (_controller.hasClients) {
+          int nextPage = (_currentPage + 1) % widget.images.length;
+          _controller.animateToPage(
+            nextPage,
+            duration: Duration(milliseconds: 1000),
+            curve: Curves.easeOut,
+          ).then((_) {
+            _currentPage = nextPage;
+            if (_currentPage == 0) {
+              // 스크롤이 끝나면 다시 시작하도록 하는 로직
+              Future.delayed(Duration(seconds: 3)).then((_) {
+                _startAutoScroll();
+              });
+            } else {
+              _startAutoScroll(); // 슬라이드가 완료된 후 다음 슬라이드 시작
+            }
+          });
+        }
       }
     });
   }
@@ -342,7 +337,7 @@ class _MainListState extends State<MainList> {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection('exhibition')
-          .orderBy('postDate', descending: true)
+          .orderBy('like', descending: true)
           .limit(3)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
@@ -410,58 +405,63 @@ class _MainListState extends State<MainList> {
                         
                         return InkWell(
                           onTap: () {
-                            _onImageClicked(data);
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id)));
                           },
                           child: Row(
                             children: [
                               Expanded(
                                 child: Padding(
                                   padding: EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: data['imageURL'], // 이미지 URL
-                                        height: 300,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                                      ),
-                                      /*
-                                       Image.network(
-                                          data['imageURL'],
-                                         width: MediaQuery.of(context).size.width * 0.5,
-                                         height: 310,
-                                       ),
-                                       */
-                                      Text(
-                                        '${data['exTitle']}',
-                                        style: TextStyle(
-                                          color: Color(0xffD4D8C8),
-                                          fontWeight: FontWeight.bold,
+                                  child: Stack(
+                                    children: <Widget>[
+                                      Center(
+                                        child: CachedNetworkImage(
+                                          imageUrl: data['imageURL'],
+                                          height: 420,
+                                          width: 280,
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) => Icon(Icons.error),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text(
-                                          '${galleryName}/${galleryRegion}',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey,
-                                            fontWeight: FontWeight.bold,
+                                      Positioned(
+                                        width: 280,
+                                          left: 58,
+                                          bottom: 12,// 조정하여 텍스트가 원하는 위치에 표시될 수 있도록 설정
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15), // 텍스트 주변 패딩
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [Colors.transparent, Colors.black], // 그라데이션 색상
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${data['exTitle']}',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                              Text(
+                                                '${galleryName}/${galleryRegion}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              // Add more Text widgets if needed
+                                            ],
                                           ),
                                         ),
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 6.0),
-                                        child: Text('${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                      ),
                                     ],
-                                  ),
+                                  )
                                 ),
                               ),
                             ],
@@ -609,11 +609,11 @@ class _UserListState extends State<UserList> {
                                   radius: 30,
                                   backgroundImage: Image.network(imageURL).image,
                                 ),
+                                SizedBox(height: 5,),
                                 Text(
                                   galleryRegion,
                                   style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                    fontSize: 13,
                                   ),
                                 ),
 
@@ -670,7 +670,7 @@ class endExList extends StatefulWidget {
 }
 
 class _endExListState extends State<endExList> {
-  final PageController _pageController = PageController(viewportFraction: 0.85);
+  final PageController _pageController = PageController(viewportFraction: 1);
   int currentPage = 0;
   static const Duration attemptTimeout = Duration(seconds: 2);
   static const int maxAttempt = 3;
@@ -780,55 +780,41 @@ class _endExListState extends State<endExList> {
 
                             return InkWell(
                               onTap: () {
-                                print('exTitle: ${data['exTitle']}');
-                                print('imageURL: $imageURL');
-                                print('galleryName: $galleryName');
-                                print('galleryRegion: $galleryRegion');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id)));
                               },
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 15.0),
-                                child: Container(
-                                  width: 150,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: data['imageURL'], // 이미지 URL
-                                        width: 150,
-                                        height: 150,
-                                        fit: BoxFit.cover,
-                                        placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
-                                        errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
-                                      ),
-                                       /*
-                                       Image.network(
-                                         data['imageURL'],
-                                         width: 150,
-                                         height: 150,
-                                       ),
-                                        */
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 6.0),
-                                        child: Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4.0),
-                                        child: Text('$galleryName/$galleryRegion', style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 5.0),
-                                        child: Text('${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        )),
-                                      ),
-                                    ],
-                                  ),
+                              child: Container(
+                                width: 195,
+                                padding: EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: data['imageURL'], // 이미지 URL
+                                      width: 180,
+                                      height: 240,
+                                      fit: BoxFit.cover,
+                                      placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                      errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 5, left: 3, right: 3),
+                                      child: Text(data['exTitle'], maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
+                                      child: Text('$galleryName/$galleryRegion',maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[800],
+                                      )),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
+                                      child: Text('${formatFirestoreDate(data['startDate'])} - ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[800],
+                                      )),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -939,10 +925,7 @@ class _recommendExState extends State<recommendEx> {
 
                     return InkWell(
                       onTap: () {
-                        print('exTitle: ${data['exTitle']}');
-                        print('imageURL: $imageURL');
-                        print('galleryName: $galleryName');
-                        print('galleryRegion: $galleryRegion');
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id)));
                       },
                       child: Container(
                         child: Wrap(

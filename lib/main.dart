@@ -101,11 +101,11 @@ class _HomeState extends State<Home> {
         final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
         print('userNo 세션 : ${user.userNo}');
         print('userStatus 세션 : ${user.status}');
-        if (!user.isSignIn) {
-          // 로그인이 안 된 경우
-          return const SignPage();
-        } else {
-          // 로그인이 된 경우
+        // if (!user.isSignIn) {
+        //   // 로그인이 안 된 경우
+        //   return const SignPage();
+        // } else {
+        //   // 로그인이 된 경우
           return WillPopScope(
               onWillPop: () => chooseMessageDialog(context, '종료하시겠습니까?', '종료'),
               child: DefaultTabController(
@@ -125,18 +125,21 @@ class _HomeState extends State<Home> {
                     )
                   ],
                   flexibleSpace: PreferredSize(
-                    preferredSize: Size.fromHeight(kToolbarHeight), // AppBar 높이 설정
+                    preferredSize: Size.fromHeight(120), // AppBar 높이 설정
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
+                          width: 280,
                           child: TabBar(
+                            indicatorSize: TabBarIndicatorSize.label,
                             tabs: [
                               Tab(
                                 child: Container(
                                   child: Align(
                                     alignment: Alignment.centerRight,
-                                    child: Text('추천', style: TextStyle(color: Color(0xffD4D8C8)),),
+                                    child: Text('PICK', style: TextStyle(color: Color(0xffD4D8C8)),),
                                   ),
                                 ),
                               ),
@@ -144,7 +147,7 @@ class _HomeState extends State<Home> {
                                 child: Container(
                                   child: Align(
                                     alignment: Alignment.centerLeft,
-                                    child: Text('팔로잉', style: TextStyle(color: Color(0xffD4D8C8))),
+                                    child: Text('FOLLOWING', style: TextStyle(color: Color(0xffD4D8C8))),
                                   ),
                                 ),
                               ),
@@ -156,6 +159,7 @@ class _HomeState extends State<Home> {
                             indicatorColor: Colors.transparent,
                           ),
                         ),
+                        SizedBox(height: 3,)
                       ],
                     ),
                   ),
@@ -244,7 +248,7 @@ class _HomeState extends State<Home> {
             ),
           );
         }
-      }
+      //}
     );
   }
 }
