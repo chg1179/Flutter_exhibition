@@ -176,7 +176,7 @@ class _MyCalendarState extends State<MyCalendar> {
           TableCalendar(
             calendarFormat: _calendarFormat,
             focusedDay: _focusedDay,
-            firstDay: DateTime.utc(2023, 10, 16),
+            firstDay: DateTime.utc(2023, 11, 01),
             lastDay: DateTime.utc(2030, 3, 14),
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);

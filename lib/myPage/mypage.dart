@@ -234,25 +234,36 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                             onTap: () {
                                              
                                             },
-                                            child: Column(
-                                              ///후기글 테이블출력해야함
-                                              children: [
-                                                Text('7', style: TextStyle(
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                                Text('후기글', style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                              ],
-                                            ),
+                                            child: FutureBuilder<QuerySnapshot>(
+                                              future: FirebaseFirestore.instance
+                                                  .collection('review')
+                                                  .where('userNickName', isEqualTo: _userNickName)
+                                                  .get(),
+                                              builder: (context, reviewsSnapshot) {
+                                                if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
+                                                  return CircularProgressIndicator();
+                                                } else if (reviewsSnapshot.hasError) {
+                                                  return Text('오류: ${reviewsSnapshot.error}');
+                                                } else {
+                                                  // 사용자의 후기글 개수를 계산
+                                                  int reviewCount = reviewsSnapshot.data?.docs.length ?? 0;
+
+                                                  return Column(
+                                                    children: [
+                                                      Text(reviewCount.toString(), style: TextStyle(fontWeight: FontWeight.bold)),
+                                                      Text('후기글', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                            )
                                           ),
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () {
                                               // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
                                               _showFollowersDialog(
-                                                  context, '팔로워', 100);
+                                                  context, '팔로워');
                                             },
                                             child: FutureBuilder<int>(
                                               future: getFollowerLength(),
@@ -285,8 +296,8 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           GestureDetector(
                                             onTap: () {
                                               // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                              _showFollowersDialog(
-                                                  context, '팔로잉', 100);
+                                              _showFollowingsDialog(
+                                                  context, '팔로잉');
                                             },
                                             child: FutureBuilder<int>(
                                               future: getFollowingLength(),
@@ -409,37 +420,81 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               ),
 
                               SizedBox(height: 10),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                // 추가
-                                physics: NeverScrollableScrollPhysics(),
-                                // 추가
-                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                ),
-                                itemCount: 9,
-                                itemBuilder: (context, index) {
-                                  if (index < 8) {
-                                    return Image.asset('assets/main/전시2.jpg');
-                                    //마이후기 사진 리스트 8개 넘기기
-                                    //마이후기 사진 리스트 8개 넘기기
-                                  } else {
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  MyPageAddView2(),));
-                                        print('더보기 클릭하셨습니다');
+                              FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
+                                builder: (context, userSnapshot) {
+                                  if (userSnapshot.connectionState == ConnectionState.waiting) {
+                                    return CircularProgressIndicator();
+                                  } else if (userSnapshot.hasError) {
+                                    return Text('오류: ${userSnapshot.error}');
+                                  } else if (userSnapshot.hasData) {
+                                    final userDocument = userSnapshot.data as DocumentSnapshot;
+                                    final userNickName = userDocument['nickName'] ?? 'No Nickname';
+
+                                    return FutureBuilder<QuerySnapshot>(
+                                      future: FirebaseFirestore.instance
+                                          .collection('review')
+                                          .where('userNickName', isEqualTo: userNickName)
+                                          .get(),
+                                      builder: (context, reviewsSnapshot) {
+                                        if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
+                                          return CircularProgressIndicator();
+                                        } else if (reviewsSnapshot.hasError) {
+                                          return Text('오류: ${reviewsSnapshot.error}');
+                                        } else {
+                                          final reviews = reviewsSnapshot.data?.docs;
+                                          if (reviews == null || reviews.isEmpty) {
+                                            return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
+                                          }
+
+                                          List<Widget> reviewItems = reviews.map((review) {
+                                            final reviewData = review.data() as Map<String, dynamic>;
+                                            final reviewImageURL = reviewData['imageURL'] ?? '';
+
+                                            return Image.network(
+                                              reviewImageURL,
+                                              fit: BoxFit.cover,
+                                              width: 100.0,
+                                              height: 100.0,
+                                            );
+                                          }).toList();
+
+                                          return GridView.builder(
+                                            shrinkWrap: true,
+                                            physics: NeverScrollableScrollPhysics(),
+                                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                              crossAxisCount: 3,
+                                            ),
+                                            itemCount: reviewItems.length > 8 ? 8 + 1 : reviewItems.length, // "더보기"를 위해 항목 하나 추가
+                                            itemBuilder: (context, index) {
+                                              if (index == 8 && reviewItems.length > 8) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    // 더보기 버튼 클릭 시 더보기 페이지로 이동
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
+                                                      ),
+                                                    );
+                                                  },
+                                                  child: Container(
+                                                    color: Colors.grey.withOpacity(0.3), // 회색 반투명 배경
+                                                    child: Center(
+                                                      child: Text('더보기', style: TextStyle(color: Colors.black)),
+                                                    ),
+                                                  ),
+                                                );
+                                              } else {
+                                                return reviewItems[index];
+                                              }
+                                            },
+                                          );
+                                        }
                                       },
-                                      child: Container(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        child: Center(
-                                          child: Text('더보기', style: TextStyle(
-                                              color: Colors.black)),
-                                        ),
-                                      ),
                                     );
+                                  } else {
+                                    return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
                                   }
                                 },
                               ),
@@ -596,8 +651,39 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
   }
 
-  ///팔로잉 팔로워 클릭시 나타나는 다이얼로그
-  void _showFollowersDialog(BuildContext context, String title, int count) {
+  /// 팔로워 클릭시 나타나는 다이얼로그
+  void _showFollowersDialog(BuildContext context, String title) {
+    final user = Provider.of<UserModel>(context); // 세션. UserModel
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: FutureBuilder<Object>(
+            future: null,
+            builder: (context, snapshot) {
+              return Column(
+                children: <Widget>[
+
+                ],
+              );
+            }
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('닫기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  ///팔로잉  클릭시 나타나는 다이얼로그
+  void _showFollowingsDialog(BuildContext context, String title) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -605,8 +691,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
           title: Text(title),
           content: Column(
             children: <Widget>[
-              Text('팔로잉: $count'),
-              Text('팔로워: $count'),
+
             ],
           ),
           actions: <Widget>[
@@ -693,39 +778,57 @@ class TemperatureBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final temperatureGradient = getTemperatureGradient(temperature);
+    final user = Provider.of<UserModel>(context); // 세션. UserModel
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 80),
-              child: Text('현재 온도: $temperature°C',style: TextStyle(color: Colors.green,fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
-        SizedBox(height: 10),
-        Container(
-          height: 10, // 온도바의 높이 조정
-          width: 350, // 온도바의 너비 조정
-          decoration: BoxDecoration(
-            color: Colors.grey[300], // 온도바의 배경 색상 설정
-            borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
-          ),
-          child: Stack(
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // 데이터가 로드 중인 경우
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          // 에러가 있는 경우
+          return Text('오류: ${snapshot.error}');
+        } else {
+          final userData = snapshot.data?.data() as Map<String, dynamic>;
+          final userHeat = userData != null ? userData['heat'] : null;
+          return Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 80),
+                    child: Text('현재 온도: $userHeat°C', style: TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
               Container(
-                width: 300 * (temperature / 100.0), // 온도바의 길이를 온도에 비례하여 조정
+                height: 10, // 온도바의 높이 조정
+                width: 350, // 온도바의 너비 조정
                 decoration: BoxDecoration(
-                  gradient: temperatureGradient, // 온도에 따른 그라데이션 설정
+                  color: Colors.grey[300], // 온도바의 배경 색상 설정
                   borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
+                ),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 300 * (temperature / 100.0),
+                      // 온도바의 길이를 온도에 비례하여 조정
+                      decoration: BoxDecoration(
+                        gradient: temperatureGradient, // 온도에 따른 그라데이션 설정
+                        borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        ),
-      ],
+          );
+        }
+      }
     );
   }
 }
@@ -733,6 +836,7 @@ class TemperatureBar extends StatelessWidget {
 class ExhibitionTemperature extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserModel>(context); // 세션. UserModel
     return Padding(
       padding: const EdgeInsets.only(left: 22.0),
       child: GestureDetector(
