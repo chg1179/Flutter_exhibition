@@ -4,7 +4,6 @@ import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import '../community/post_main.dart';
 import '../main.dart';
 import '../myPage/mypage.dart';
@@ -19,12 +18,15 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
+  int _currentIndex = 0;
   final _search = TextEditingController();
   final appBarHeight = AppBar().preferredSize.height;
+  final bottomBarHeight = kBottomNavigationBarHeight;
   final _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> _exhibitionList = [];
   List<Map<String, dynamic>> _artistList = [];
   List<Map<String, dynamic>> _galleryList = [];
+  List<Map<String, dynamic>> _artworkList = [];
   bool _isLoading = true;
   bool txtCheck = false;
 
@@ -72,6 +74,12 @@ class _SearchState extends State<Search> {
     "그라운드시소",
   ];
 
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   void _getExListData() async {
     try {
       QuerySnapshot querySnapshot = await _firestore.collection('exhibition').get();
@@ -97,7 +105,7 @@ class _SearchState extends State<Search> {
         _exhibitionList = tempExhibitionList;
       });
     } catch (e) {
-      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      print('전시회 데이터를 불러오는 중 오류가 발생했습니다: $e');
       setState(() {
       });
     }
@@ -128,7 +136,7 @@ class _SearchState extends State<Search> {
         _artistList = tempArtistList;
       });
     } catch (e) {
-      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      print('작가 데이터를 불러오는 중 오류가 발생했습니다: $e');
       setState(() {
       });
     }
@@ -156,15 +164,50 @@ class _SearchState extends State<Search> {
 
       setState(() {
         _galleryList = tempGalleryList;
-        _isLoading = false; // 데이터 로딩이 완료됨을 나타내는 플래그
+        _isLoading = false;
       });
     } catch (e) {
-      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+      print('갤러리 데이터를 불러오는 중 오류가 발생했습니다: $e');
+      _isLoading = false;
+    }
+  }
+
+  void _getArtworkListData() async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore.collection('artist').get();
+
+      List<Map<String, dynamic>> tempArtworkList = [];
+
+      if (querySnapshot.docs.isNotEmpty) {
+        for (QueryDocumentSnapshot artistDoc in querySnapshot.docs) {
+          QuerySnapshot artworkQuerySnapshot = await artistDoc.reference.collection('artist_artwork').get();
+
+          if (artworkQuerySnapshot.docs.isNotEmpty) {
+            String artistName = artistDoc['artistName'] ?? ''; // Fetching artistName directly from the artist document
+
+            tempArtworkList.addAll(artworkQuerySnapshot.docs.map((artworkDoc) {
+              Map<String, dynamic> artworkData = artworkDoc.data() as Map<String, dynamic>;
+              artworkData['id'] = artworkDoc.id; // Adding document ID
+              artworkData['artistName'] = artistName; // Adding artistName
+              return artworkData;
+            }).where((artwork) {
+              return artwork['artTitle'].toString().contains(_search.text) ||
+                    artwork['artistName'].toString().contains(_search.text);
+            }));
+          }
+        }
+      }
       setState(() {
-        _isLoading = false; // 오류 발생 시에도 로딩 상태 변경
+        _artworkList = tempArtworkList;
+
+      });
+    } catch (e) {
+      print('작품 데이터를 불러오는 중 오류가 발생했습니다: $e');
+      setState(() {
       });
     }
   }
+
 
   @override
   void initState() {
@@ -180,6 +223,7 @@ class _SearchState extends State<Search> {
           onPressed: (){
             setState(() {
               _search.text = recommendedSearches[index];
+              _getArtworkListData();
               _getExListData();
               _getArtistListData();
               _getGalleryListData();
@@ -201,6 +245,7 @@ class _SearchState extends State<Search> {
           onPressed: (){
             setState(() {
               _search.text = favourKey[index];
+              _getArtworkListData();
               _getExListData();
               _getArtistListData();
               _getGalleryListData();
@@ -226,7 +271,9 @@ class _SearchState extends State<Search> {
           ),
           onTap: () {
             setState(() {
+              _isLoading = true;
               _search.text = popularSearches[index];
+              _getArtworkListData();
               _getExListData();
               _getArtistListData();
               _getGalleryListData();
@@ -291,8 +338,9 @@ class _SearchState extends State<Search> {
   Widget _SearchIs(){
     return Container(
         padding: EdgeInsets.only(bottom: appBarHeight+100),
-        height: MediaQuery.of(context).size.height,
-        child: TabBarView(
+        height: MediaQuery.of(context).size.height - bottomBarHeight - 30,
+        child: _isLoading ? Center(child: CircularProgressIndicator())
+        :TabBarView(
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 15),
@@ -433,7 +481,54 @@ class _SearchState extends State<Search> {
                 },
               ),
             ),
-            ArtworkPage()
+            Padding(
+              padding: const EdgeInsets.only(top: 15),
+              child:
+              _artworkList.length < 1
+                  ? Center(child: Text("검색 결과가 없습니다. 😢", style: TextStyle(fontSize: 17),))
+                  : ListView.builder(
+                itemCount: _artworkList.length,
+                itemBuilder: (context, index) {
+                  final artwork = _artworkList[index];
+                  return InkWell(
+                    onTap: () {
+                      Navigator.push(context,MaterialPageRoute(builder: (context) => ExhibitionDetail(document: artwork['id'])));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                      child: Row(
+                        children: [
+                          Image.network(
+                            artwork['imageURL'],
+                            width: 80,
+                            height: 80,
+                          ),
+                          SizedBox(width: 30),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  artwork['artTitle'],
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                                Text(
+                                  "${artwork['artistName']}",
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         )
     );
@@ -491,6 +586,7 @@ class _SearchState extends State<Search> {
                     _getExListData();
                     _getArtistListData();
                     _getGalleryListData();
+                    _getArtworkListData();
                   },
                 ),
               ),
@@ -502,6 +598,9 @@ class _SearchState extends State<Search> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed, // 이 부분을 추가합니다.
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
         items: [
           BottomNavigationBarItem(
             icon: IconButton(
@@ -509,7 +608,7 @@ class _SearchState extends State<Search> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                 },
                 icon : Icon(Icons.home),
-                color: Colors.black
+                color: Color(0xff464D40)
             ),
             label: '',
           ),
@@ -518,7 +617,7 @@ class _SearchState extends State<Search> {
                 onPressed: (){
                   Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
                 },
-                icon : Icon(Icons.account_balance, color: Colors.black)
+                icon : Icon(Icons.account_balance, color: Colors.grey)
             ),
             label: '',
           ),
@@ -528,7 +627,7 @@ class _SearchState extends State<Search> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
                 },
                 icon : Icon(Icons.comment),
-                color: Colors.black
+                color: Colors.grey
             ),
             label: '',
           ),
@@ -538,7 +637,7 @@ class _SearchState extends State<Search> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
                 },
                 icon : Icon(Icons.library_books),
-                color: Colors.black
+                color: Colors.grey
             ),
             label: '',
           ),
@@ -548,7 +647,7 @@ class _SearchState extends State<Search> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
                 },
                 icon : Icon(Icons.account_circle),
-                color: Colors.black
+                color: Colors.grey
             ),
             label: '',
           ),
@@ -556,83 +655,4 @@ class _SearchState extends State<Search> {
       ),
     );
   }
-}
-
-
-///////////////////////////////////////////////////////////////////////작품(artwork)
-
-class ArtworkPage extends StatefulWidget {
-  @override
-  _ArtworkPageState createState() => _ArtworkPageState();
-}
-
-class _ArtworkPageState extends State<ArtworkPage> {
-  final List<Artwork> artworks = [
-    Artwork(
-      image: 'assets/main/전시2.jpg',
-      title: '아트워크 1',
-      subtitle: '작가 이름 1',
-    ),
-    Artwork(
-      image: 'assets/main/전시3.jpg',
-      title: '아트워크 2',
-      subtitle: '작가 이름 2',
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: artworks.length,
-        itemBuilder: (context, index) {
-          final artwork = artworks[index];
-          return InkWell(
-            onTap: (){},
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  Image.asset(
-                      artwork.image,
-                      width: 80, // 이미지의 폭
-                      height: 80, // 이미지의 높이
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        artwork.title,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        artwork.subtitle,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Artwork {
-  final String image;
-  final String title;
-  final String subtitle;
-
-  Artwork({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-  });
 }
