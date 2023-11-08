@@ -1,24 +1,51 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 
 class ExArtworkDetail extends StatefulWidget {
-  final String imagePath;
-  const ExArtworkDetail({required this.imagePath});
+  final String doc;
+  final String artDoc;
+
+  const ExArtworkDetail({required this.doc, required this.artDoc});
 
   @override
   State<ExArtworkDetail> createState() => _ExArtworkDetailState();
 }
 
-Map<String, dynamic> _artworkInfo = {
-  'art_title': '서로',
-  'art_material': '캔버스에 먹, 아크릴',
-  'art_size': '53x45cm',
-  'art_date': '2017',
-  'artist': '이정식',
-};
-
 class _ExArtworkDetailState extends State<ExArtworkDetail> {
+  final _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? _artworkInfo;
+  Map<String, dynamic>? _artistInfo;
+  bool _loading = true;
+
+  Future<void> _getArtworkData() async {
+    final documentSnapshot = await _firestore.collection('artist').doc(widget.doc).collection('artist_artwork').doc(widget.artDoc).get();
+
+    if (documentSnapshot.exists) {
+      setState(() {
+        _artworkInfo = documentSnapshot.data() as Map<String, dynamic>;
+      });
+    }
+  }
+
+  Future<void> _getArtistData() async {
+    final documentSnapshot = await _firestore.collection('artist').doc(widget.doc).get();
+
+    if (documentSnapshot.exists) {
+      setState(() {
+        _artistInfo = documentSnapshot.data() as Map<String, dynamic>;
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _getArtworkData();
+    _getArtistData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,13 +63,16 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
         actions: [
           IconButton(
             onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
             },
             icon: Icon(Icons.home, color: Colors.black),
           ),
           SizedBox(width: 10,)
         ],
       ),
-      body: CustomScrollView(
+      body:
+      _loading ? Center(child: CircularProgressIndicator())
+      :CustomScrollView(
           slivers: <Widget>[
             SliverList(
               delegate: SliverChildListDelegate(
@@ -51,7 +81,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: Image.asset(
-                          "${widget.imagePath}",
+                          "assets/ex/ex1.png",
                           fit: BoxFit.fitWidth,
                         ),
                       ),
@@ -66,7 +96,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                               Container(
                                 width: MediaQuery.of(context).size.width * 0.7,
                                 child: Text(
-                                  _artworkInfo['art_title'],
+                                  _artworkInfo?['artTitle'],
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -77,9 +107,8 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                               )
                             ],
                           ),
-                          Text(_artworkInfo['art_material']),
                           SizedBox(height: 5,),
-                          Text("${_artworkInfo['art_size']} ${_artworkInfo['art_date']}"),
+                          Text("${_artworkInfo?['artType']} / ${_artworkInfo?['artDate']}"),
                         ],
                       ),
                     ),
@@ -92,17 +121,17 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                       padding: const EdgeInsets.only(top: 10, bottom: 10),
                       child: InkWell(
                         onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document: "")));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document: widget.doc)));
                         },
                         child: Row(
                           children: [
                             SizedBox(width: 10),
                             CircleAvatar(
                               radius: 30, // 반지름 크기 조절
-                              backgroundImage: AssetImage("${widget.imagePath}"),
+                              backgroundImage: AssetImage("assets/ex/ex1.png"),
                             ),
                             SizedBox(width: 15),
-                            Text(_artworkInfo['artist'], style: TextStyle(fontSize: 16),)
+                            Text(_artistInfo?['artistName'], style: TextStyle(fontSize: 16),)
                           ],
                         ),
                       )

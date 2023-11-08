@@ -290,7 +290,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                               Container(
                                 padding: EdgeInsets.only(top: 15),
                                 width: 300,
-                                height: _artistEducationData!.length * 30.toDouble(),
+                                height: _artistEducationData!.length * 35.toDouble(),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: _artistEducationData!.map((data) {
@@ -473,7 +473,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                           },
                                         );
                                       } else {
-                                        return Text('No Data');
+                                        return Center(child: Text('관련 전시회가 없습니다.'));
                                       }
                                     }
                                   },

@@ -138,7 +138,7 @@ class ArtworkItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(imagePath: artwork.image)));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: "", artDoc: "",)));
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

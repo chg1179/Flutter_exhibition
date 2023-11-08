@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
+import 'package:exhibition_project/main/artwork.dart';
 import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/model/user_model.dart';
@@ -147,7 +148,7 @@ class _HomeState extends State<Home> {
                                 child: Container(
                                   child: Align(
                                     alignment: Alignment.centerLeft,
-                                    child: Text('FOLLOWING'),
+                                    child: Text('ARTWORK'),
                                   ),
                                 ),
                               ),
@@ -182,10 +183,10 @@ class _HomeState extends State<Home> {
                     )
                   )
                       : TabBarView(
-                    children: [
-                      FirstPage(),
-                      SecondPage(),
-                    ],
+                        children: [
+                          FirstPage(),
+                          MainArtWork(),
+                        ],
                   ),
                 ),
                 bottomNavigationBar: BottomNavigationBar(
