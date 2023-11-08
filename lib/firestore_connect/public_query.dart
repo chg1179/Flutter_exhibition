@@ -47,6 +47,27 @@ Stream<List<QuerySnapshot>> getSubCollectionStreamData(String parentCollection, 
   yield subCollectionSnapshots;
 }
 
+// 상위 컬렉션에 대한 하위 컬렉션 값 출력
+Future<List<Map<String, dynamic>>> listMapData(DocumentSnapshot document, String parentCollection, String childCollection, String condition, bool orderBool) async {
+  QuerySnapshot? snapshot = await getChildStreamData(document, parentCollection, childCollection, condition, orderBool).first;
+
+  if (snapshot != null && snapshot.docs.isNotEmpty) {
+    List<Map<String, dynamic>> dataList = [];
+
+    for (DocumentSnapshot doc in snapshot.docs) {
+      if (doc.id != null) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String documentId = doc.id;
+        data['documentId'] = documentId;
+        dataList.add(data);
+      }
+    }
+    return dataList;
+  } else {
+    return []; // 데이터가 없을 때 빈 리스트 반환
+  }
+}
+
 // 조건에 맞는 값을 추출
 Future<QuerySnapshot> getEqualData(String collectionName, String conditionName, String conditionData) async {
   return FirebaseFirestore.instance

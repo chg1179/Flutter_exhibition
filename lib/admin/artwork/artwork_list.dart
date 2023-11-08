@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/artwork/artwork_edit.dart';
 import 'package:exhibition_project/admin/artwork/artwork_view.dart';
+import 'package:exhibition_project/admin/artwork/child_list.dart';
 import 'package:exhibition_project/admin/common_add_delete_button.dart';
 import 'package:exhibition_project/admin/common_list.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
@@ -25,7 +26,7 @@ class ArtworkList extends StatefulWidget {
 
 class _ArtworkListState extends State<ArtworkList> {
   Map<String, bool> checkedList = {};
-  int displayLimit = 8;
+  int displayLimit = 8; // 출력 갯수
 
   void loadMoreItems() {
     setState(() {
@@ -38,21 +39,21 @@ class _ArtworkListState extends State<ArtworkList> {
     return CommonList(
       title: '작품',
       children: [
-        setChildImgTextList(
-          'artist',
-          'artist_artwork',
-          'artistName',
-          'artTitle',
-          (DocumentSnapshot document) => ArtworkViewPage(document: document),
-          checkedList,
-          (Map<String, bool> newCheckedList) {
+        ChildList(
+          parentCollection: 'artist',
+          childCollection: 'artist_artwork',
+          parentName: 'artistName',
+          childName: 'artTitle',
+          pageBuilder: (DocumentSnapshot document) => ArtworkViewPage(document: document),
+          checkedList: checkedList,
+          onChecked: (Map<String, bool> newCheckedList) {
             setState(() {
               checkedList = newCheckedList;
               print(checkedList);
             });
           },
-          loadMoreItems,
-          displayLimit,
+          loadMoreItems: loadMoreItems,
+          displayLimit: displayLimit,
         ),
         Center(
           child: CommonAddDeleteButton(
