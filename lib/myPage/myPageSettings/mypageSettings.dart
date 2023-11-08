@@ -1,3 +1,4 @@
+import 'package:exhibition_project/admin/management_page.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/model/user_model.dart';
@@ -62,7 +63,18 @@ class _MyPageSettingsState extends State<MyPageSettings> {
               ),
             ),
           ),
-
+          if(user.status == 'A')
+            ListTile(
+              title: Text("관리자 페이지"),
+              leading: Icon(Icons.admin_panel_settings_outlined),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ManagementPage()),
+                );
+              },
+            ),
+          Divider(),
           ListTile(
             title: Text("프로필변경",),
             leading: Icon(Icons.person_outline_rounded),

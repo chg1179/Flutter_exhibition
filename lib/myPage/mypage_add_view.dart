@@ -11,7 +11,6 @@ import 'package:exhibition_project/myPage/my_calendar.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:exhibition_project/review/review_list.dart';
-import 'package:exhibition_project/user/home.dart';
 import 'package:flutter/material.dart';
 
 

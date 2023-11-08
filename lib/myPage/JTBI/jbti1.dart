@@ -1,12 +1,8 @@
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/myPage/JTBI/graph.dart';
-import 'package:exhibition_project/user/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-import '../../main.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진과의 연결을 초기화합니다.
