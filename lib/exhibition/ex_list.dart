@@ -57,6 +57,17 @@ class _Ex_listState extends State<Ex_list> {
     });
   }
 
+  // StreamBuilder를 재구성
+  Stream<QuerySnapshot> _createStream() {
+    // 선택된 지역이 '전체'가 아니면 스트림을 필터링하는 쿼리 생성
+    Query collectionQuery = FirebaseFirestore.instance.collection('exhibition').orderBy(_order, descending: _trueOrfalse);
+    if (!_placeSelectedOptions.contains('전체')) {
+      collectionQuery = collectionQuery.where('region', isEqualTo: _placeSelectedOptions.first);
+    }
+
+    return collectionQuery.snapshots();
+  }
+
   String getOngoing(DateTime startDate, DateTime endDate) {
     DateTime currentDate = DateTime.now();
 
@@ -75,11 +86,9 @@ class _Ex_listState extends State<Ex_list> {
 
     DateTime today = DateTime.now();
 
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection('exhibition')
-          .orderBy(_order, descending: _trueOrfalse)
-          .snapshots(),
+    return StreamBuilder<QuerySnapshot>(
+
+      stream: _createStream(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -90,7 +99,11 @@ class _Ex_listState extends State<Ex_list> {
         if (!snap.hasData) {
           return Center(child: Text('데이터 없음'));
         }
-
+        // 필터링된 문서 리스트를 생성
+        List<DocumentSnapshot> filteredDocs = snap.data!.docs.where((doc) {
+          final galleryRegion = doc['region'] as String;
+          return _placeSelectedOptions.contains(galleryRegion) || _placeSelectedOptions.contains('전체');
+        }).toList();
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.only(left: 10, right: 10),
@@ -101,9 +114,9 @@ class _Ex_listState extends State<Ex_list> {
                   mainAxisSpacing: 10.0, // 행 간의 간격
                   childAspectRatio: 2/5
               ),
-              itemCount: snap.data!.docs.length,
+              itemCount: filteredDocs.length,
               itemBuilder: (context, index) {
-                final doc = snap.data!.docs[index];
+                DocumentSnapshot doc = filteredDocs[index];
                 final exTitle = doc['exTitle'] as String;
                 final imageURL = doc['imageURL'] as String;
                 Timestamp startTimestamp = doc['startDate'] as Timestamp;
@@ -277,7 +290,11 @@ class _Ex_listState extends State<Ex_list> {
 
   @override
   Widget build(BuildContext context) {
-    PlaceFlg placeFlg = PlaceFlg(placeFlg: _placeFlg, placeSelectedOptions: _placeSelectedOptions);
+    PlaceFlg placeFlg = PlaceFlg(placeFlg: _placeFlg, placeSelectedOptions: _placeSelectedOptions, onSelectionChanged: () { // 이 부분을 추가합니다.
+      setState(() {
+        _createStream(); // 사용자 선택에 따라 스트림을 재생성합니다.
+      });
+    },);
 
     List<String> selectedOptions = placeFlg.getSelectedPlaceOptions();
     _placeSelectedOptions = selectedOptions;
@@ -477,7 +494,11 @@ class _Ex_listState extends State<Ex_list> {
                                   color: Colors.black,
                                   thickness: 0.1,
                                 ),
-                                PlaceFlg(placeFlg: _placeFlg, placeSelectedOptions: _placeSelectedOptions,),
+                                PlaceFlg(placeFlg: _placeFlg, placeSelectedOptions: _placeSelectedOptions, onSelectionChanged: () { // 이 부분을 추가합니다.
+                                  setState(() {
+                                    _createStream(); // 사용자 선택에 따라 스트림을 재생성합니다.
+                                  });
+                                },),
                                 Divider(
                                   color: Colors.black,
                                   thickness: 0.1,
@@ -635,11 +656,11 @@ class _BottomSheetSwitch extends State<BottomSheetSwitch> {
 ////////////////////////////////////////////////////////////////////////////지역바 클래스
 
 class PlaceFlg extends StatefulWidget {
-  const PlaceFlg({required this.placeFlg, required this.placeSelectedOptions});
+  const PlaceFlg({required this.placeFlg, required this.placeSelectedOptions, required this.onSelectionChanged});
 
   final bool placeFlg;
   final List<String> placeSelectedOptions;
-
+  final Function onSelectionChanged; // 선택 변경시 호출될 콜백
   List<String> getSelectedPlaceOptions() {
     return placeSelectedOptions;
   }
@@ -699,6 +720,7 @@ class _PlaceFlgState extends State<PlaceFlg> {
         }
       }
     });
+    widget.onSelectionChanged(); // 상태 변경 후 콜백 호출
   }
 
 
