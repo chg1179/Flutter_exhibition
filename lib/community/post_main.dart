@@ -17,7 +17,9 @@ import 'post_mypage.dart';
 
 
 class CommMain extends StatefulWidget {
-  const CommMain({super.key});
+
+  final String? searchKeyword;
+  CommMain({Key? key, this.searchKeyword}) : super(key: key);
 
   @override
   State<CommMain> createState() => _CommMainState();

@@ -41,14 +41,13 @@ class _PostSearchState extends State<PostSearch> {
           postData['id'] = doc.id; // 문서의 ID를 추가
           return postData;
         })
-          .where((artist) {
-          return artist['title'].toString().contains(_searchCtr.text) ||
-              artist['content'].toString().contains(_searchCtr.text) ||
-              artist['hashtag'].toString().contains(_searchCtr.text);
+          .where((post) {
+          return post['title'].toString().contains(_searchCtr.text) ||
+              post['content'].toString().contains(_searchCtr.text) ||
+              post['hashtag'].toString().contains(_searchCtr.text);
         })
             .toList();
       }
-
       setState(() {
         _postList = postList;
       });
@@ -59,7 +58,6 @@ class _PostSearchState extends State<PostSearch> {
       });
     }
   }
-
 
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
@@ -86,6 +84,100 @@ class _PostSearchState extends State<PostSearch> {
     );
   }
 
+  Widget _noSearch(){
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 20),
+            child: Text('최근 검색어', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 10),
+            child: _recentSearch(),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 20),
+            child: Text('추천 태그', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 20, top: 10),
+            child: _recommendTag(),
+          )
+        ]
+    );
+  }
+
+  Widget _Search(){
+    return ListView(
+      padding: EdgeInsets.all(20),
+      children: [
+        Container(
+            padding: EdgeInsets.all(8),
+            child: Text('총 1개', style: TextStyle(fontWeight: FontWeight.bold),)
+        ),
+        Card(
+          elevation: 3,
+          child: ListTile(
+            title: Text('해당 글 제목'),
+            subtitle: Text('댓글 내용'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 최근 검색어
+  Widget _recentSearch(){
+    return Wrap(
+      spacing: 5,
+      children: _recentSearches.asMap().entries.map((entry) {
+        final index = entry.key;
+        final keyword = entry.value;
+        return ElevatedButton(
+          child: Text(keyword),
+          onPressed: () {
+            _searchCtr.text = _recentSearches[index];
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>CommMain()));
+          },
+          style: _unPushBtnStyle(),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _recommendTag(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: _tagList.asMap().entries.map((entry) {
+        final index = entry.key;
+        final tag = entry.value;
+        return
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Text(
+                    '#',
+                    style: TextStyle(fontSize: 20, color: Colors.black)
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(5.0),
+                child: GestureDetector(
+                  child: Text(tag, style: TextStyle(color: Colors.black,fontSize: 15)),
+                  onTap: () {
+                    _searchCtr.text = _tagList[index];
+                    // Navigator.push(context, MaterialPageRoute(builder: (context)=>CommMain()));
+                  },
+                ),
+              )
+            ],
+          );
+      }).toList(),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,70 +212,8 @@ class _PostSearchState extends State<PostSearch> {
           ),
         ),
       ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('최근 검색어',
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.bold)
-              ),
-              SizedBox(height: 10),
-              Wrap(
-                spacing: 5,
-                children: _recentSearches.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final keyword = entry.value;
-                  return ElevatedButton(
-                    child: Text(keyword),
-                    onPressed: () {
-                      _searchCtr.text = _recentSearches[index];
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>CommMain()));
-                    },
-                    style: _unPushBtnStyle(),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 30),
-              Text('추천 태그',
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.bold)
-              ),
-              SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _tagList.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final tag = entry.value;
-                  return
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Text(
-                              '#',
-                              style: TextStyle(fontSize: 20, color: Colors.black)
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: GestureDetector(
-                            child: Text(tag, style: TextStyle(color: Colors.black,fontSize: 15)),
-                            onTap: () {
-                              _searchCtr.text = _tagList[index];
-                              // Navigator.push(context, MaterialPageRoute(builder: (context)=>CommMain()));
-                            },
-                          ),
-                        )
-                      ],
-                    );
-                }).toList(),
-              )
-            ]
-        )
-      ),
+      body: SingleChildScrollView(
+          child: _searchCtr.text.isNotEmpty ? _Search() : _noSearch())
     );
   }
 }
