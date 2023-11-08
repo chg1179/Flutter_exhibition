@@ -482,56 +482,50 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                       items: [
                         BottomNavigationBarItem(
                           icon: IconButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => Home()));
+                              onPressed: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                               },
-                              icon: Icon(Icons.home),
-                              color: Colors.black
+                              icon : Icon(Icons.home),
+                              color: Colors.grey
                           ),
                           label: '',
                         ),
                         BottomNavigationBarItem(
                           icon: IconButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => Ex_list()));
+                              onPressed: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
                               },
-                              icon: Icon(Icons.account_balance,
-                                  color: Colors.black)
+                              icon : Icon(Icons.account_balance, color: Colors.grey)
                           ),
                           label: '',
                         ),
                         BottomNavigationBarItem(
                           icon: IconButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => CommMain()));
+                              onPressed: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
                               },
-                              icon: Icon(Icons.comment),
-                              color: Colors.black
+                              icon : Icon(Icons.comment),
+                              color: Colors.grey
                           ),
                           label: '',
                         ),
                         BottomNavigationBarItem(
                           icon: IconButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => ReviewList()));
+                              onPressed: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
                               },
-                              icon: Icon(Icons.library_books),
-                              color: Colors.black
+                              icon : Icon(Icons.library_books),
+                              color: Colors.grey
                           ),
                           label: '',
                         ),
                         BottomNavigationBarItem(
                           icon: IconButton(
-                              onPressed: () {
-                                Navigator.push(context, MaterialPageRoute(
-                                    builder: (context) => MyPage()));
+                              onPressed: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
                               },
-                              icon: Icon(Icons.account_circle),
-                              color: Colors.black
+                              icon : Icon(Icons.account_circle),
+                              color: Color(0xff464D40)
                           ),
                           label: '',
                         ),

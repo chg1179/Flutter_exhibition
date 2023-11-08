@@ -610,7 +610,7 @@ class _CommMainState extends State<CommMain> {
           mini: true,
         ),
         bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
+          type: BottomNavigationBarType.fixed, // 이 부분을 추가합니다.
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
           items: [
@@ -620,7 +620,7 @@ class _CommMainState extends State<CommMain> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
                   },
                   icon : Icon(Icons.home),
-                  color: Colors.black
+                  color: Colors.grey
               ),
               label: '',
             ),
@@ -629,7 +629,7 @@ class _CommMainState extends State<CommMain> {
                   onPressed: (){
                     Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
                   },
-                  icon : Icon(Icons.account_balance, color: Colors.black)
+                  icon : Icon(Icons.account_balance, color: Colors.grey)
               ),
               label: '',
             ),
@@ -639,7 +639,7 @@ class _CommMainState extends State<CommMain> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
                   },
                   icon : Icon(Icons.comment),
-                  color: Colors.black
+                  color: Color(0xff464D40)
               ),
               label: '',
             ),
@@ -649,7 +649,7 @@ class _CommMainState extends State<CommMain> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
                   },
                   icon : Icon(Icons.library_books),
-                  color: Colors.black
+                  color: Colors.grey
               ),
               label: '',
             ),
@@ -659,7 +659,7 @@ class _CommMainState extends State<CommMain> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
                   },
                   icon : Icon(Icons.account_circle),
-                  color: Colors.black
+                  color: Colors.grey
               ),
               label: '',
             ),
