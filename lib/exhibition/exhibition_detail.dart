@@ -35,10 +35,66 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   late DocumentSnapshot _userDocument;
   late String? _userNickName = "";
   late String? _userStatus = "";
-  bool isLiked = false;
+  bool isLiked = false; // 좋아요
+  //bool isToggled = false; // 다녀온전시
+  bool isVisited = false; // 다녀온전시
+
+  //다녀온전시토글
+  void toggle() {
+    setState(() {
+      isVisited = !isVisited;
+    });
+  }
+  Widget buildCustomButton(bool isVisited, VoidCallback onPressed) {
+    return ElevatedButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(
+          isVisited ? Color(0xff464D40) : Colors.white,
+        ),
+        minimumSize: MaterialStateProperty.all<Size>(Size(120, 40)),
+        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
+          EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
+        ),
+        foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+              color: Color(0xff464D40),
+              style: BorderStyle.solid,
+            ),
+          ),
+        ),
+      ),
+      onPressed: () {
+        toggle(); // 토글 함수 호출
+        if (isVisited) {
+          _removeVisit(_exDetailData?['exTitle']
+          ); // 토글이 true인 경우 _removeVisit 함수 호출
+          print('${_exDetailData?['exTitle']}가 다녀온전시목록에서 삭제되었습니다');
+        } else {
+          _addVisit(
+            _exDetailData?['exTitle'],
+            '${_exDetailData?['galleryName']}/${_exDetailData?['region']}',
+            _exDetailData?['imageURL'],
+            DateTime.now(),
+            _exDetailData?['startDate'].toDate(),
+            _exDetailData?['endDate'].toDate(),
+          ); // 토글이 false인 경우 _addVisit 함수 호출
+          print('다녀온전시목록에 추가되었습니다');
+        }
+      },
+      child: Text(
+        isVisited ? "다녀왔어요" : "다녀왔어요",
+        style: TextStyle(
+          color: isVisited ? Colors.white : Color(0xff464D40),
+        ),
+      ),
+    );
+  }
 
 
-
+  // 유저에 있는 전시회 이름 가져오기
   Future<void> _fetchExDetailData() async {
     final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).get();
 
@@ -50,9 +106,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
 
       // 데이터를 가져온 후 checkIfLiked 함수 호출
       checkIfLiked(exTitle);
+      checkIfVisited(exTitle);
     }
   }
 
+  //좋아요 상태 체크
   Future<void> checkIfLiked(String exTitle) async {
     final user = Provider.of<UserModel?>(context, listen: false);
 
@@ -68,6 +126,27 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         final liked = querySnapshot.docs.isNotEmpty;
         setState(() {
           isLiked = liked;
+        });
+      }
+    }
+  }
+  //다녀온전시 버튼 업데이트
+  // 이제 isVisited 값에 따라 토글 상태 변경을 확인
+  Future<void> checkIfVisited(String exTitle) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      if (exTitle != null && exTitle.isNotEmpty) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .collection('visit')
+            .where('exTitle', isEqualTo: exTitle)
+            .get();
+
+        final visited = querySnapshot.docs.isNotEmpty;
+        setState(() {
+          isVisited = visited;
         });
       }
     }
@@ -538,25 +617,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                             children: [
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.4, // 화면 너비의 40%에 해당하는 버튼 크기
-                                child: ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                                      minimumSize: MaterialStateProperty.all<Size>(Size(120, 40)),
-                                      padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                                        EdgeInsets.only(right: 10, left: 10, top: 10, bottom: 10),
-                                      ),
-                                      foregroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          side: BorderSide(color: Color(0xff464D40), style: BorderStyle.solid)
-                                        ),
-                                      ),
-                                    ),
-                                    onPressed: (){
-                                    },
-                                    child: Text("다녀왔어요")
-                                ),
+                                child: buildCustomButton(isVisited, toggle)
                               ),
                               SizedBox(
                                 width: MediaQuery.of(context).size.width * 0.4, // 화면 너비의 40%에 해당하는 버튼 크기
@@ -1103,6 +1164,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       ),
     );
   }
+
+  /////////////////////좋아요 파이어베이스//////////////////////////
   void _addLike(String exTitle, String addr,String exImage, DateTime likeDate,DateTime startDate,DateTime endDate) async {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
@@ -1148,4 +1211,54 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       });
     }
   }
+
+
+/////////////////////다녀온전시 파이어베이스//////////////////////////
+
+  void _addVisit(String exTitle, String addr,String exImage, DateTime visitDate,DateTime startDate,DateTime endDate) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      final endDateTimestamp = Timestamp.fromDate(endDate);
+      final startDateTimestamp = Timestamp.fromDate(startDate);
+
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('visit')
+          .add({
+        'exTitle': exTitle,
+        'addr': addr,
+        'exImage': exImage,
+        'visitDate': Timestamp.fromDate(visitDate),
+        'startDate': startDateTimestamp,
+        'endDate': endDateTimestamp,
+      })
+          .catchError((error) {
+        print('Firestore 데이터 추가 중 오류 발생: $error');
+      });
+    } else {
+      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+    }
+  }
+
+  void _removeVisit(String exTitle) {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('visit')
+          .where('exTitle', isEqualTo: exTitle) // 'exTitle' 필드와 값이 일치하는 데이터 검색
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete(); // 검색된 모든 문서를 삭제
+        });
+      })
+          .catchError((error) {
+        print('삭제 중 오류 발생: $error');
+      });
+    }
+  }
 }
+
