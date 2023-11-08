@@ -5,7 +5,7 @@ import 'package:exhibition_project/admin/artwork/child_list.dart';
 import 'package:exhibition_project/admin/common_add_delete_button.dart';
 import 'package:exhibition_project/admin/common_list.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
-import 'package:exhibition_project/widget/text_and_image.dart';
+import 'package:exhibition_project/style/button_styles.dart';
 import 'package:flutter/material.dart';
 
 class ArtworkListPage extends StatelessWidget {
@@ -25,7 +25,6 @@ class ArtworkList extends StatefulWidget {
 }
 
 class _ArtworkListState extends State<ArtworkList> {
-  Map<String, bool> checkedList = {};
   int displayLimit = 8; // 출력 갯수
 
   void loadMoreItems() {
@@ -44,30 +43,22 @@ class _ArtworkListState extends State<ArtworkList> {
           childCollection: 'artist_artwork',
           parentName: 'artistName',
           childName: 'artTitle',
-          pageBuilder: (DocumentSnapshot document) => ArtworkViewPage(document: document),
-          checkedList: checkedList,
-          onChecked: (Map<String, bool> newCheckedList) {
-            setState(() {
-              checkedList = newCheckedList;
-              print(checkedList);
-            });
-          },
           loadMoreItems: loadMoreItems,
           displayLimit: displayLimit,
         ),
         Center(
-          child: CommonAddDeleteButton(
-            onAddPressed: () {
+          child: ElevatedButton(
+            onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ArtworkEditPage(document: null)),
+                MaterialPageRoute(builder: (context) => ArtworkEditPage(parentDocument: null, childData: null)),
               );
             },
-            onDeletePressed: () {
-              removeCheckList(context, checkedList, 'artwork');
-            },
+            style: greenButtonStyle(),
+            child: Text("추가"),
           ),
         ),
+        SizedBox(height: 40),
       ],
     );
   }

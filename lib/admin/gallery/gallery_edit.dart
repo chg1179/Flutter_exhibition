@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/gallery/gallery_list.dart';
+import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firebase_storage/image_upload.dart';
 import 'package:exhibition_project/firestore_connect/gallery_query.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
@@ -191,11 +192,11 @@ class _GalleryEditState extends State<GalleryEdit> {
                                             imageFile: _imageFile,
                                             imgPath: imgPath,
                                             selectImgURL: selectImgURL,
-                                            defaultImgURL: 'assets/ex/ex1.png',
+                                            defaultImgURL: 'assets/logo/basic_logo.png',
                                           )
                                           : (widget.document != null && selectImgURL != null)
                                             ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                            : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
+                                            : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
                                     ),
                                     Text('갤러리 이미지', style: TextStyle(fontSize: 13),)
                                   ],
@@ -291,17 +292,9 @@ class _GalleryEditState extends State<GalleryEdit> {
             _saving = false;
           });
 
-          // 저장 완료 메세지 띄우기. 스택을 쌓지 않고 리스트 페이지로 돌아감
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('성공적으로 저장되었습니다.'))
-          );
-          //Navigator.pop(context);
+          // 저장 완료 메세지
           Navigator.of(context).pop();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => GalleryListPage()),
-          );
-          //await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ArtistList());
+          await showMoveDialog(context, '성공적으로 저장되었습니다.', () => GalleryList());
         } on FirebaseAuthException catch (e) {
           firebaseException(e);
         } catch (e) {

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/admin/artwork/artwork_view.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +11,6 @@ class ChildList extends StatefulWidget {
     this.childCollection,
     this.parentName,
     this.childName,
-    this.pageBuilder,
-    this.checkedList,
-    this.onChecked,
     this.loadMoreItems,
     this.displayLimit,
   }) : super(key: key);
@@ -21,9 +19,6 @@ class ChildList extends StatefulWidget {
   final String? childCollection;
   final String? parentName;
   final String? childName;
-  final Widget Function(DocumentSnapshot)? pageBuilder;
-  final Map<String, bool>? checkedList;
-  final void Function(Map<String, bool>)? onChecked;
   final void Function()? loadMoreItems;
   final int? displayLimit;
 
@@ -74,6 +69,7 @@ class _ChildListState extends State<ChildList> {
                               if (printCount < widget.displayLimit!) {
                                 Map<String, dynamic> parentData = getMapData(document);
                                 Map<String, dynamic> childData = data;
+                                String childDocumentId = childData['documentId']!.toString();
                                 String text = childData[widget.childName!]!.toString();
                                 String truncatedText = text.length <= 25 ? text : text.substring(0, 25);
                                 if (text.length > 25) truncatedText += '...';
@@ -90,7 +86,7 @@ class _ChildListState extends State<ChildList> {
                                           onTap: () {
                                             Navigator.push(
                                               context,
-                                              MaterialPageRoute(builder: (context) => widget.pageBuilder!(document)),
+                                              MaterialPageRoute(builder: (context) => ArtworkViewPage(parentDocument: document, childData: childData)),
                                             );
                                           },
                                           child: Row(
@@ -98,7 +94,7 @@ class _ChildListState extends State<ChildList> {
                                               ClipRRect(
                                                 borderRadius: BorderRadius.circular(50),
                                                 child: childData['imageURL'] != null
-                                                    ? Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover) //Image.network(childData['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
+                                                    ? Image.network(childData['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
                                                     : Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover),
                                               ),
                                               SizedBox(width: 18),
