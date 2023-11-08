@@ -472,7 +472,7 @@ class _CommMainState extends State<CommMain> {
                         children: [
                           GestureDetector(
                             onTap: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile()));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
                             },
                             child: Row(
                               children: [

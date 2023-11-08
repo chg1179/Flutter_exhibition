@@ -249,7 +249,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                     padding: EdgeInsets.all(10),
                     child: GestureDetector(
                       onTap: (){
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile()));
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName:nickName)));
                       },
                       child: Column(
                         children: [

@@ -38,12 +38,15 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   int _currentPageIndex = 0;
   late DocumentSnapshot _userDocument;
   late String? _userNickName;
+  late String? _userImage;
   final PageController _pageController = PageController();
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
   }
+
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -87,7 +90,6 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
-        print('닉네임: $_userNickName');
       });
     }
   }
@@ -97,8 +99,33 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
     return document;
   }
+  
+ // 팔로잉 수 구하기
+  Future<int> getFollowerLength() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('follower')
+        .get();
 
+    int followerLength = querySnapshot.size;
 
+    return followerLength;
+  }
+  // 팔로워 수 구하기
+  Future<int> getFollowingLength() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('following')
+        .get();
+
+    int followingLength = querySnapshot.size;
+
+    return followingLength;
+  }
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.ㅅ
     if (!user.isSignIn) {
@@ -205,12 +232,10 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           SizedBox(width: 10),
                                           GestureDetector(
                                             onTap: () {
-                                              // 첫 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                              _showFollowersDialog(
-                                                  context, '후기글', 7);
-                                              print(user.userNo);
+                                             
                                             },
                                             child: Column(
+                                              ///후기글 테이블출력해야함
                                               children: [
                                                 Text('7', style: TextStyle(
                                                     fontWeight: FontWeight
@@ -229,16 +254,31 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                               _showFollowersDialog(
                                                   context, '팔로워', 100);
                                             },
-                                            child: Column(
-                                              children: [
-                                                Text('100', style: TextStyle(
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                                Text('팔로워', style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                              ],
+                                            child: FutureBuilder<int>(
+                                              future: getFollowerLength(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  // 데이터 로딩 중
+                                                  return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                                } else if (snapshot.hasError) {
+                                                  // 오류 발생
+                                                  return Text('오류: ${snapshot.error}');
+                                                } else {
+                                                  // 데이터 로딩 완료
+                                                  int followerLength = snapshot.data ?? 0;
+                                                  return Column(
+                                                    children: [
+                                                      Text(followerLength.toString(), style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                      )),
+                                                      Text('팔로워', style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight
+                                                              .bold)),
+                                                    ],
+                                                  );
+                                                }
+                                              },
                                             ),
                                           ),
                                           SizedBox(width: 10),
@@ -248,16 +288,31 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                               _showFollowersDialog(
                                                   context, '팔로잉', 100);
                                             },
-                                            child: Column(
-                                              children: [
-                                                Text('100', style: TextStyle(
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                                Text('팔로잉', style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight
-                                                        .bold)),
-                                              ],
+                                            child: FutureBuilder<int>(
+                                              future: getFollowingLength(),
+                                              builder: (context, snapshot) {
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  // 데이터 로딩 중
+                                                  return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                                } else if (snapshot.hasError) {
+                                                  // 오류 발생
+                                                  return Text('오류: ${snapshot.error}');
+                                                } else {
+                                                  // 데이터 로딩 완료
+                                                  int followingLength = snapshot.data ?? 0;
+                                                  return Column(
+                                                    children: [
+                                                      Text(followingLength.toString(), style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                      )),
+                                                      Text('팔로잉', style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight
+                                                              .bold)),
+                                                    ],
+                                                  );
+                                                }
+                                              },
                                             ),
                                           ),
                                         ],
@@ -541,6 +596,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
   }
 
+  ///팔로잉 팔로워 클릭시 나타나는 다이얼로그
   void _showFollowersDialog(BuildContext context, String title, int count) {
     showDialog(
       context: context,
@@ -720,6 +776,7 @@ class ExhibitionTemperature extends StatelessWidget {
       ),
     );
   }
+  
   void showTooltip(BuildContext context,
       {required String message, required double top}) {
     final RenderBox overlay = Overlay.of(context)!.context
