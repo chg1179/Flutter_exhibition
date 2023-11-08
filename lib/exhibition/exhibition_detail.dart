@@ -35,6 +35,43 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   late DocumentSnapshot _userDocument;
   late String? _userNickName = "";
   late String? _userStatus = "";
+  bool isLiked = false;
+
+
+
+  Future<void> _fetchExDetailData() async {
+    final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).get();
+
+    if (documentSnapshot.exists) {
+      final exTitle = documentSnapshot.data()?['exTitle']; // 가져온 데이터에서 exTitle 추출
+      setState(() {
+        _exDetailData = documentSnapshot.data() as Map<String, dynamic>;
+      });
+
+      // 데이터를 가져온 후 checkIfLiked 함수 호출
+      checkIfLiked(exTitle);
+    }
+  }
+
+  Future<void> checkIfLiked(String exTitle) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      if (exTitle != null && exTitle.isNotEmpty) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .collection('like')
+            .where('exTitle', isEqualTo: exTitle)
+            .get();
+
+        final liked = querySnapshot.docs.isNotEmpty;
+        setState(() {
+          isLiked = liked;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -44,7 +81,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     getExpactationReviewCount();
     _getExDetailData();
     _getGalleryInfo();
+    _fetchExDetailData();
   }
+
 
   void _getExDetailData() async {
     try {
@@ -265,7 +304,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double totalHeight = appBarHeight + statusBarHeight;
     final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
-
     Widget _onGoing(){
       String _ongoing = getExhibitionStatus();
       return Container(
@@ -448,8 +486,31 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               height: 40, // 아이콘 버튼의 높이 조절
                               width: 40, // 아이콘 버튼의 너비 조절
                               child: IconButton(
-                                onPressed: () {},
-                                icon: Icon(Icons.favorite_border),
+                                onPressed: () {
+                                  setState(() {
+                                    isLiked = !isLiked; // 좋아요 버튼 상태를 토글
+                                    if (isLiked) {
+                                      // 좋아요 버튼을 누른 경우
+                                      // 빨간 하트 아이콘로 변경하고 추가 작업 수행
+                                      _addLike(
+                                        _exDetailData?['exTitle'],
+                                        '${_exDetailData?['galleryName']}/${_exDetailData?['region']}',
+                                        _exDetailData?['imageURL'],
+                                        DateTime.now(),
+                                        _exDetailData?['startDate'].toDate(),
+                                        _exDetailData?['endDate'].toDate(),
+                                      );
+                                      print('좋아요목록에 추가되었습니다');
+                                    } else {
+                                      _removeLike(_exDetailData?['exTitle']);
+                                      print('${_exDetailData?['exTitle']}가 좋아요목록에서 삭제되었습니다');
+                                    }
+                                  });
+                                },
+                                icon: Icon(
+                                  isLiked ? Icons.favorite : Icons.favorite_border, // 토글 상태에 따라 아이콘 변경
+                                  color: isLiked ? Colors.red : null, // 빨간 하트 아이콘의 색상 변경
+                                ),
                               ),
                             ),
                             Container(
@@ -1041,5 +1102,50 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         ),
       ),
     );
+  }
+  void _addLike(String exTitle, String addr,String exImage, DateTime likeDate,DateTime startDate,DateTime endDate) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      final endDateTimestamp = Timestamp.fromDate(endDate);
+      final startDateTimestamp = Timestamp.fromDate(startDate);
+
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('like')
+          .add({
+        'exTitle': exTitle,
+        'addr': addr,
+        'exImage': exImage,
+        'likeDate': Timestamp.fromDate(likeDate),
+        'startDate': startDateTimestamp,
+        'endDate': endDateTimestamp,
+      })
+          .catchError((error) {
+        print('Firestore 데이터 추가 중 오류 발생: $error');
+      });
+    } else {
+      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+    }
+  }
+
+  void _removeLike(String exTitle) {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('like')
+          .where('exTitle', isEqualTo: exTitle) // 'exTitle' 필드와 값이 일치하는 데이터 검색
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete(); // 검색된 모든 문서를 삭제
+        });
+      })
+          .catchError((error) {
+        print('삭제 중 오류 발생: $error');
+      });
+    }
   }
 }
