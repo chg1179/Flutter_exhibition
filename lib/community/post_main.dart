@@ -76,11 +76,11 @@ class _CommMainState extends State<CommMain> {
 
     _loadUserData();
 
-    // final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-    // final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    // _likeCheck(postIds as String);
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+    final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    _likeCheck(postIds);
     setState(() {});
-    // await loadCommentCnt();
+    await loadCommentCnt();
   }
 
   String? _userNickName;
