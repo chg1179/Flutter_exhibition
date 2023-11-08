@@ -80,8 +80,8 @@ class _MainArtWorkState extends State<MainArtWork> {
                                         ],
                                       ),
                                       padding: EdgeInsets.all(6),
-                                      child: Image.asset(
-                                        'assets/ex/ex1.png',
+                                      child: Image.network(
+                                        artwork['imageURL'],
                                         fit: BoxFit.cover,
                                       ),
                                     ),

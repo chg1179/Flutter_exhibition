@@ -3,6 +3,8 @@ import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../artwork/ex_artwork_detail.dart';
+
 class ArtistInfo extends StatefulWidget {
   final String document;
   ArtistInfo({required this.document});
@@ -393,7 +395,68 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                         controller: _tabController,
                         children: [
                           SingleChildScrollView(
-                            child: Text("외않되" ),
+                            child:  Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 500,
+                                child: StreamBuilder(
+                                  stream: _firestore
+                                      .collection('artist')
+                                      .doc(widget.document)
+                                      .collection('artist_artwork')
+                                      .snapshots(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else {
+                                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                        return Center(
+                                          child: Text('관련 작품이 없습니다.'),
+                                        );
+                                      }
+                                      return SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        physics: ClampingScrollPhysics(),
+                                        child: Row(
+                                          children: List.generate(snapshot.data!.docs.length, (index) {
+                                            var artwork = snapshot.data?.docs[index];
+                                            return Container(
+                                              width: MediaQuery.of(context).size.width * 0.5, // 반 페이지만 표시
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: InkWell(
+                                                  onTap: (){
+                                                    Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: widget.document, artDoc: artwork!.id)));
+                                                  },
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Container(
+                                                        height: 400,
+                                                        child: Image.network(
+                                                          artwork?['imageURL'],
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                      ),
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(top: 8, bottom: 5, left: 5, right: 5),
+                                                        child: Text('${artwork?['artTitle']}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),),
+                                                      ),
+                                                      Padding(
+                                                        padding: const EdgeInsets.only(bottom: 5, left: 5, right: 5),
+                                                        child: Text('${artwork?['artType']}', style: TextStyle(color: Colors.grey[600], fontSize: 13),),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                )
+                            ),
                           ),
                           SingleChildScrollView(
                               child: Container(

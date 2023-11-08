@@ -80,8 +80,8 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                     Container(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width,
-                        child: Image.asset(
-                          "assets/ex/ex1.png",
+                        child: Image.network(
+                          _artworkInfo?['imageURL'],
                           fit: BoxFit.fitWidth,
                         ),
                       ),
@@ -128,7 +128,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                             SizedBox(width: 10),
                             CircleAvatar(
                               radius: 30, // 반지름 크기 조절
-                              backgroundImage: AssetImage("assets/ex/ex1.png"),
+                              backgroundImage: NetworkImage(_artistInfo?['imageURL']),
                             ),
                             SizedBox(width: 15),
                             Text(_artistInfo?['artistName'], style: TextStyle(fontSize: 16),)
@@ -161,10 +161,6 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                         ],
                       ),
                     ),
-                    // Container(
-                    //   height: 200,
-                    //   child: Center(child: Text("연관 작품이 없습니다.")),
-                    // ),
                     SizedBox(height: 15),
                     Container(
                         width: MediaQuery.of(context).size.width,
@@ -203,8 +199,8 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                                             children: [
                                               Container(
                                                 height: 300,
-                                                child: Image.asset(
-                                                  "assets/ex/ex1.png",
+                                                child: Image.network(
+                                                  artwork?['imageURL'],
                                                   fit: BoxFit.cover,
                                                 ),
                                               ),
