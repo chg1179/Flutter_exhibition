@@ -14,29 +14,47 @@ class CommProfile extends StatefulWidget {
 
 class _CommProfileState extends State<CommProfile> {
 
-  List<Map<String, String>> _imgList = [
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-    {'image': 'assets/ex/ex1.png'},
-  ];
+  List<Map<String, String>> _imgList = [];
+
+
+
+  //이미지 리스트 불러오기
+  Future<void> _fetchUserImages() async {
+    final userSnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .where('nickName', isEqualTo: widget.nickName)
+        .get();
+
+    if (userSnapshot.docs.isNotEmpty) {
+      final userRef = userSnapshot.docs[0].reference;
+
+      // 1. 유저 정보 가져오기
+      final userDoc = userSnapshot.docs[0].data() as Map<String, dynamic>;
+      final userNickName = userDoc['nickName'];
+
+      // 2. 해당 유저의 review 컬렉션에서 이미지 가져오기
+      final imagesSnapshot = await FirebaseFirestore.instance
+          .collection('review')
+          .where('userNickName', isEqualTo: userNickName)
+          .get();
+
+      print('Images Snapshot Size: ${imagesSnapshot.size}');
+
+      // 3. _imgList 업데이트
+      setState(() {
+        _imgList = imagesSnapshot.docs.map((doc) {
+          final imageURL = doc['imageURL'] as String;
+          print('Image URL: $imageURL'); // 이미지 URL 콘솔 출력
+          return {
+            'image': imageURL,
+          };
+        }).toList();
+      });
+    }
+  }
+
+
+
 
   // 팔로잉 수 구하기
   Future<int> getFollowingCount(String desiredNickName) async {
@@ -142,13 +160,13 @@ class _CommProfileState extends State<CommProfile> {
                               ),
                             ),
                             Text(
-                              'asdfd123',
+                              '유저아이디',
                               style: TextStyle(
                                 fontSize: 16,
                               ),
                             ),
                             Text(
-                              '좋은 전시정보 공유합니다.',
+                              ' ',
                               style: TextStyle(
                                 fontSize: 16,
                               ),
@@ -263,7 +281,7 @@ class _CommProfileState extends State<CommProfile> {
                       itemCount: _imgList.length,
                       itemBuilder: (context, index) {
                         return Container(
-                          child: Image.asset(
+                          child: Image.network(
                             _imgList[index]['image']!,
                             fit: BoxFit.contain,
                           ),

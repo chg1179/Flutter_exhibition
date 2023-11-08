@@ -209,17 +209,17 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
 
                     await FirebaseFirestore.instance
                         .collection('user')
-                        .doc('LkZ2WsbF9BAwhrOc7HAw.id')
+                        .doc('VDkKTXhq1Ys9xSsy9Qzn.id')
                         .collection('jbti')
                         .add({
-                      'a': group1Score,
-                      'b': group1OppositeScore,
-                      'c': group2Score,
-                      'd': group2OppositeScore,
-                      'e': group3Score,
-                      'f': group3OppositeScore,
-                      'g': group4Score,
-                      'h': group4OppositeScore,
+                      'a': group1Score.round(),
+                      'b': group1OppositeScore.round(),
+                      'c': group2Score.round(),
+                      'd': group2OppositeScore.round(),
+                      'e': group3Score.round(),
+                      'f': group3OppositeScore.round(),
+                      'g': group4Score.round(),
+                      'h': group4OppositeScore.round(),
                     });
                     // Print the calculated values
                     print('a: $group1Score');
