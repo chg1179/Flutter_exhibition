@@ -24,8 +24,10 @@ class CommMain extends StatefulWidget {
 }
 
 class _CommMainState extends State<CommMain> {
+  // 좋아요
   Map<String, bool> isLikedMap = {};
   bool isLiked = false;
+
   List<String> _tagList = [
     '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
   ];
@@ -74,9 +76,9 @@ class _CommMainState extends State<CommMain> {
 
     _loadUserData();
 
-    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-    final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    _likeCheck(postIds as String);
+    // final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+    // final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    // _likeCheck(postIds as String);
     setState(() {});
     // await loadCommentCnt();
   }
@@ -98,17 +100,6 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
-  // // 게시글 아이디 리스트로 가져오기
-  // Future<List<String>> getPostId() async {
-  //   try {
-  //     final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-  //     final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-  //     return postIds;
-  //   } catch (e) {
-  //     print('게시물 ID를 불러오는 동안 오류 발생: $e');
-  //     return [];
-  //   }
-  // }
 
   // 게시글 당 댓글 수 가져오기
   Future<int> getcommentCnt(String postId) async {
@@ -176,22 +167,27 @@ class _CommMainState extends State<CommMain> {
     });
   }
 
-  void _likeCheck(String postId) async {
+  // 좋아요 체크
+  Future<void> _likeCheck(List<String> postIds) async {
     final user = Provider.of<UserModel?>(context, listen: false);
-    final likeYnSnapshot = await FirebaseFirestore.instance
-        .collection('post')
-        .doc(postId)
-        .collection('likes')
-        .where('userId', isEqualTo: user?.userNo)
-        .get();
-    if (likeYnSnapshot.docs.isNotEmpty) {
-      setState(() {
-        isLikedMap[postId] = true;
-      });
-    } else {
-      setState(() {
-        isLikedMap[postId] = false;
-      });
+
+    for (String postId in postIds) {
+      final likeYnSnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .doc(postId)
+          .collection('likes')
+          .where('userId', isEqualTo: user?.userNo)
+          .get();
+
+      if (likeYnSnapshot.docs.isNotEmpty) {
+        setState(() {
+          isLikedMap[postId] = true;
+        });
+      } else {
+        setState(() {
+          isLikedMap[postId] = false;
+        });
+      }
     }
   }
 
@@ -206,22 +202,30 @@ class _CommMainState extends State<CommMain> {
       final currentIsLiked = isLikedMap[postId] ?? false; // 현재 상태 가져오기
 
       if (!currentIsLiked) {
+        // 좋아요 추가
         await postRef.add({'userId' : user.userNo});
-        await postDoc.update({
-          'likeCount': FieldValue.increment(1),
-        });
       } else {
-        await postDoc.collection('likes').doc(user.userNo!).delete();
-        await postDoc.update({
-          'likeCount' : FieldValue.increment(-1)
-        });
+        // 좋아요 삭제
+        QuerySnapshot likeSnapshot = await postRef.where('userId', isEqualTo: user.userNo).get();
+        for (QueryDocumentSnapshot doc in likeSnapshot.docs) {
+          await doc.reference.delete();
+        }
       }
+
+      // 좋아요 수 업데이트
+      QuerySnapshot likeSnapshot = await postRef.get();
+      int likeCount = likeSnapshot.size;
+
+      await postDoc.update({
+        'likeCount': likeCount,
+      });
 
       setState(() {
         isLikedMap[postId] = !currentIsLiked; // 현재 상태를 토글합니다.
       });
     }
   }
+
 
   // 게시글 좋아요 버튼을 표시하는 부분
   Widget buildLikeButton(String docId, int likeCount) {
@@ -414,6 +418,9 @@ class _CommMainState extends State<CommMain> {
 
           return false;
         }).toList();
+
+        // final postIds = filteredDocs.map((doc) => doc.id).toList();
+        // _likeCheck(postIds);
 
         return ListView.separated(
           itemCount: filteredDocs.length,
