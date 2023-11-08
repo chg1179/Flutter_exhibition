@@ -290,7 +290,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                               Container(
                                 padding: EdgeInsets.only(top: 15),
                                 width: 300,
-                                height: _artistEducationData!.length * 35.toDouble(),
+                                height: _artistEducationData!.length * 40.toDouble(),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: _artistEducationData!.map((data) {
@@ -341,20 +341,20 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           Container(
                             width: 100,
                             padding: EdgeInsets.only(left: 15, top: 15),
-                            child: Text("수상이력", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),),
+                            child: Text("이력", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),),
                           ),
                           Container(
                             padding: EdgeInsets.only(top: 10),
                             width: 300,
-                            height: _artistAwardData!.length * 40,
-                            child: ListView.builder(
-                              itemCount: _artistAwardData?.length,
-                              itemBuilder: (context, index) {
+                            height: _artistAwardData!.length * 40.toDouble(),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _artistAwardData!.map((data) {
                                 return Container(
-                                  padding: EdgeInsets.all(3),
-                                  child: Text("${_artistAwardData?[index]['year']} ${_artistAwardData?[index]['content']}"),
+                                  padding: EdgeInsets.all(2),
+                                  child: Text("${data['year']}  ${data['content']}"),
                                 );
-                              },
+                              }).toList(),
                             ),
                           ),
                         ],

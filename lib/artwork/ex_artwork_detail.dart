@@ -161,10 +161,70 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                         ],
                       ),
                     ),
+                    // Container(
+                    //   height: 200,
+                    //   child: Center(child: Text("연관 작품이 없습니다.")),
+                    // ),
+                    SizedBox(height: 15),
                     Container(
-                      height: 200,
-                      child: Center(child: Text("연관 작품이 없습니다.")),
-                    ),
+                        width: MediaQuery.of(context).size.width,
+                        height: 400,
+                        child: StreamBuilder(
+                          stream: _firestore
+                              .collection('artist')
+                              .doc(widget.doc)
+                              .collection('artist_artwork')
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else {
+                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                return Center(
+                                  child: Text('관련 작품이 없습니다.'),
+                                );
+                              }
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                physics: ClampingScrollPhysics(),
+                                child: Row(
+                                  children: List.generate(snapshot.data!.docs.length, (index) {
+                                    var artwork = snapshot.data?.docs[index];
+                                    return Container(
+                                      width: MediaQuery.of(context).size.width * 0.5, // 반 페이지만 표시
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: InkWell(
+                                          onTap: (){
+                                            Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: widget.doc, artDoc: artwork!.id)));
+                                          },
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                height: 300,
+                                                child: Image.asset(
+                                                  "assets/ex/ex1.png",
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 8, bottom: 5, left: 5, right: 5),
+                                                child: Text('${artwork?['artTitle']}'),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              );
+                            }
+                          },
+                        )
+                    )
+
                   ]
               ),
             ),
