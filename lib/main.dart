@@ -139,7 +139,7 @@ class _HomeState extends State<Home> {
                                 child: Container(
                                   child: Align(
                                     alignment: Alignment.centerRight,
-                                    child: Text('PICK', style: TextStyle(color: Color(0xffD4D8C8)),),
+                                    child: Text('PICK'),
                                   ),
                                 ),
                               ),
@@ -147,13 +147,13 @@ class _HomeState extends State<Home> {
                                 child: Container(
                                   child: Align(
                                     alignment: Alignment.centerLeft,
-                                    child: Text('FOLLOWING', style: TextStyle(color: Color(0xffD4D8C8))),
+                                    child: Text('FOLLOWING'),
                                   ),
                                 ),
                               ),
                             ],
-                            labelColor: Colors.black,
-                            unselectedLabelColor: Colors.grey,
+                            labelColor: Color(0xffD4D8C8),
+                            unselectedLabelColor: Color(0xff707966),
                             labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                             indicator: null,
                             indicatorColor: Colors.transparent,
@@ -168,18 +168,18 @@ class _HomeState extends State<Home> {
                 body: Container(
                   constraints: BoxConstraints(maxWidth: 500), // 최대넓이제한
                   child: _isSearchVisible
-                      ? Padding(
+                    ? Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: TextField(
                       decoration: InputDecoration(
                         hintText: '전시 검색',
-                        prefixIcon: Icon(Icons.search, color: Color(0xffD4D8C8)),
+                        prefixIcon: Icon(Icons.search, color: Color(0xffD4D8C8)), // 아이콘 색상 설정
                         contentPadding: EdgeInsets.all(8.0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                    ),
+                    )
                   )
                       : TabBarView(
                     children: [

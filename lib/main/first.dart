@@ -14,7 +14,7 @@ class FirstPage extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('exhibition').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return CircularProgressIndicator(); // 데이터를 가져올 때까지 로딩 표시
+          return Center(child: CircularProgressIndicator()); // 데이터를 가져올 때까지 로딩 표시
         }
 
         final exhibitions = snapshot.data?.docs; // 전시 정보 문서 목록
@@ -223,16 +223,16 @@ class _popularExState extends State<popularEx> {
                                       width: 180,
                                       height: 240,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                      placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
                                       errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.only(top: 5, left: 3, right: 3),
+                                      padding: const EdgeInsets.only(top: 10, left: 3, right: 3),
                                       child: Text(data['exTitle'], maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
-                                      child: Text('$galleryName/$galleryRegion', style: TextStyle(
+                                      child: Text('$galleryName / $galleryRegion', style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.grey[800],
                                       )),
@@ -395,7 +395,7 @@ class _MainListState extends State<MainList> {
                         .snapshots(),
                     builder: (context, gallerySnapshot) {
                       if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return Center(child: CircularProgressIndicator());
                       }
                       if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
                       /// 갤러리 정보 갯또다제
@@ -420,7 +420,7 @@ class _MainListState extends State<MainList> {
                                           height: 420,
                                           width: 280,
                                           fit: BoxFit.cover,
-                                          placeholder: (context, url) => CircularProgressIndicator(),
+                                          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
                                           errorWidget: (context, url, error) => Icon(Icons.error),
                                         ),
                                       ),
@@ -468,7 +468,7 @@ class _MainListState extends State<MainList> {
                           ),
                         );
                       } else {
-                        return CircularProgressIndicator();
+                        return Center(child: CircularProgressIndicator());
                       }
                     },
                   );
@@ -553,7 +553,7 @@ class _UserListState extends State<UserList> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return Center(child: CircularProgressIndicator());
                     }
                     if (snapshot.hasError) {
                       return Text('에러 발생: ${snapshot.error}');
@@ -577,7 +577,7 @@ class _UserListState extends State<UserList> {
                           .snapshots(),
                       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return CircularProgressIndicator();
+                          return Center(child: CircularProgressIndicator());
                         }
                         if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
@@ -793,16 +793,16 @@ class _endExListState extends State<endExList> {
                                       width: 180,
                                       height: 240,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => CircularProgressIndicator(), // 이미지 로딩 중에 표시될 위젯
+                                      placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
                                       errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.only(top: 5, left: 3, right: 3),
+                                      padding: const EdgeInsets.only(top: 10, left: 3, right: 3),
                                       child: Text(data['exTitle'], maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 4,left: 3, right: 3),
-                                      child: Text('$galleryName/$galleryRegion',maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
+                                      child: Text('$galleryName / $galleryRegion',maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.grey[800],
                                       )),
