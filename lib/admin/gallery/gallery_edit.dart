@@ -155,7 +155,7 @@ class _GalleryEditState extends State<GalleryEdit> {
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Center(
           child: Text(
-            '갤러리 정보 수정',
+            '갤러리 정보 관리',
             style: TextStyle(
                 color: Color.fromRGBO(70, 77, 64, 1.0),
                 fontWeight: FontWeight.bold),

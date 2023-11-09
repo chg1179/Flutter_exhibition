@@ -14,7 +14,7 @@ Future<void> addUserFirestore(String collectionStr, String email, String hashedP
     'phone': phone,
     'eventYn': eventChecked ? 'Y' : 'N',
     'joinDate': FieldValue.serverTimestamp(),
-    'heat': '36.5',
+    'heat': 36.5,
     'status': 'U',
   });
 }

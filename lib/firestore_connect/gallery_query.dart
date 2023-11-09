@@ -15,6 +15,7 @@ Future<String> addGallery(String collectionStr, Map<String, String> formData) as
     'galleryEmail': formData['galleryEmail'],
     'webSite': formData['webSite'],
     'galleryIntroduce': formData['galleryIntroduce'],
+    'like': 0,
   });
 
   // gallery 변수를 사용하여 문서의 ID를 가져옴. 이미지를 선택했을 때 사용

@@ -11,6 +11,7 @@ Future<String> addArtist(String collectionStr, Map<String, String> formData) asy
     'artistNationality': formData['nationality'],
     'expertise': formData['expertise'],
     'artistIntroduce': formData['introduce'],
+    'like': 0,
   });
 
   // artist 변수를 사용하여 문서의 ID를 가져옴

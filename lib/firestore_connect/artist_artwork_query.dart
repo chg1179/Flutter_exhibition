@@ -13,6 +13,7 @@ Future<String> addArtistArtwork(String parentCollection, String documentId, Stri
         'artTitle': formData['artTitle'],
         'artDate': formData['artDate'],
         'artType': formData['artType'],
+        'like': 0,
       });
 
   // artist 변수를 사용하여 문서의 ID를 가져옴

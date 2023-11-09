@@ -67,6 +67,28 @@ class _ArtworkEditState extends State<ArtworkEdit> {
     });
   }
 
+  Future<void> settingText() async {
+    settingArtistOption(); // 작가 리스트 설정
+
+    // 수정하는 경우에 저장된 값을 필드에 출력
+    if (widget.parentDocument != null && widget.childData != null) {
+      Map<String, dynamic> parentData = getMapData(widget.parentDocument!);
+      if (widget.parentDocument!.exists && widget.childData!.isNotEmpty) {
+        _artTitleController.text = widget.childData!['artTitle'];
+        _artDateController.text = widget.childData!['artDate'];
+        _artTypeAddressController.text = widget.childData!['artType'];
+        selectImgURL = await widget.childData!['imageURL'];
+        setState(() {
+          allFieldsFilled = true; // 이미 정보를 입력한 사용자를 불러옴
+        });
+        print(selectImgURL);
+        print('기존 정보를 수정합니다.');
+      } else {
+        print('새로운 정보를 추가합니다.');
+      }
+    }
+  }
+
   // 작가 리스트 옵션 세팅
   void settingArtistOption() async {
     artistData = await getArtistData(); // Firestore에서 작가 이름과 문서 ID를 가져와 맵에 저장
@@ -96,28 +118,6 @@ class _ArtworkEditState extends State<ArtworkEdit> {
       print('Error fetching artist data: $e'); // 오류 발생 시 처리
     }
     return artistData;
-  }
-
-  Future<void> settingText() async {
-    settingArtistOption(); // 작가 리스트 설정
-
-    // 수정하는 경우에 저장된 값을 필드에 출력
-    if (widget.parentDocument != null && widget.childData != null) {
-      Map<String, dynamic> parentData = getMapData(widget.parentDocument!);
-      if (widget.parentDocument!.exists && widget.childData!.isNotEmpty) {
-        _artTitleController.text = widget.childData!['artTitle'];
-        _artDateController.text = widget.childData!['artDate'];
-        _artTypeAddressController.text = widget.childData!['artType'];
-        selectImgURL = await widget.childData!['imageURL'];
-        setState(() {
-          allFieldsFilled = true; // 이미 정보를 입력한 사용자를 불러옴
-        });
-        print(selectImgURL);
-        print('기존 정보를 수정합니다.');
-      } else {
-        print('새로운 정보를 추가합니다.');
-      }
-    }
   }
 
   // 이미지 가져오기
@@ -151,7 +151,7 @@ class _ArtworkEditState extends State<ArtworkEdit> {
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Center(
           child: Text(
-            '작품 정보 수정',
+            '작품 정보 관리',
             style: TextStyle(
                 color: Color.fromRGBO(70, 77, 64, 1.0),
                 fontWeight: FontWeight.bold),

@@ -70,7 +70,7 @@ Widget listContent(DocumentSnapshot document, String parentCollection, String ch
       if (snap.data!.docs.length == 0) {
         return Container(
           padding: EdgeInsets.fromLTRB(10, 10, 10, 20),
-          child: Text('내역이 없습니다.'),
+          child: Text('입력된 내용이 없습니다.'),
         );
       }
 

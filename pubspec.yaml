@@ -53,6 +53,7 @@ dependencies:
   cached_network_image:
   shared_preferences:
   flutter_spinkit: ^5.1.0
+  timezone:
 
 
   # The following adds the Cupertino Icons font to your application.

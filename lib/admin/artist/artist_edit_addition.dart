@@ -47,26 +47,15 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
 
   void loadData() async {
     if(widget.documentId != null && widget.editKind != null) {
-      await settingText('artist', 'artist_education', educationControllers, widget.documentId!, widget.editKind);
-      await settingText( 'artist', 'artist_history', historyControllers, widget.documentId!, widget.editKind);
-      await settingText('artist', 'artist_awards', awardsControllers, widget.documentId!, widget.editKind);
+      await settingTextList('artist', 'artist_education', educationControllers, widget.documentId!, widget.editKind, 'year', 'content');
+      await settingTextList( 'artist', 'artist_history', historyControllers, widget.documentId!, widget.editKind, 'year', 'content');
+      await settingTextList('artist', 'artist_awards', awardsControllers, widget.documentId!, widget.editKind, 'year', 'content');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '작가 상세 정보 수정',
-            style: TextStyle(
-                color: Color.fromRGBO(70, 77, 64, 1.0),
-                fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
       body: Container(
         margin: EdgeInsets.all(30),
         padding: EdgeInsets.all(15),

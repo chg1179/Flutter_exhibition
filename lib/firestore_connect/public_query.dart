@@ -93,7 +93,7 @@ void removeCheckList(BuildContext context, Map<String, bool> checkedList, String
         if (snapshot.exists) {
           // 하위 컬렉션 삭제
           if(collectionStr == 'artist'){
-            final List<String> subCollections = ['artist_history', 'artist_education', 'artist_awards', 'artist_image']; // 하위 컬렉션들의 이름
+            final List<String> subCollections = ['artist_history', 'artist_education', 'artist_awards', 'artist_artwork']; // 하위 컬렉션들의 이름
             await deleteAllSubCollection(collectionStr, documentId, subCollections);
           }
           await snapshot.reference.delete();

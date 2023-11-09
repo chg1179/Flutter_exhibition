@@ -124,18 +124,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
-      appBar: AppBar(
-        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '작가 정보 수정',
-            style: TextStyle(
-                color: Color.fromRGBO(70, 77, 64, 1.0),
-                fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
       body: Container(
         margin: EdgeInsets.all(10),
         padding: EdgeInsets.all(10),
@@ -170,7 +158,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                                         )
                                         : (widget.document != null && selectImgURL != null)
                                           ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                          : Image.asset('assets/ex/ex1.png', width: 50, height: 50, fit: BoxFit.cover),
+                                          : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
                                   ),
                                   Text('작가 이미지', style: TextStyle(fontSize: 13),)
                                 ],
