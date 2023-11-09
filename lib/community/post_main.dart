@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
@@ -27,6 +26,15 @@ class CommMain extends StatefulWidget {
 }
 
 class _CommMainState extends State<CommMain> {
+
+  // 바텀바
+  int _currentIndex = 0;
+  void _onTabTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   // 좋아요
   Map<String, bool> isLikedMap = {};
   bool isLiked = false;
@@ -36,11 +44,10 @@ class _CommMainState extends State<CommMain> {
   ];
 
   int selectedButtonIndex = 0;
-  String selectedTag = '전체';
-
-  int _currentIndex = 0;
+  String selectedTag = '';
 
 
+  List<Map<String, dynamic>> _tagSelectList = [];
   Map<String, int> commentCounts = {};
 
   String _formatTimestamp(Timestamp timestamp) {
@@ -66,30 +73,21 @@ class _CommMainState extends State<CommMain> {
   void initState() {
     super.initState();
     if (!isDataLoaded) {
-      loadInitialData();
+      _loadUserData();
     }
   }
 
   Future<void> loadInitialData() async {
-    _tagList = [
-      '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
-    ];
-
-    selectedButtonIndex = 0;
-    selectedTag = '전체';
-    isDataLoaded = true;
-
     _loadUserData();
-
-    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-    final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    _likeCheck(postIds);
-    setState(() {});
-    await loadCommentCnt();
+    // final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
+    // final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    // _likeCheck(selectedPosts);
+    // setState(() {});
+    // await loadCommentCnt(selectedPosts);
   }
 
-  String? _userNickName;
-
+  late String _userNickName;
+  String? _profileImage;
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -100,6 +98,7 @@ class _CommMainState extends State<CommMain> {
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        _profileImage = _userDocument.get('_profileImage') ?? 'assets/logo/green_logo.png';
         print('닉네임: $_userNickName');
       });
     }
@@ -148,9 +147,20 @@ class _CommMainState extends State<CommMain> {
     setState(() {});
   }
 
-  Future<void> loadCommentCnt() async {
-    List<String> postId = await getPostDocumentIds();
-    await commentCnt(postId);
+  Future<void> loadCommentCnt(List<Map<String, dynamic>> selectedPosts) async {
+    for (var post in selectedPosts) {
+      final postId = post['id'];
+      if (!commentCounts.containsKey(postId)) {
+        try {
+          int commentCnt = await getcommentCnt(postId);
+          commentCounts[postId] = commentCnt;
+        } catch (e) {
+          print('댓글수 조회 중 오류 발생: $e');
+          commentCounts[postId] = 0;
+        }
+      }
+    }
+    setState(() {});
   }
 
   // 세션으로 document 값 구하기
@@ -159,24 +169,66 @@ class _CommMainState extends State<CommMain> {
     return document;
   }
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-  }
 
-  void _updateSelectedTag(int index) {
+  Future<void> _updateSelectedTag(int index) async {
     setState(() {
       selectedButtonIndex = index;
       selectedTag = _tagList[index];
     });
+    _loadFilteredData();
+  }
+
+  Future<void> _loadFilteredData() async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('post')
+        .orderBy('write_date', descending: true)
+        .get();
+
+    final List<Map<String, dynamic>> selectedPosts = [];
+
+    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+      final title = doc['title'] as String;
+      final content = doc['content'] as String;
+
+      // 선택한 해시태그가 '전체'일 경우 모든 게시물 표시
+      if (selectedTag == '전체') {
+        selectedPosts.add({'id': doc.id, 'data': doc.data()});
+      } else {
+        // 'hashtag' 컬렉션에서 해당 태그를 포함하는 게시글 검색
+        final hashtagSnapshot = await FirebaseFirestore.instance
+            .collection('post')
+            .doc(doc.id)
+            .collection('hashtag')
+            .where('tag_name', isEqualTo: selectedTag)
+            .get();
+
+        if (hashtagSnapshot.docs.isNotEmpty) {
+          selectedPosts.add({'id': doc.id, 'data': doc.data()});
+        } else {
+          // 게시물 제목 또는 내용에 선택한 해시태그가 포함되어 있는 경우 표시
+          if (title.contains(selectedTag) || content.contains(selectedTag)) {
+            selectedPosts.add({'id': doc.id, 'data': doc.data()});
+          }
+        }
+      }
+    }
+
+    setState(() {
+      _tagSelectList = selectedPosts;
+    });
+
+    print(_tagSelectList);
+    await _likeCheck(selectedPosts);
+    await loadCommentCnt(selectedPosts);
+    setState(() {});
   }
 
   // 좋아요 체크
-  Future<void> _likeCheck(List<String> postIds) async {
+  Future<void> _likeCheck(List<Map<String, dynamic>> selectedPosts) async {
     final user = Provider.of<UserModel?>(context, listen: false);
 
-    for (String postId in postIds) {
+    for (var post in selectedPosts) {
+      final postId = post['id'];
       final likeYnSnapshot = await FirebaseFirestore.instance
           .collection('post')
           .doc(postId)
@@ -410,7 +462,6 @@ class _CommMainState extends State<CommMain> {
 
   Widget _commList(bool isPopular) {
     final orderByField = isPopular ? 'viewCount' : 'write_date';
-
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('post')
@@ -456,16 +507,13 @@ class _CommMainState extends State<CommMain> {
             String docId = doc.id;
             int viewCount = doc['viewCount'] as int? ?? 0;
             int likeCount = doc['likeCount'] as int? ?? 0;
-
             String? imageURL;
             final data = doc.data() as Map<String, dynamic>;
-
             if (data.containsKey('imageURL')) {
               imageURL = data['imageURL'];
             } else {
               imageURL = '';
             }
-
             return GestureDetector(
               onTap: () {
                 // 조회수 증가
@@ -498,6 +546,7 @@ class _CommMainState extends State<CommMain> {
                             child: Row(
                               children: [
                                 CircleAvatar(
+                                  backgroundImage: NetworkImage(_profileImage!),
                                   radius: 10,
                                 ),
                                 SizedBox(width: 5),
@@ -557,10 +606,10 @@ class _CommMainState extends State<CommMain> {
                             spacing: 5,
                             children: hashtagSnap.data!.docs.map((doc) {
                               final keyword = doc['tag_name'] as String;
+
                               return ElevatedButton(
                                 child: Text('# $keyword'),
                                 onPressed: () {
-                                  // 누르면 해당 해시태그가 포함되어 있는 게시글 출력
                                 },
                                 style: _unPushBtnStyle(),
                               );
@@ -599,7 +648,7 @@ class _CommMainState extends State<CommMain> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CommMyPage()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CommMyPage(nickName: _userNickName)));
               },
               child: Container(
                 alignment: Alignment.center,

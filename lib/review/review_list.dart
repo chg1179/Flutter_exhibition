@@ -35,6 +35,7 @@ class _ReviewListState extends State<ReviewList> {
   final _searchCtr = TextEditingController();
   int _currentIndex = 0;
   String? _userNickName;
+  String? _profileImage;
   Map<String, bool> isLikedMap = {};
   List<Map<String, dynamic>> _list = [
     {'title': '최신순', 'value': 'latest'},
@@ -73,7 +74,10 @@ class _ReviewListState extends State<ReviewList> {
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        _profileImage = _userDocument.get('profileImage');
         print('닉네임: $_userNickName');
+        print('임이지: $_profileImage');
+
       });
     }
   }
@@ -314,7 +318,7 @@ class _ReviewListState extends State<ReviewList> {
                         children: [
                           CircleAvatar(
                             radius: 8,
-                            backgroundImage: AssetImage(''),
+                            backgroundImage: NetworkImage(_profileImage!)
                           ),
                           SizedBox(width: 5,),
                           Text(data['userNickName'], style: TextStyle(fontSize: 13, color: Colors.black)),
