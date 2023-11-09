@@ -4,6 +4,7 @@ import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/user/sign_in.dart';
+import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
@@ -247,6 +248,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       throw 'Could not launch $url';
     }
   }
+
 
   Stream<QuerySnapshot> getReviewsAndTags() {
     initializeDateFormatting('ko', null);
@@ -637,10 +639,8 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ),
                                     ),
                                     onPressed: (){
-                                      if(_exDetailData!['exPage']!=null) {
-                                        openURL(_exDetailData!['exPage']
-                                            .toString());
-                                      }
+                                      print('웹뷰 출력');
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewURL(url: _exDetailData!['exPage'].toString())));
                                     },
                                     child: Text("전시회 홈페이지")
                                 ),
@@ -716,6 +716,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       .collection('exhibition_fee')
                                       .snapshots(),
                                   builder: (context, snapshot) {
+                                    if(_exDetailData!['exPage']!=null) {
+                                      //openURL(_exDetailData!['exPage'].toString());
+                                    }
                                     if (snapshot.connectionState == ConnectionState.waiting) {
                                       return Center(child: CircularProgressIndicator());
                                     }

@@ -54,6 +54,7 @@ dependencies:
   shared_preferences:
   flutter_spinkit: ^5.1.0
   timezone:
+  webview_flutter: ^2.0.13
 
 
   # The following adds the Cupertino Icons font to your application.

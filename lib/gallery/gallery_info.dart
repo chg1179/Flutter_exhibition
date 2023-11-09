@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
+import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -270,7 +271,9 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                               ),
                               onPressed: (){
-                                openURL(_galleryData!['webSite'].toString());
+                                //openURL(_galleryData!['webSite'].toString());
+                                print('웹뷰 출력');
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => WebViewURL(url: _galleryData!['webSite'].toString())));
                               },
                               child: Text("전시관 홈페이지")
                           ),
