@@ -38,7 +38,9 @@ import '../../model/user_model.dart';
 
 
 class JtbiResult extends StatefulWidget {
-  JtbiResult({super.key});
+  String? userNick;
+
+  JtbiResult({required this.userNick});
 
   @override
   State<JtbiResult> createState() => _JtbiResultState();

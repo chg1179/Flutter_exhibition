@@ -516,7 +516,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                         Navigator.push(context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
-                                                    JtbiResult()));
+                                                    JtbiResult(userNick : _userNickName)));
                                       },
                                       icon: Icon(Icons.arrow_forward_ios)
                                   ),
