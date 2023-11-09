@@ -1245,6 +1245,35 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
       await userDocRef.update({'heat': newHeat});
 
 
+      //////////전시회 like-1 // Firestore에서 'exhibition' 컬렉션을 참조///////////
+      // Firestore에서 'exhibition' 컬렉션을 참조
+      final exhibitionRef = FirebaseFirestore.instance.collection('exhibition');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await exhibitionRef.where('exTitle', isEqualTo: exTitle).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final exhibitionDoc = querySnapshot.docs.first;
+
+        // 현재 'like' 필드의 값을 가져옴
+        final currentLikeCount = (exhibitionDoc.data()?['like'] as int?) ?? 0;
+
+        // 'like' 필드를 현재 값에서 -1로 감소시킴
+        final newLikeCount = currentLikeCount - 1;
+
+        // 'like' 필드를 업데이트
+        await exhibitionDoc.reference.update({'like': newLikeCount}).catchError((error) {
+          print('전시회 like 삭제 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에서 제거)를 계속 진행
+      } else {
+        print('해당 전시회를 찾을 수 없습니다.');
+      }
+
+
       FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)
