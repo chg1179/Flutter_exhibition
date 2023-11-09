@@ -129,14 +129,17 @@ class _ChildListState extends State<ChildList> {
               ),
             ),
             if (printCount <= widget.displayLimit!) // 데이터를 한 번에 모두 출력하지 않고 일정 갯수만큼 출력한 뒤, 더 보기하여 리스트 출력
-              ElevatedButton(
-                onPressed: widget.loadMoreItems!,
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(0),
-                  backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                height: 45,
+                child: ElevatedButton(
+                  onPressed: widget.loadMoreItems!,
+                  style: ButtonStyle(
+                    elevation: MaterialStateProperty.all(1), // 그림자 비활성화
+                    backgroundColor: MaterialStateProperty.all(Color(0xffe4e5e0)),
+                  ),
+                  child: Text("더 보기", style: TextStyle(color: Colors.black, fontSize: 15)),
                 ),
-                child: Text("더 보기", style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0))),
               ),
             SizedBox(height: 15),
           ],

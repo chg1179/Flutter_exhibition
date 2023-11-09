@@ -36,7 +36,7 @@ class _ExhibitionListState extends State<ExhibitionList> {
   @override
   Widget build(BuildContext context) {
     return CommonList(
-      title: '전시회',
+      title: 'Exhibition',
       children: [
         setImgTextList(
           'exhibition',

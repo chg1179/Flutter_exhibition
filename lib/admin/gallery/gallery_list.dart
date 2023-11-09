@@ -36,7 +36,7 @@ class _GalleryListState extends State<GalleryList> {
   @override
   Widget build(BuildContext context) {
     return CommonList(
-      title: '갤러리',
+      title: 'Gallery',
       children: [
         setImgTextList(
           'gallery',
