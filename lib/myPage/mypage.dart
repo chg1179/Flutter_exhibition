@@ -246,7 +246,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
 
                                               return Column(
                                                 children: [
-                                                  Text(reviewCount.toString(), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                                  Text(reviewCount.toString(), style: TextStyle(fontSize: 15)),
                                                   SizedBox(height: 10),
                                                   Text('후기글', style: TextStyle(fontSize: 13)),
                                                 ],
@@ -255,7 +255,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           },
                                         )
                                       ),
-                                      SizedBox(width: 20),
+                                      SizedBox(width: 25),
                                       GestureDetector(
                                         onTap: () {
                                           // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
@@ -277,7 +277,6 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                               return Column(
                                                 children: [
                                                   Text(followerLength.toString(), style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
                                                     fontSize: 15
                                                   )),
                                                   SizedBox(height: 10),
@@ -291,7 +290,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           },
                                         ),
                                       ),
-                                      SizedBox(width: 20),
+                                      SizedBox(width: 25),
                                       GestureDetector(
                                         onTap: () {
                                           // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
@@ -313,7 +312,6 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                               return Column(
                                                 children: [
                                                   Text(followingLength.toString(), style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
                                                     fontSize: 15
                                                   )),
                                                   SizedBox(height: 10,),
