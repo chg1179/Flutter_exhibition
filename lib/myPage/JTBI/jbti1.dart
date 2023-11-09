@@ -248,9 +248,12 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                       }
                     }
 
+
+
+
                     await FirebaseFirestore.instance
                         .collection('user')
-                        .doc('VDkKTXhq1Ys9xSsy9Qzn.id')
+                        .doc(sessionId)
                         .collection('jbti')
                         .add({
                       'a': group1Score.round(),
