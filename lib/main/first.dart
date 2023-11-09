@@ -50,7 +50,7 @@ class FirstPage extends StatelessWidget {
                 height: 360,
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 15, top: 20, right: 15, bottom: 15),
+                padding: const EdgeInsets.only(left: 15, top: 25, right: 15, bottom: 15),
                 child: Text('요즘 많이 찾는 지역', style: TextStyle(fontSize:17,fontWeight: FontWeight.bold)),
               ),
               Container(
@@ -58,7 +58,7 @@ class FirstPage extends StatelessWidget {
                 height: 110,
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 15, top: 30, right: 10, bottom: 15),
+                padding: const EdgeInsets.only(left: 15, top: 35, right: 10, bottom: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -71,7 +71,7 @@ class FirstPage extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
                           '더보기',
-                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: Colors.grey[700]),
                         ),
                       ),
                     ),
@@ -80,8 +80,9 @@ class FirstPage extends StatelessWidget {
               ),
               Container(
                 child: recommendEx(), // ImageList에 전시 정보 전달
-                height: 300,
+                height: 360,
               ),
+              SizedBox(height: 30,),
               Padding(
                 padding: const EdgeInsets.only(left: 15, top: 20, right: 15, bottom: 15),
                 child: Text('곧 종료되는 전시️', style: TextStyle(fontSize:17,fontWeight: FontWeight.bold)),
@@ -90,6 +91,7 @@ class FirstPage extends StatelessWidget {
                 child: endExList(),
                 height: 360,
               ), // ImageList에 전시 정보 전달
+              SizedBox(height: 20,)
             ],
           ),
         );
@@ -1009,43 +1011,42 @@ class _recommendExState extends State<recommendEx> {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id)));
                       },
                       child: Container(
-                        child: Wrap(
-                          alignment: WrapAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center, // 이미지와 텍스트를 수평으로 가운데 정렬
-                              children: [
-                                Image.network(
-                                  data['imageURL'],
-                                  width: 150,
-                                  height: 100,
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start, // 텍스트를 수직으로 가운데로 정렬
-                                  children: [
-                                    Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 4.0),
-                                      child: Text('$galleryName/$galleryRegion', style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 5),
+                          child: Wrap(
+                            alignment: WrapAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center, // 이미지와 텍스트를 수평으로 가운데 정렬
+                                children: [
+                                  Image.network(
+                                    data['imageURL'],
+                                    width: 80,
+                                    height: 110,
+                                    fit: BoxFit.cover,
+                                  ),
+                                  SizedBox(width: 20,),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start, // 텍스트를 수직으로 가운데로 정렬
+                                    children: [
+                                      Text(data['exTitle'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      SizedBox(height: 5,),
+                                      Text('$galleryName / $galleryRegion', style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
                                       )),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 8.0),
-                                      child: Text('${formatFirestoreDate(data['startDate'])} ~ ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                                      SizedBox(height: 5,),
+                                      Text('${formatFirestoreDate(data['startDate'])} - ${formatFirestoreDate(data['endDate'])}', style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[700],
                                       )),
-                                    ),
-                                  ],
-                                ),
-                                Spacer(), // 왼쪽 공간을 채우는 Spacer 위젯
-                              ],
-                            ),
-                          ],
+                                    ],
+                                  ),
+                                  Spacer(), // 왼쪽 공간을 채우는 Spacer 위젯
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -1061,7 +1062,7 @@ class _recommendExState extends State<recommendEx> {
       }
   String formatFirestoreDate(Timestamp timestamp) {
     DateTime date = timestamp.toDate();
-    final formatter = DateFormat('yyyy-MM-dd');
+    final formatter = DateFormat('yyyy.MM.dd');
     return formatter.format(date);
   }
 }
