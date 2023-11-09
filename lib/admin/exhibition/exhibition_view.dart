@@ -88,7 +88,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                 children: [
                   ClipOval(
                     child: exhibitionData!['imageURL'] != null
-                        ? Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover)//Image.network(exhibitionData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
+                        ? Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
                         : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Text('전시회 이미지', style: TextStyle(fontSize: 13),)
@@ -105,7 +105,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
               SizedBox(height: 10),
               Text(exhibitionData!['phone'] != '' && exhibitionData!['phone'] != null ? '전화번호 : ${exhibitionData!['phone']}' : '전화번호 : 등록된 번호가 없습니다.'),
               SizedBox(height: 10),
-              Text(exhibitionData!['phone'] != '' && exhibitionData!['phone'] != null ? '전시 페이지 : ${exhibitionData!['exPage']}' : '전시 페이지 : 등록된 페이지가 없습니다.'),
+              Text(exhibitionData!['exPage'] != '' && exhibitionData!['exPage'] != null ? '전시 페이지 : ${exhibitionData!['exPage']}' : '전시 페이지 : 등록된 페이지가 없습니다.'),
               SizedBox(height: 10),
               Text('입장료'),
               listContent(widget.document, 'exhibition', 'exhibition_fee', 'exKind', 'exFee', false),
@@ -113,12 +113,15 @@ class _ExhibitionViewState extends State<ExhibitionView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('상세 이미지 : ', style: TextStyle(fontSize: 13)),
-                  SizedBox(height: 8),
-                  exhibitionData!['imageURL'] != null
-                      ? Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover)//Image.network(exhibitionData['contentURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                      : Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover),
-
+                  exhibitionData!['contentURL'] != null && exhibitionData!['contentURL'] != ''
+                      ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('상세 이미지 : '),
+                          Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
+                        ],
+                      )
+                      : Text('상세 이미지 : 상세 이미지가 없습니다.'),
                 ],
               ),
               SizedBox(height: 15),

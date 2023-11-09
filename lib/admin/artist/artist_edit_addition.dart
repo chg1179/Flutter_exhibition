@@ -67,7 +67,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   // 항목, 컨트롤러, 생성, 삭제
-                  textControllerBtn(context, '학력', educationControllers, () {
+                  textControllerBtn(context, '학력', 'year', 'content', educationControllers, () {
                       setState(() {
                         educationControllers.add([TextEditingController(), TextEditingController()]);
                       });
@@ -78,7 +78,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                     },
                   ),
                   SizedBox(height: 10),
-                  textControllerBtn(context, '활동', historyControllers, () {
+                  textControllerBtn(context, '활동', 'year', 'content', historyControllers, () {
                       setState(() {
                         historyControllers.add([TextEditingController(), TextEditingController()]);
                       });
@@ -89,7 +89,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
                     },
                   ),
                   SizedBox(height: 10),
-                  textControllerBtn(context, '이력', awardsControllers, () {
+                  textControllerBtn(context, '이력', 'year', 'content', awardsControllers, () {
                       setState(() {
                         awardsControllers.add([TextEditingController(), TextEditingController()]);
                       });

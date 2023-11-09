@@ -63,7 +63,7 @@ class _ArtistViewState extends State<ArtistView> {
               SizedBox(height: 10),
               Text(artistData['expertise'] != '' ? '전공 : ${artistData['expertise']}' : '전공 : 등록된 전공이 없습니다.'),
               SizedBox(height: 15),
-              Text(artistData['artistIntroduce'] != '' ? '소개 : ${artistData['artistIntroduce']}' : '소개: 등록된 소개 글이 없습니다.'),
+              Text(artistData['artistIntroduce'] != '' ? '소개 : ${artistData['artistIntroduce']}' : '소개 : 등록된 소개 글이 없습니다.'),
               SizedBox(height: 15),
               Text('학력'),
               listContent(widget.document, 'artist', 'artist_education', 'year', 'content', false),

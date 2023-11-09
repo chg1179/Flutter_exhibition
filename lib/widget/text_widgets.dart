@@ -35,12 +35,14 @@ Widget textFieldType(TextEditingController textController, String kind) {
 Widget textControllerBtn(
     BuildContext context,
     String kindText,
+    String firstText,
+    String secondText,
     List<List<TextEditingController>> textControllers,
     Function() onAdd,
     Function(int) onRemove,
     ) {
   double screenWidth = MediaQuery.of(context).size.width;
-  double inkWidth = screenWidth / 12;
+  double inkWidth = screenWidth / 13;
   return Container(
     padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
     child: Column(
@@ -54,17 +56,17 @@ Widget textControllerBtn(
               Row(
                 children: [
                   SizedBox(
-                    width: inkWidth * 2,
+                    width: inkWidth * 3,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: textFieldType(textControllers[i][0], 'year'),
+                      child: textFieldType(textControllers[i][0], firstText),
                     ),
                   ),
                   SizedBox(
                     width: inkWidth * 5,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
-                      child: textFieldType(textControllers[i][1], 'content'),
+                      child: textFieldType(textControllers[i][1], secondText),
                     ),
                   ),
                   SizedBox(
