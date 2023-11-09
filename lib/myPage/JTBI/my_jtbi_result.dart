@@ -1,6 +1,12 @@
+import 'dart:js';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../model/user_model.dart';
 
 
 void main() {
@@ -16,6 +22,42 @@ class JtbiResult2 extends StatelessWidget {
   }
 }
 
+// document에서 원하는 값 뽑기
+// Future<void> _loadUserData() async {
+//   final user = Provider.of<UserModel?>(context, listen: false);
+//   if (user != null && user.isSignIn) {
+//     DocumentSnapshot document = await getDocumentById(user.userNo!);
+//     setState(() {
+//       _userDocument = document;
+//       _userNickName = _userDocument.get('nickName'); // 닉네임이 없을 경우 기본값 설정
+//       _userStatus = _userDocument.get('status');
+//       print('닉네임: $_userNickName');
+//       print('권한: $_userStatus');
+//     });
+//   }
+// }
+//
+//
+//
+//
+//
+// Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document, ReId: "new")));
+//  document: widget.document,
+
+
+
+
+void setState(Null Function() param0) {
+}
+
+// 세션으로 document 값 구하기
+Future<DocumentSnapshot> getDocumentById(String documentId) async {
+  DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+  return document;
+}
+
+
+
 class JtbiResult extends StatefulWidget {
   JtbiResult({super.key});
 
@@ -24,7 +66,30 @@ class JtbiResult extends StatefulWidget {
 }
 
 class _JtbiResultState extends State<JtbiResult> {
-  @override
+late DocumentSnapshot _userDocument;
+late String? _userNickName = "";
+
+
+// @override
+//   void initState() {
+//   super.initState();
+//     _loadUserData(context);
+// }
+
+Future<void> _loadUserData(BuildContext context) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+    DocumentSnapshot document = await getDocumentById(user.userNo!);
+    setState(() {
+      _userDocument = document;
+      _userNickName = _userDocument.get('nickName');
+      print('닉네임: $_userNickName');
+    });
+  }
+}
+
+
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -93,8 +158,7 @@ class _JtbiResultState extends State<JtbiResult> {
             TemperatureBar3(leftPercentage: 50, rightPercentage: 50),
             KeywordText(keyword: "전술"),
             TemperatureBar4(leftPercentage: 80, rightPercentage: 20),
-            KeywordText(keyword: "자아"),
-            TemperatureBar5(leftPercentage: 90, rightPercentage: 10),
+
             Divider(
               color: Colors.grey[300], // 수평선의 색상 설정
               thickness: 1, // 수평선의 두께 설정
@@ -286,8 +350,8 @@ class TemperatureBar1 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('외향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('내향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('입체 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('평면 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
@@ -352,8 +416,8 @@ class TemperatureBar2 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('직관형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('현실주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('동적 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('정적 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
