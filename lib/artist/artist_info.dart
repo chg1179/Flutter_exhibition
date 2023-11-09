@@ -30,14 +30,12 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
       if (documentSnapshot.exists) {
         setState(() {
           _artistData = documentSnapshot.data() as Map<String, dynamic>;
-          _isLoading = false;
         });
       } else {
         print('정보를 찾을 수 없습니다.');
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
-      _isLoading = false;
     }
   }
 
@@ -64,7 +62,6 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
-      _isLoading = false;
     }
   }
 
@@ -87,7 +84,6 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
-      _isLoading = false;
     }
   }
 
@@ -107,6 +103,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
         });
       } else {
         print('정보를 찾을 수 없습니다.');
+        _isLoading = false;
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
@@ -162,11 +159,11 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _getArtistData();
     _getEducationData();
     _getHistoryData();
     _getAwardsData();
-    _getArtistData();
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -185,13 +182,14 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
+      appBar:
+      PreferredSize(
         preferredSize: Size.fromHeight(250.0),
-        child: AppBar(
+        child:
+        _isLoading
+            ? SizedBox()
+            :AppBar(
           elevation: 0,
-          actions: [
-
-          ],
           flexibleSpace: Stack(
             children: [
               _artistData?['imageURL'] == null

@@ -223,6 +223,7 @@ class _SearchState extends State<Search> {
         return ElevatedButton(
           onPressed: (){
             setState(() {
+              _isLoading = true;
               _search.text = recommendedSearches[index];
               _getArtworkListData();
               _getExListData();
@@ -245,6 +246,7 @@ class _SearchState extends State<Search> {
         return ElevatedButton(
           onPressed: (){
             setState(() {
+              _isLoading = true;
               _search.text = favourKey[index];
               _getArtworkListData();
               _getExListData();
@@ -486,7 +488,12 @@ class _SearchState extends State<Search> {
                 },
               ),
             ),
-            Padding(
+            _isLoading ? SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 50.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            )
+            :Padding(
               padding: const EdgeInsets.only(top: 15),
               child:
               _artworkList.length < 1
@@ -588,6 +595,7 @@ class _SearchState extends State<Search> {
                   style: TextStyle(fontSize: 18),
                   cursorColor: Color(0xff464D40),
                   onChanged: (newValue) {
+                    _isLoading = true;
                     _getExListData();
                     _getArtistListData();
                     _getGalleryListData();
