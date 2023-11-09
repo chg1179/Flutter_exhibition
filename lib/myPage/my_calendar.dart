@@ -23,8 +23,9 @@ class Event {
   final DateTime evtDate;
   final String evtContent;
   final String docId;
+  final String friendNickName;
 
-  Event(this.evtTitle, this.evtDate, this.evtContent, this.docId);
+  Event(this.evtTitle, this.evtDate, this.evtContent, this.docId, this.friendNickName);
 }
 
 class MyCalendar extends StatefulWidget {
@@ -97,6 +98,7 @@ class _MyCalendarState extends State<MyCalendar> {
         (doc['evtDate'] as Timestamp).toDate(),
         doc['evtContent'],
         doc.id,
+        doc['friendNickName']
       ));
     });
 
@@ -166,7 +168,6 @@ class _MyCalendarState extends State<MyCalendar> {
               if (snapshot.hasError) {
                 return Center(child: Text('에러 발생: ${snapshot.error}'));
               }
-
               int subcollectionLength = snapshot.data ?? 0;
 
               return Text('$subcollectionLength번째 기록중 📝');
@@ -222,7 +223,7 @@ class _MyCalendarState extends State<MyCalendar> {
 
           ),
           Expanded(
-            child: _events[_selectedDay] != null && _events[_selectedDay]!.isNotEmpty
+            child: _events[_selectedDay] != null || _events[_selectedDay]!.isNotEmpty
                 ?StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('user')
@@ -252,8 +253,9 @@ class _MyCalendarState extends State<MyCalendar> {
                     var evtTitle = data['evtTitle'] ?? 'No Event Name';
                     var evtContent = data['evtContent'] ?? '';
                     var evtImage = data['evtImage'] ?? '';
+                    var friendNickName = data['friendNickName'] ?? '';
                     var evtDate = (data['evtDate'] as Timestamp).toDate(); // evtDate 추출
-                    var event = Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id);
+                    var event = Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id, friendNickName);
 
                     return GestureDetector(
                       onTap: () {
@@ -267,12 +269,9 @@ class _MyCalendarState extends State<MyCalendar> {
                             mainAxisAlignment: MainAxisAlignment.center, // 그림을 가운데 정렬
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Image.network(
-                                '$evtImage',
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.contain,
-                              ),
+                              data['evtImage'] != null
+                                  ? Image.network( '${data['evtImage']}', width: 100, height: 100, fit: BoxFit.contain)
+                                  : Image.asset('assets/logo/basic_logo.png', width: 100, height: 100, fit: BoxFit.cover),
                               Text(
                                 '${DateFormat('dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
                                 style: TextStyle(fontSize: 12.0),
@@ -315,6 +314,7 @@ class _MyCalendarState extends State<MyCalendar> {
     String evtTitle = _eventController.text;
     String evtContent = _memoController.text;
     String? imageUrl; // 이미지 URL을 저장하는 변수
+    String? friendNickName;
 
     showDialog(
       context: context,
@@ -323,6 +323,7 @@ class _MyCalendarState extends State<MyCalendar> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('캘린더 기록하기'),
+              contentPadding: EdgeInsets.all(20.0), // 이 부분을 조절해서 패딩을 늘려봐
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -352,8 +353,22 @@ class _MyCalendarState extends State<MyCalendar> {
                       imageUrl = await _showImageScrollDialog(context);
                       setState(() {}); // 화면을 다시 그리도록 강제 업데이트
                     },
-                    child: Text('좋아요한 전시사진 업로드'),
+                    child: Text('다녀온전시 사진 업로드'),
                   ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      friendNickName = await _shareHistory(context);
+                      setState(() {
+                        // 이제 friendNickName은 shareHistory에서 받아온 값으로 업데이트됨
+                      });
+                    },
+                    child: Text('기록 공유'),
+                  ),
+                  if (friendNickName != null)
+                    Text(friendNickName != null && friendNickName != '' ?
+                      '$friendNickName와 함께했어요!' : '아무도안함',
+                      style: TextStyle(fontSize: 16.0),
+                    ),
                 ],
               ),
               actions: [
@@ -366,7 +381,7 @@ class _MyCalendarState extends State<MyCalendar> {
                 TextButton(
                   onPressed: () {
                     if (evtTitle.isNotEmpty) {
-                      _addEventToFirestore(evtTitle, evtContent, _selectedDay,imageUrl);
+                      _addEventToFirestore(evtTitle, evtContent, _selectedDay,imageUrl,friendNickName);
                       Navigator.of(context).pop();
                     }
                   },
@@ -472,10 +487,110 @@ class _MyCalendarState extends State<MyCalendar> {
     }
   }
 
+  Future<String?> _shareHistory(BuildContext context) async {
+    final userSession = Provider.of<UserModel?>(context, listen: false);
+
+    if (userSession != null && userSession.isSignIn) {
+      final friendNickName = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('나의 친구 목록'),
+            content: SizedBox(
+              width: 300,
+              height: 400,
+              child: FutureBuilder<QuerySnapshot>(
+                future: FirebaseFirestore.instance
+                    .collection('user')
+                    .doc(userSession.userNo)
+                    .collection('following')
+                    .get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('에러 발생: ${snapshot.error}');
+                  } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return Text('친구 목록이 없습니다.');
+                  } else {
+                    final friendIDs = snapshot.data!.docs.map((doc) {
+                      var data = doc.data() as Map<String, dynamic>?;
+                      if (data != null &&
+                          data.containsKey('fwName') &&
+                          data.containsKey('imageURL')) {
+                        return {
+                          'fwName': data['fwName'].toString(),
+                          'imageURL': data['imageURL'].toString(),
+                        };
+                      } else {
+                        return null;
+                      }
+                    }).where((friend) => friend != null).toList();
+
+                    return ListView.builder(
+                      itemCount: friendIDs.length,
+                      itemBuilder: (context, index) {
+                        final friend = friendIDs[index];
+
+                        return ListTile(
+                          leading: ClipOval(
+                            child: Image.network(
+                              friend!['imageURL']!,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          title: Text(friend!['fwName']!),
+                          onTap: () {
+                            Navigator.of(context).pop(friend!['fwName']);
+                            print(friend['fwName']);
+                          },
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('닫기'),
+              ),
+            ],
+          );
+        },
+      );
+
+      return friendNickName;
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('에러'),
+            content: Text('사용자 정보를 가져올 수 없습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('닫기'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 
 
 
-  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl) {
+
+  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl, String? friendNickName) {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
       FirebaseFirestore.instance
@@ -487,9 +602,10 @@ class _MyCalendarState extends State<MyCalendar> {
               'evtImage': imageUrl,
               'evtDate': selectedDay,
               'evtContent': evtContent,
+              'friendNickName' : friendNickName
          })
        .then((documentReference) {
-        final event = Event(evtTitle, selectedDay, evtContent, documentReference.id);
+        final event = Event(evtTitle, selectedDay, evtContent, documentReference.id,friendNickName!);
         final events = _events[selectedDay] ?? [];
         events.add(event);
         _events[selectedDay] = events;
@@ -504,61 +620,6 @@ class _MyCalendarState extends State<MyCalendar> {
       print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
     }
   }
-
-
-
-  void _deleteEvent(Event event) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('일정 삭제 확인'),
-            content: Text('이 일정을 삭제하시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('취소'),
-              ),
-              TextButton(
-                onPressed: () {
-                  _removeEventFromFirestore(event);
-                  Navigator.of(context).pop();
-                },
-                child: Text('삭제'),
-              ),
-            ],
-          );
-        });
-  }
-
-  void _confirmDelete(Event event) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('일정 삭제 확인'),
-            content: Text('이 일정을 삭제하시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('취소'),
-              ),
-              TextButton(
-                onPressed: () {
-                  _removeEventFromFirestore(event);
-                  Navigator.of(context).pop();
-                },
-                child: Text('삭제'),
-              ),
-            ],
-          );
-        });
-  }
-
 
   void _removeEventFromFirestore(Event event) {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -591,9 +652,15 @@ class _MyCalendarState extends State<MyCalendar> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '이벤트 내용: ${event.evtContent}',
+                '기록: ${event.evtContent}',
                 style: TextStyle(fontSize: 16.0),
               ),
+              event.friendNickName != null || event.friendNickName != ''
+                  ? Text(
+                '${event.friendNickName}와 함께했어요.',
+                style: TextStyle(fontSize: 16.0),
+              )
+                  : SizedBox.shrink(), // 또는 Text('')로 대체할 수 있습니다.
               Text(
                 '일정 날짜: ${DateFormat('yyyy-MM-dd').format(event.evtDate)}',
                 style: TextStyle(fontSize: 16.0),
