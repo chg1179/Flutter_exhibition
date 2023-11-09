@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class MainArtWork extends StatefulWidget {
   const MainArtWork({super.key});
@@ -23,7 +24,11 @@ class _MainArtWorkState extends State<MainArtWork> {
         stream: _firestore.collection('artist').snapshots(),
         builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
           if (!snapshot.hasData) {
-            return CircularProgressIndicator();
+            return SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 20.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            );
           } else {
             return ListView.builder(
               itemCount: snapshot.data!.docs.length,
@@ -38,7 +43,11 @@ class _MainArtWorkState extends State<MainArtWork> {
                   builder: (BuildContext context,
                       AsyncSnapshot<QuerySnapshot> artworkSnapshot) {
                     if (!artworkSnapshot.hasData) {
-                      return CircularProgressIndicator();
+                      return SpinKitWave( // FadingCube 모양 사용
+                        color: Color(0xff464D40), // 색상 설정
+                        size: 20.0, // 크기 설정
+                        duration: Duration(seconds: 3), //속도 설정
+                      );
                     } else {
                       return GridView.builder(
                         shrinkWrap: true,

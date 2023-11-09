@@ -6,6 +6,7 @@ import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'main_add_view_detail.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class FirstPage extends StatelessWidget {
   @override
@@ -14,7 +15,11 @@ class FirstPage extends StatelessWidget {
       stream: FirebaseFirestore.instance.collection('exhibition').snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return Center(child: CircularProgressIndicator()); // 데이터를 가져올 때까지 로딩 표시
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 50.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          )); // 데이터를 가져올 때까지 로딩 표시
         }
 
         final exhibitions = snapshot.data?.docs; // 전시 정보 문서 목록
@@ -151,7 +156,11 @@ class _popularExState extends State<popularEx> {
       stream: _snapshot,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snapshot.hasError) {
           return Center(child: Text('에러 발생: ${snapshot.error}'));
@@ -183,7 +192,11 @@ class _popularExState extends State<popularEx> {
                         .get(),
                     builder: (context, subSnapshot) {
                       if (subSnapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
+                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ));
                       }
                       if (subSnapshot.hasData) {
                         QuerySnapshot subQuerySnapshot = subSnapshot.data!;
@@ -202,7 +215,11 @@ class _popularExState extends State<popularEx> {
                         stream: FirebaseFirestore.instance.collection('gallery').doc(galleryNo).snapshots(),
                         builder: (context, gallerySnapshot) {
                           if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return Center(child: SpinKitWave( // FadingCube 모양 사용
+                              color: Color(0xff464D40), // 색상 설정
+                              size: 20.0, // 크기 설정
+                              duration: Duration(seconds: 3), //속도 설정
+                            ));
                           }
                           if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
                             final galleryName = gallerySnapshot.data!['galleryName'] as String;
@@ -223,7 +240,11 @@ class _popularExState extends State<popularEx> {
                                       width: 180,
                                       height: 240,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
+                                      placeholder: (context, url) => Center(child: SpinKitWave( // FadingCube 모양 사용
+                                        color: Color(0xff464D40), // 색상 설정
+                                        size: 20.0, // 크기 설정
+                                        duration: Duration(seconds: 3), //속도 설정
+                                      )), // 이미지 로딩 중에 표시될 위젯
                                       errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                     ),
                                     Padding(
@@ -342,7 +363,11 @@ class _MainListState extends State<MainList> {
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snap.hasError) {
           return Center(child: Text('에러 발생: ${snap.error}'));
@@ -371,7 +396,11 @@ class _MainListState extends State<MainList> {
                     .get(),
                 builder: (context, subSnapshot) {
                   if (subSnapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                      color: Color(0xff464D40), // 색상 설정
+                      size: 20.0, // 크기 설정
+                      duration: Duration(seconds: 3), //속도 설정
+                    ));
                   }
                   if (subSnapshot.hasData) {
                     // 서브컬렉션의 이미지 데이터를 가져옵니다.
@@ -395,7 +424,11 @@ class _MainListState extends State<MainList> {
                         .snapshots(),
                     builder: (context, gallerySnapshot) {
                       if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
+                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ));
                       }
                       if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
                       /// 갤러리 정보 갯또다제
@@ -420,7 +453,11 @@ class _MainListState extends State<MainList> {
                                           height: 420,
                                           width: 280,
                                           fit: BoxFit.cover,
-                                          placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                                          placeholder: (context, url) => Center(child: SpinKitWave( // FadingCube 모양 사용
+                                            color: Color(0xff464D40), // 색상 설정
+                                            size: 20.0, // 크기 설정
+                                            duration: Duration(seconds: 3), //속도 설정
+                                          )),
                                           errorWidget: (context, url, error) => Icon(Icons.error),
                                         ),
                                       ),
@@ -468,7 +505,11 @@ class _MainListState extends State<MainList> {
                           ),
                         );
                       } else {
-                        return Center(child: CircularProgressIndicator());
+                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ));
                       }
                     },
                   );
@@ -520,7 +561,11 @@ class _UserListState extends State<UserList> {
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snap.hasError) {
           return Center(child: Text('에러 발생: ${snap.error}'));
@@ -553,7 +598,11 @@ class _UserListState extends State<UserList> {
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return Center(child: SpinKitWave( // FadingCube 모양 사용
+                        color: Color(0xff464D40), // 색상 설정
+                        size: 20.0, // 크기 설정
+                        duration: Duration(seconds: 3), //속도 설정
+                      ));
                     }
                     if (snapshot.hasError) {
                       return Text('에러 발생: ${snapshot.error}');
@@ -577,7 +626,11 @@ class _UserListState extends State<UserList> {
                           .snapshots(),
                       builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
+                          return Center(child: SpinKitWave( // FadingCube 모양 사용
+                            color: Color(0xff464D40), // 색상 설정
+                            size: 20.0, // 크기 설정
+                            duration: Duration(seconds: 3), //속도 설정
+                          ));
                         }
                         if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
@@ -721,7 +774,11 @@ class _endExListState extends State<endExList> {
       stream: _snapshot,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snapshot.hasError) {
           return Center(child: Text('에러 발생: ${snapshot.error}'));
@@ -753,7 +810,11 @@ class _endExListState extends State<endExList> {
                         .get(),
                     builder: (context, subSnapshot) {
                       if (subSnapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
+                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ));
                       }
                       if (subSnapshot.hasData) {
                         QuerySnapshot subQuerySnapshot = subSnapshot.data!;
@@ -772,7 +833,11 @@ class _endExListState extends State<endExList> {
                         stream: FirebaseFirestore.instance.collection('gallery').doc(galleryNo).snapshots(),
                         builder: (context, gallerySnapshot) {
                           if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return Center(child: SpinKitWave( // FadingCube 모양 사용
+                              color: Color(0xff464D40), // 색상 설정
+                              size: 20.0, // 크기 설정
+                              duration: Duration(seconds: 3), //속도 설정
+                            ));
                           }
                           if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
                             final galleryName = gallerySnapshot.data!['galleryName'] as String;
@@ -793,7 +858,11 @@ class _endExListState extends State<endExList> {
                                       width: 180,
                                       height: 240,
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => Center(child: CircularProgressIndicator()), // 이미지 로딩 중에 표시될 위젯
+                                      placeholder: (context, url) => Center(child: SpinKitWave( // FadingCube 모양 사용
+                                        color: Color(0xff464D40), // 색상 설정
+                                        size: 20.0, // 크기 설정
+                                        duration: Duration(seconds: 3), //속도 설정
+                                      )), // 이미지 로딩 중에 표시될 위젯
                                       errorWidget: (context, url, error) => Icon(Icons.error), // 이미지 로딩 오류 시 표시될 위젯
                                     ),
                                     Padding(
@@ -862,7 +931,11 @@ class _recommendExState extends State<recommendEx> {
       stream: _snapshot,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snapshot.hasError) {
           return Center(child: Text('에러 발생: ${snapshot.error}'));
@@ -899,7 +972,11 @@ class _recommendExState extends State<recommendEx> {
                 .get(),
             builder: (context, subSnapshot) {
               if (subSnapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return Center(child: SpinKitWave( // FadingCube 모양 사용
+                  color: Color(0xff464D40), // 색상 설정
+                  size: 20.0, // 크기 설정
+                  duration: Duration(seconds: 3), //속도 설정
+                ));
               }
               if (subSnapshot.hasData) {
                 QuerySnapshot subQuerySnapshot = subSnapshot.data!;
@@ -917,7 +994,11 @@ class _recommendExState extends State<recommendEx> {
                 stream: FirebaseFirestore.instance.collection('gallery').doc(galleryNo).snapshots(),
                 builder: (context, gallerySnapshot) {
                   if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                      color: Color(0xff464D40), // 색상 설정
+                      size: 20.0, // 크기 설정
+                      duration: Duration(seconds: 3), //속도 설정
+                    ));
                   }
                   if (gallerySnapshot.data != null && gallerySnapshot.data!.exists) {
                     final galleryName = gallerySnapshot.data!['galleryName'] as String;

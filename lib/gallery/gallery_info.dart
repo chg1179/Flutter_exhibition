@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class GalleryInfo extends StatefulWidget {
   final String document;
@@ -71,7 +72,11 @@ class _GalleryInfoState extends State<GalleryInfo> {
         ],
       ),
       body:
-      _isLoading ? Center(child: CircularProgressIndicator())
+      _isLoading ? SpinKitWave( // FadingCube 모양 사용
+        color: Color(0xff464D40), // 색상 설정
+        size: 50.0, // 크기 설정
+        duration: Duration(seconds: 3), //속도 설정
+      )
       : CustomScrollView(
           slivers: <Widget>[
             SliverList(
