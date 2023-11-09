@@ -1171,7 +1171,42 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     if (user != null && user.isSignIn) {
       final endDateTimestamp = Timestamp.fromDate(endDate);
       final startDateTimestamp = Timestamp.fromDate(startDate);
+      // Firestore에서 'exhibition' 컬렉션을 참조
+      final exhibitionRef = FirebaseFirestore.instance.collection('exhibition');
 
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await exhibitionRef.where('exTitle', isEqualTo: exTitle).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final exhibitionDoc = querySnapshot.docs.first;
+
+        // 해당 전시회 문서의 like 필드를 1 증가시킴
+        await exhibitionDoc.reference.update({'like': FieldValue.increment(1)}).catchError((error) {
+          print('전시회 like 추가 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에 추가)를 계속 진행
+      } else {
+        print('해당 전시회를 찾을 수 없습니다.');
+      }
+
+      /////////////////////// 온도 +0.1//////////////////////////////////
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 증가시킴
+      final newHeat = currentHeat + 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+      // user 컬렉션에 좋아요
       await FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)
@@ -1187,14 +1222,29 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           .catchError((error) {
         print('Firestore 데이터 추가 중 오류 발생: $error');
       });
+
     } else {
       print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
     }
   }
 
-  void _removeLike(String exTitle) {
+  void _removeLike(String exTitle) async{
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 감소시킴
+      final newHeat = currentHeat - 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+
       FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)

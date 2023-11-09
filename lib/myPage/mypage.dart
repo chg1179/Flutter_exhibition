@@ -35,10 +35,8 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   double temperature = 36.5;
   int _currentIndex = 0;
   late TabController _tabController;
-  int _currentPageIndex = 0;
   late DocumentSnapshot _userDocument;
   late String? _userNickName;
-  late String? _userImage;
   final PageController _pageController = PageController();
   void _onTabTapped(int index) {
     setState(() {
@@ -791,15 +789,20 @@ class TemperatureBar extends StatelessWidget {
           return Text('오류: ${snapshot.error}');
         } else {
           final userData = snapshot.data?.data() as Map<String, dynamic>;
-          final userHeat = userData != null ? userData['heat'] : null;
+          double userHeat;
+          if (userData != null && userData['heat'] != null) {
+            userHeat = double.tryParse(userData['heat'].toString()) ?? 36.5;
+          } else {
+            userHeat = 36.5; // userData가 null이거나 'heat' 키가 없는 경우에도 기본값 설정
+          }
           return Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(right: 80),
-                    child: Text('현재 온도: $userHeat°C', style: TextStyle(
+                    padding: const EdgeInsets.only(right: 40),
+                    child: Text('현재 온도: ${userHeat}°C', style: TextStyle(
                         color: Colors.green, fontWeight: FontWeight.bold)),
                   ),
                 ],
@@ -815,7 +818,7 @@ class TemperatureBar extends StatelessWidget {
                 child: Stack(
                   children: [
                     Container(
-                      width: 300 * (temperature / 100.0),
+                      width: 300 * (userHeat / 100.0),
                       // 온도바의 길이를 온도에 비례하여 조정
                       decoration: BoxDecoration(
                         gradient: temperatureGradient, // 온도에 따른 그라데이션 설정
