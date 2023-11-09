@@ -43,72 +43,78 @@ class _IsNotificationState extends State<IsNotification> {
           SizedBox(width: 10,)
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: _notificationList.length,
-              itemBuilder: (context, index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(width: 0.2, color: Colors.grey),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: () {},
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 15, top: 15, bottom: 15),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(right: 15, top: 5),
-                                child: Icon(Icons.brush, size: 18, color: Color(0xFF556944),),
-                              ),
-                              Column(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: _notificationList.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    padding: EdgeInsets.all(5),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        InkWell(
+                          onTap: () {},
+                          child: Container(
+                            width: MediaQuery.of(context).size.width - 30,
+                            decoration: BoxDecoration(
+                              color: Color(0xffeaece4),
+                              borderRadius: BorderRadius.all(Radius.circular(15))
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 15, top: 15, bottom: 15),
+                              child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Container(
-                                    width: MediaQuery.of(context).size.width * 0.75,
-                                    child: Text(
-                                      _notificationList[index]['content'],
-                                      style: TextStyle(fontSize: 14),
-                                    ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 15, top: 5),
+                                    child: Icon(Icons.brush, size: 18, color: Color(0xFF556944),),
                                   ),
-                                  SizedBox(height: 10),
-                                  Text(_notificationList[index]['time'], style: TextStyle(color: Colors.grey),),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: MediaQuery.of(context).size.width - 140,
+                                        child: Text(
+                                          _notificationList[index]['content'],
+                                          style: TextStyle(fontSize: 14, color: Colors.black),
+                                        ),
+                                      ),
+                                      SizedBox(height: 13),
+                                      Text(_notificationList[index]['time'], style: TextStyle(color: Color(0xff464D40), fontSize: 13)),
+                                    ],
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    margin: EdgeInsets.only(right: 15),
+                                    padding: EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xffD4D8C8),
+                                      borderRadius: BorderRadius.all(Radius.circular(6))
+                                    ),
+                                    child: InkWell(
+                                      child: Icon(Icons.clear, size: 19,)
+                                    ),
+                                  )
                                 ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                      Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: SizedBox(
-                          width: 30,
-                          child: TextButton(
-                            onPressed: () {},
-                            child: Icon(Icons.clear, size: 19, color: Colors.black,),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10,)
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
