@@ -5,7 +5,11 @@ class UserModel with ChangeNotifier{
   String? _status; // 권한
   String? get userNo => _userNo; //userId를 가져오는 get 메소드
   String? get status => _status;
-  bool get isSignIn => _userNo != null; //_userId 값이 널인가? - _userId 값이 있으면 true, 없으면 false
+  bool get isSignIn => _userNo != null;
+
+  get nickName => null;
+
+  String? get id => null; //_userId 값이 널인가? - _userId 값이 있으면 true, 없으면 false
 
   void signIn(String userNo, String status){ //로그인
     _userNo = userNo;

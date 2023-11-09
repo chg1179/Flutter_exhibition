@@ -366,7 +366,7 @@ class _MyCalendarState extends State<MyCalendar> {
                   ),
                   if (friendNickName != null)
                     Text(friendNickName != null && friendNickName != '' ?
-                      '$friendNickName와 함께했어요!' : '아무도안함',
+                      '$friendNickName와 함께했어요!' : 'Solo',
                       style: TextStyle(fontSize: 16.0),
                     ),
                 ],
@@ -375,6 +375,8 @@ class _MyCalendarState extends State<MyCalendar> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
+                    _eventController.clear();
+                    _memoController.clear();
                   },
                   child: Text('취소'),
                 ),
@@ -590,35 +592,119 @@ class _MyCalendarState extends State<MyCalendar> {
 
 
 
-  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl, String? friendNickName) {
+  void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl, String? friendNickName) async{
     final user = Provider.of<UserModel?>(context, listen: false);
+    // if (user != null && user.isSignIn) {
+    //   FirebaseFirestore.instance
+    //       .collection('user')
+    //       .doc(user.userNo)
+    //       .collection('events')
+    //       .add({
+    //           'evtTitle': evtTitle,
+    //           'evtImage': imageUrl,
+    //           'evtDate': selectedDay,
+    //           'evtContent': evtContent,
+    //           'friendNickName' : friendNickName
+    //      })
+    //    .then((documentReference) {
+    //     final event = Event(evtTitle, selectedDay, evtContent, documentReference.id,friendNickName!);
+    //     final events = _events[selectedDay] ?? [];
+    //     events.add(event);
+    //     _events[selectedDay] = events;
+    //     _updateEventList(selectedDay); // 11/09 목록 업데이트 위치변경
+    //     _eventController.clear();
+    //     _memoController.clear();
+    //
+    //   })
+    //       .catchError((error) {
+    //     print('Firestore 데이터 추가 중 오류 발생: $error');
+    //   });
+    // } else {
+    //   print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+    // }
+    ///////////////////////////11월09일수정전//////////////////////////
+    if (_eventController.text.isEmpty || _memoController.text.isEmpty) {
+      // 필수 입력값이 비어있을 때 처리
+      _noticeDialog('제목과 내용을 모두 입력해주세요.');
+      return;
+    }
+
     if (user != null && user.isSignIn) {
-      FirebaseFirestore.instance
+      // 1. 이벤트 추가
+      DocumentReference eventDocumentReference = await FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)
           .collection('events')
           .add({
-              'evtTitle': evtTitle,
-              'evtImage': imageUrl,
-              'evtDate': selectedDay,
-              'evtContent': evtContent,
-              'friendNickName' : friendNickName
-         })
-       .then((documentReference) {
-        final event = Event(evtTitle, selectedDay, evtContent, documentReference.id,friendNickName!);
-        final events = _events[selectedDay] ?? [];
-        events.add(event);
-        _events[selectedDay] = events;
-        _eventController.clear();
-        _memoController.clear();
-        _updateEventList(selectedDay); // 여기에 추가하여 목록을 업데이트
-      })
-          .catchError((error) {
-        print('Firestore 데이터 추가 중 오류 발생: $error');
+        'evtTitle': evtTitle,
+        'evtImage': imageUrl,
+        'evtDate': selectedDay,
+        'evtContent': evtContent,
+        'friendNickName': friendNickName,
       });
+
+      // 2. 이벤트 정보 가져오기
+      final event = Event(evtTitle, selectedDay, evtContent, eventDocumentReference.id, friendNickName!);
+      final events = _events[selectedDay] ?? [];
+      events.add(event);
+      _events[selectedDay] = events;
+
+      // 3. 목록 업데이트
+      _updateEventList(selectedDay);
+
+      // 4. 컨트롤러 비우기
+      _eventController.clear();
+      _memoController.clear();
+
+      // 5. friendNickName과 일치하는 사용자 찾기
+      QuerySnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('user')
+          .where('nickName', isEqualTo: friendNickName)
+          .get();
+
+      String? _friendNickName;
+      if (userSnapshot.docs.isNotEmpty){
+        String friendUserId = userSnapshot.docs.first.id;
+
+        // 여기에서 닉네임 정보 가져오기
+        DocumentSnapshot friendUserDoc = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .get();
+
+        _friendNickName = friendUserDoc['nickName'];
+
+
+
+
+      // 6. 찾은 사용자의 follower 컬렉션에 세션 user 정보 추가
+      if (userSnapshot.docs.isNotEmpty) {
+        String friendUserId = userSnapshot.docs.first.id;
+        FirebaseFirestore.instance
+            .collection('user')
+            .doc(friendUserId)
+            .collection('events')
+            .add({
+          'friendId': user.userNo,
+          'friendNickName': _friendNickName,
+          'evtTitle': evtTitle,
+          'evtImage': imageUrl,
+          'evtDate': selectedDay,
+          'evtContent': evtContent,
+          // 여기에 필요한 다른 정보 추가
+        });
+        // 스낵바 띄우기
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(' $friendNickName에게 나의 일정을 공유했어요!'),
+          ),
+        );
+      }
+      }
     } else {
       print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
     }
+
   }
 
   void _removeEventFromFirestore(Event event) {
@@ -655,12 +741,12 @@ class _MyCalendarState extends State<MyCalendar> {
                 '기록: ${event.evtContent}',
                 style: TextStyle(fontSize: 16.0),
               ),
-              event.friendNickName != null || event.friendNickName != ''
-                  ? Text(
-                '${event.friendNickName}와 함께했어요.',
+              Text(
+                event.friendNickName != null && event.friendNickName != ''
+                    ? '${event.friendNickName}와 함께했어요.'
+                    : '나홀로 전시회',
                 style: TextStyle(fontSize: 16.0),
-              )
-                  : SizedBox.shrink(), // 또는 Text('')로 대체할 수 있습니다.
+              ),
               Text(
                 '일정 날짜: ${DateFormat('yyyy-MM-dd').format(event.evtDate)}',
                 style: TextStyle(fontSize: 16.0),
@@ -690,6 +776,25 @@ class _MyCalendarState extends State<MyCalendar> {
                   child: Text('닫기'),
                 ),
               ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void _noticeDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('경고'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // 다이얼로그 닫기
+              },
+              child: Text('확인'),
             ),
           ],
         );
