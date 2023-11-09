@@ -27,7 +27,7 @@ class _CommEditState extends State<CommEdit> {
   XFile? _imageFile;
   String? downloadURL;
   bool _showCustomHashtagInput = true;
-
+  List<String> _selectTag = [];
   List<String> _tagList = [
     '전시',
     '설치미술',
@@ -39,7 +39,7 @@ class _CommEditState extends State<CommEdit> {
     '특별전시',
   ];
 
-  List<String> _selectTag = [];
+
 
   @override
   void initState() {
@@ -333,10 +333,9 @@ class _CommEditState extends State<CommEdit> {
             ],
           ),
           SizedBox(height: 10),
-          _hashTagList(),
-          SizedBox(height: 20),
           _selectTagForm(),
-
+          SizedBox(height: 10),
+          _hashTagList(),
         ],
       ),
     );
@@ -574,47 +573,51 @@ class _CommEditState extends State<CommEdit> {
 
   Widget _selectTagForm() {
     return Wrap(
-      spacing: 5,
+      spacing: 9,
+      runSpacing: 5,
       children: _selectTag.map((selectTag) {
-        return Column(
+        return Wrap(
+          spacing: 2,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Row(
-              children: [
-                InkWell(
-                  child: Container(
-                    padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Color(0xff464D40),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text('# $selectTag', style: TextStyle(color: Color(0xffD4D8C8), fontSize: 10.5, fontWeight: FontWeight.bold,),
-                    ),
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Color(0xff464D40),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text(
+                  '# $selectTag',
+                  style: TextStyle(
+                    color: Color(0xffD4D8C8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 2,),
-                InkWell(
-                  onTap: () {
-                    removeSelectedTag(selectTag);
-                  },
-                  child: Container(
-                    width: 15,
-                    height: 15,
-                    decoration: BoxDecoration(
-                      color: Color(0xffD4D8C8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.clear,
-                        size: 10,
-                        color: Color(0xff464D40),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-            SizedBox(height: 5)
+            InkWell(
+              onTap: () {
+                removeSelectedTag(selectTag);
+              },
+              child: Container(
+                width: 15,
+                height: 15,
+                decoration: BoxDecoration(
+                  color: Color(0xffD4D8C8),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.clear,
+                    size: 10,
+                    color: Color(0xff464D40),
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       }).toList(),

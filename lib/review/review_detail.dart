@@ -120,6 +120,8 @@ class _ReviewDetailState extends State<ReviewDetail> {
     );
   }
 
+
+
   // 리뷰 삭제
   void _deleteReview(DocumentSnapshot document) async {
     await FirebaseFirestore.instance.collection("review").doc(document.id).delete();
@@ -158,11 +160,11 @@ class _ReviewDetailState extends State<ReviewDetail> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                           child: Text(title, style: TextStyle(fontSize: 25.0)),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.only(left: 20, right: 20, top: 10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -203,7 +205,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
                           child: Container(
                               height:1.0,
                               width: MediaQuery.of(context).size.width,
@@ -212,17 +214,17 @@ class _ReviewDetailState extends State<ReviewDetail> {
                         ),
                         if (imageURL != null && imageURL.isNotEmpty)
                           Padding(
-                            padding: const EdgeInsets.all(10.0),
+                            padding: const  EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 20),
                             child: Image.network(imageURL),
                           ),
                         SizedBox(height: 20),
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                           child: Text(content),
                         ),
                         SizedBox(height: 30),
                         Padding(
-                          padding: const EdgeInsets.all(10.0),
+                          padding: const EdgeInsets.only(left: 20, right: 20),
                           child: InkWell(
                             child: Container(
                               padding: EdgeInsets.all(5),
@@ -271,7 +273,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                   ),
                   Container(
                     padding: EdgeInsets.all(10),
-                    child: Text('이런 후기는 어떠세요?📝', style: TextStyle(fontWeight: FontWeight.bold),),
+                    child: Text('이런 후기는 어떠세요?📝', style: TextStyle(),),
                   )
                 ],
               )
@@ -299,10 +301,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
           onPressed: _onBackPressed
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: _reviewDetailWidget(),
-      ),
+      body: _reviewDetailWidget(),
     );
   }
 }

@@ -3,8 +3,10 @@ import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_detail.dart';
+import 'package:exhibition_project/user/sign.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../community/post_main.dart';
 import '../exhibition/ex_list.dart';
@@ -32,8 +34,34 @@ class ReviewList extends StatefulWidget {
 class _ReviewListState extends State<ReviewList> {
   final _searchCtr = TextEditingController();
   int _currentIndex = 0;
-
   String? _userNickName;
+  Map<String, bool> isLikedMap = {};
+  List<Map<String, dynamic>> _list = [
+    {'title': '최신순', 'value': 'latest'},
+    {'title': '인기순', 'value': 'popular'},
+  ];
+  String? _selectedList = '최신순';
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedList = _list[0]['title'] as String?;
+    if (!isDataLoaded) {
+      loadInitialData();
+    }
+  }
+
+
+
+  Future<void> loadInitialData() async {
+    isDataLoaded = true;
+    await _loadUserData();
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('review').get();
+    final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
+    _likeCheck(postIds);
+    setState(() {});
+  }
 
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
@@ -62,20 +90,6 @@ class _ReviewListState extends State<ReviewList> {
     });
   }
 
-  List<Map<String, dynamic>> _list = [
-    {'title': '최신순', 'value': 'latest'},
-    {'title': '인기순', 'value': 'popular'},
-    {'title': '최근 인기순', 'value': 'recent_popular'},
-    {'title': '역대 인기순', 'value': 'all_time_popular'},
-  ];
-
-  String? _selectedList = '최신순';
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedList = _list[0]['title'] as String?;
-  }
 
   // 검색바
   Widget buildSearchBar() {
@@ -104,6 +118,106 @@ class _ReviewListState extends State<ReviewList> {
     );
   }
 
+
+  // 좋아요 체크
+  Future<void> _likeCheck(List<String> reviewIds) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    for (String reviewId in reviewIds) {
+      final likeYnSnapshot = await FirebaseFirestore.instance
+          .collection('review')
+          .doc(reviewId)
+          .collection('likes')
+          .where('userId', isEqualTo: user?.userNo)
+          .get();
+
+      if (likeYnSnapshot.docs.isNotEmpty) {
+        setState(() {
+          isLikedMap[reviewId] = true;
+        });
+      } else {
+        setState(() {
+          isLikedMap[reviewId] = false;
+        });
+      }
+    }
+  }
+
+  // 좋아요 버튼을 누를 때 호출되는 함수
+  Future<void> toggleLike(String reviewId) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      DocumentReference reviewDoc = FirebaseFirestore.instance.collection('review').doc(reviewId);
+      CollectionReference reviewRef = reviewDoc.collection('likes');
+
+      final currentIsLiked = isLikedMap[reviewId] ?? false; // 현재 상태 가져오기
+
+      if (!currentIsLiked) {
+        // 좋아요 추가
+        await reviewRef.add({'userId' : user.userNo});
+        await reviewDoc.update({'likeCount' : FieldValue.increment(1)});
+
+      } else {
+        // 좋아요 삭제
+        QuerySnapshot likeSnapshot = await reviewRef.where('userId', isEqualTo: user.userNo).get();
+        for (QueryDocumentSnapshot doc in likeSnapshot.docs) {
+          await doc.reference.delete();
+          await reviewDoc.update({'likeCount' : FieldValue.increment(-1)});
+        }
+      }
+
+      // 좋아요 수 업데이트
+      QuerySnapshot likeSnapshot = await reviewRef.get();
+      int likeCount = likeSnapshot.size;
+      await reviewDoc.update({
+        'likeCount': likeCount,
+      });
+
+      setState(() {
+        isLikedMap[reviewId] = !currentIsLiked; // 현재 상태를 토글합니다.
+      });
+    } else {
+      _showDialog();
+    }
+  }
+
+  // 게시글 좋아요 버튼을 표시하는 부분
+  Widget buildLikeButton(String docId, int likeCount) {
+    final currentIsLiked = isLikedMap[docId] ?? false; // 현재 상태 가져오기
+
+    return GestureDetector(
+      onTap: () {
+        toggleLike(docId); // 해당 게시물의 좋아요 토글 함수 호출
+      },
+      child: Icon(
+          currentIsLiked ? Icons.favorite : Icons.favorite_border,
+          size: 15,
+          color: Colors.red,
+      ),
+
+    );
+  }
+
+  void _showDialog(){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            content: Text('로그인 후 이용 가능합니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignPage()));
+                },
+                child: Text('확인', style: TextStyle(color: Colors.black),),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
   // 후기 리스트
   Widget buildReviewList() {
     return StreamBuilder(
@@ -113,7 +227,7 @@ class _ReviewListState extends State<ReviewList> {
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center();
         }
 
         if (snap.hasError) {
@@ -143,58 +257,44 @@ class _ReviewListState extends State<ReviewList> {
 
   // 후기 리스트 항목
   Widget buildReviewItem(Map<String, dynamic> data, DocumentSnapshot doc, int index, double screenWidth) {
-    return Container(
+    return GestureDetector(
+      onTap: (){
+        FirebaseFirestore.instance.collection("review").doc(doc.id).update({
+          'viewCount': FieldValue.increment(1),
+        });
+        Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: doc.id)));
+        },
       child: Column(
         children: [
-          GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReviewDetail(document: doc.id),
-                  ),
-                );
-              },
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(5.0),
-                child: Image.network(
-                  data['imageURL'],
-                  width: screenWidth,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
-              )
+          ClipRRect(
+            borderRadius: BorderRadius.circular(5.0),
+            child: Image.network(
+              data['imageURL'],
+              width: screenWidth,
+              height: 200,
+              fit: BoxFit.cover,
+            ),
           ),
           ListTile(
-            onTap: (){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ReviewDetail(document: doc.id),
-                ),
-              );
-            },
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold),),
-                IconButton(
-                  icon: Icon(Icons.favorite_border,
-                    color:Colors.red,
-                    size: 20,
-                  ),
-                  onPressed: () {
-                    setState(() {
-
-                    });
-                  },
-                )
+                Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
+                buildLikeButton(doc.id, data['likeCount'])
               ],
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('0명 스크랩 · 0명 조회', style: TextStyle(fontSize: 13)),
+                Row(
+                  children: [
+                    Text('${DateFormat('yyyy.MM.dd').format(data['write_date'].toDate())}  | ', style: TextStyle(fontSize: 11) ),
+                    SizedBox(width: 2),
+                    Icon(Icons.visibility, size: 13),
+                    SizedBox(width: 2),
+                    Text(data['viewCount'].toString(), style: TextStyle(fontSize: 11)),
+                  ],
+                ),
                 //Text(data['content'], style: TextStyle(fontSize: 13),),
                 SizedBox(height: 5),
                 Row(
@@ -228,6 +328,7 @@ class _ReviewListState extends State<ReviewList> {
 
   // 후기 작성 버튼
   Widget buildAddReviewButton() {
+    final user = Provider.of<UserModel?>(context, listen: false);
     return Container(
       width: 50,
       height: 50,
@@ -237,12 +338,11 @@ class _ReviewListState extends State<ReviewList> {
           padding: EdgeInsets.only(bottom: 2),
           icon: Icon(Icons.post_add, size: 30, color: Color(0xFF464D40)),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ReviewEdit(),
-              ),
-            );
+            if (user != null && user.isSignIn) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewEdit()));
+            } else {
+              _showDialog();
+            }
           },
         ),
       ),
@@ -321,7 +421,7 @@ class _ReviewListState extends State<ReviewList> {
             left: 10,
             right: 10,
             bottom: 1,
-            child: buildReviewList(),
+            child: isDataLoaded ? buildReviewList() : Center(child: CircularProgressIndicator()),
           ),
 
           // 후기 작성 버튼

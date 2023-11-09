@@ -19,7 +19,10 @@ class ReviewEdit extends StatefulWidget {
 class _ReviewEditState extends State<ReviewEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
+  final _customHashtagCtr = TextEditingController();
+  bool _showCustomHashtagInput = false;
 
+  List<String> _selectTag = [];
   List<Widget> textFields = [];
   List<Widget> imageFields = [];
 
@@ -83,6 +86,104 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
+  Future<void> _loadHashtags(String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+    final QuerySnapshot hashtagQuery = await postsCollection.doc(postId).collection('hashtag').get();
+
+    if (hashtagQuery.docs.isNotEmpty) {
+      final List<String> selectedHashtags = [];
+
+      for (final doc in hashtagQuery.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final hashtagName = data['tag_name'] as String;
+
+        selectedHashtags.add(hashtagName);
+      }
+
+      setState(() {
+        _selectTag = selectedHashtags;
+      });
+    }
+  }
+
+  Future<void> updateHashtags(List<String> hashtags, String postId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+
+    // 기존 해시태그 문서들을 모두 삭제
+    final QuerySnapshot existingHashtags = await postsCollection.doc(postId).collection('hashtag').get();
+    for (final doc in existingHashtags.docs) {
+      await doc.reference.delete();
+    }
+
+    // 새로운 선택 해시태그를 추가
+    for (String hashtag in hashtags) {
+      final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc();
+
+      await hashtagDocRef.set({
+        'tag_name': hashtag,
+      });
+    }
+  }
+
+  Future<void> addHashtags(List<String> hashtags, String reviewId) async {
+    final CollectionReference reviewCollection = FirebaseFirestore.instance.collection('review');
+
+    for (String hashtag in hashtags) {
+      final DocumentReference hashtagDocRef = reviewCollection.doc(reviewId).collection('hashtag').doc(); // 문서 ID 자동 생성
+
+      // hashtag 문서가 이미 있는지 확인
+      final hashtagSnapshot = await hashtagDocRef.get();
+      if (!hashtagSnapshot.exists) {
+        // hashtag 문서가 없으면 추가
+        await hashtagDocRef.set({
+          'tag_name': hashtag,
+        });
+      }
+    }
+  }
+
+  // 선택된 해시태그를 추가하는 함수
+  void addSelectedTag(String tagName) {
+    if (!_selectTag.contains(tagName)) {
+      setState(() {
+        _selectTag.add(tagName);
+      });
+    }
+  }
+
+// 선택된 해시태그를 제거하는 함수
+  void removeSelectedTag(String tagName) {
+    if (_selectTag.contains(tagName)) {
+      setState(() {
+        _selectTag.remove(tagName);
+      });
+    }
+  }
+
+  void toggleCustomHashtagInput() {
+    setState(() {
+      if (_showCustomHashtagInput) {
+        if (_customHashtagCtr.text.isNotEmpty) {
+          addCustomHashtagToList();
+        }
+      }
+      _showCustomHashtagInput = !_showCustomHashtagInput;
+    });
+  }
+
+  void addCustomHashtagToList() {
+    if (_customHashtagCtr.text.isNotEmpty) {
+      final customHashtag = _customHashtagCtr.text;
+
+      if (!_selectTag.contains(customHashtag)) {
+        addSelectedTag(customHashtag);
+      }
+
+      _customHashtagCtr.text = '';
+      toggleCustomHashtagInput();
+    }
+  }
+
   Future<void> _saveReview() async {
     if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty && _imageFile != null) {
       CollectionReference post = FirebaseFirestore.instance.collection("review");
@@ -124,10 +225,10 @@ class _ReviewEditState extends State<ReviewEdit> {
             await newReviewRef.update({'imageURL' : downloadURL});
           }
 
-          // if (_selectTag.isNotEmpty) {
-          //   // 선택된 해시태그를 추가
-          //   await addHashtags(_selectTag, newPostRef.id);
-          // }
+          if (_selectTag.isNotEmpty) {
+            // 선택된 해시태그를 추가
+            await addHashtags(_selectTag, newReviewRef.id);
+          }
         }
 
         _titleCtr.clear();
@@ -159,6 +260,9 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
+
+
+
   Future<void> getImage() async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
@@ -185,67 +289,172 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
-  Widget buildCommForm() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-                child: _buildTitleInput(),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: _buildDivider(),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Stack(
-                      children: [
-                        _buildSelectedImage(),
-                        Positioned(
-                          top: 1,
-                          right: 1,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _imageFile = null;
-                                downloadURL = null;
-                              });
-                            },
-                            child: Container(
-                              width: 15,
-                              height: 15,
-                              decoration: BoxDecoration(
-                                color: Color(0xffD4D8C8),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Icon(Icons.clear, size: 10, color: Color(0xff464D40)),
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ],
+  Widget _selectTagForm() {
+    return Wrap(
+      spacing: 9,
+      runSpacing: 5,
+      children: _selectTag.map((selectTag) {
+        return Wrap(
+          spacing: 2,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            InkWell(
+              child: Container(
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: Color(0xff464D40),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text(
+                  '# $selectTag',
+                  style: TextStyle(
+                    color: Color(0xffD4D8C8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: _buildContentInput(),
+            ),
+            InkWell(
+              onTap: () {
+                removeSelectedTag(selectTag);
+              },
+              child: Container(
+                width: 15,
+                height: 15,
+                decoration: BoxDecoration(
+                  color: Color(0xffD4D8C8),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.clear,
+                    size: 10,
+                    color: Color(0xff464D40),
+                  ),
+                ),
               ),
-            ],
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  // 태그 입력 폼
+  Widget _buildCustomHashtagInput() {
+    return Container(
+      height: 40,
+      child: TextField(
+        controller: _customHashtagCtr,
+        decoration: InputDecoration(
+          hintText: '# 직접 태그를 입력해보세요! (#은 제외)',
+          hintStyle: TextStyle(
+            color: Colors.black38,
+            fontSize: 13,
           ),
-          SizedBox(height: 20),
-        ],
+          contentPadding: EdgeInsets.all(10),
+          border: OutlineInputBorder(),
+        ),
+        cursorColor: Color(0xff464D40),
       ),
+    );
+  }
+
+  Widget buildCommForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
+              child: _buildTitleInput(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: _buildDivider(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    children: [
+                      _buildSelectedImage(),
+                      Positioned(
+                        top: 1,
+                        right: 1,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _imageFile = null;
+                              downloadURL = null;
+                            });
+                          },
+                          child: Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(
+                              color: Color(0xffD4D8C8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(Icons.clear, size: 10, color: Color(0xff464D40)),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: _selectTagForm(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: _buildContentInput(),
+            ),
+            if (_showCustomHashtagInput)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10,),
+                  _buildCustomHashtagInput(),
+                  SizedBox(height: 5),
+                  ElevatedButton(
+                    child: Text('추가'),
+                    onPressed: addCustomHashtagToList,
+                    style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
+                      backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+                      textStyle: MaterialStateProperty.all(
+                        TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          side: BorderSide(color: Color(0xff464D40)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+          ],
+        ),
+        SizedBox(height: 20),
+      ],
     );
   }
 
@@ -313,7 +522,7 @@ class _ReviewEditState extends State<ReviewEdit> {
 
   Widget _buildContentInput() {
     return TextField(
-      maxLines: 15,
+      maxLines: 10,
       maxLength: 300,
       controller: _contentCtr,
       decoration: InputDecoration(
@@ -411,7 +620,21 @@ class _ReviewEditState extends State<ReviewEdit> {
                 children: [
                   _buildImgButton(),
                   SizedBox(width: 10,),
-                  // _buildTxtButton()
+                  InkWell(
+                    onTap: toggleCustomHashtagInput,
+                    child: Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                          color: Color(0xffD4D8C8),
+                          shape: BoxShape.rectangle,
+                          borderRadius: BorderRadius.circular(5)
+                      ),
+                      child: Center(
+                        child: Text('#', style: TextStyle(fontSize: 20, color: Colors.black38, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

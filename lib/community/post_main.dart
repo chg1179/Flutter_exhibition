@@ -13,6 +13,7 @@ import '../main.dart';
 import '../model/user_model.dart';
 import '../myPage/mypage.dart';
 import '../review/review_list.dart';
+import '../user/sign.dart';
 import 'post_mypage.dart';
 
 
@@ -38,7 +39,7 @@ class _CommMainState extends State<CommMain> {
   String selectedTag = '전체';
 
   int _currentIndex = 0;
-  bool isDataLoaded = false;
+
 
   Map<String, int> commentCounts = {};
 
@@ -58,6 +59,8 @@ class _CommMainState extends State<CommMain> {
       return '방금 전';
     }
   }
+
+  bool isDataLoaded = false;
 
   @override
   void initState() {
@@ -225,9 +228,29 @@ class _CommMainState extends State<CommMain> {
       setState(() {
         isLikedMap[postId] = !currentIsLiked; // 현재 상태를 토글합니다.
       });
+    } else {
+      _showDialog();
     }
   }
 
+  void _showDialog(){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            content: Text('로그인 후 이용 가능합니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SignPage()));
+                },
+                child: Text('확인', style: TextStyle(color: Colors.black),),
+              ),
+            ],
+          );
+        }
+    );
+  }
 
   // 게시글 좋아요 버튼을 표시하는 부분
   Widget buildLikeButton(String docId, int likeCount) {
@@ -252,14 +275,13 @@ class _CommMainState extends State<CommMain> {
       textStyle: MaterialStateProperty.all(
         TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.bold,
         ),
       ),
       foregroundColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.pressed)) {
           return Colors.white;
         }
-        return Colors.black45;
+        return Colors.black;
       }),
       shape: MaterialStateProperty.all(
         RoundedRectangleBorder(
@@ -278,7 +300,6 @@ class _CommMainState extends State<CommMain> {
         TextStyle(
           color: Colors.white,
           fontSize: 13,
-          fontWeight: FontWeight.bold,
         ),
       ),
       foregroundColor: MaterialStateProperty.resolveWith((states) {
@@ -421,8 +442,6 @@ class _CommMainState extends State<CommMain> {
           return false;
         }).toList();
 
-        // final postIds = filteredDocs.map((doc) => doc.id).toList();
-        // _likeCheck(postIds);
 
         return ListView.separated(
           itemCount: filteredDocs.length,
@@ -541,7 +560,7 @@ class _CommMainState extends State<CommMain> {
                               return ElevatedButton(
                                 child: Text('# $keyword'),
                                 onPressed: () {
-
+                                  // 누르면 해당 해시태그가 포함되어 있는 게시글 출력
                                 },
                                 style: _unPushBtnStyle(),
                               );

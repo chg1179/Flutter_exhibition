@@ -251,7 +251,6 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-
   // 게시글 좋아요 버튼을 표시하는 부분
   Widget buildLikeButton(String docId, int likeCount) {
     final currentIsLiked = isLikedMap[docId] ?? false; // 현재 상태 가져오기
@@ -349,21 +348,6 @@ class _CommDetailState extends State<CommDetail> {
           : SizedBox(width: 0, height: 0), // 이미지가 없을 때 빈 SizedBox 반환
     );
   }
-
-
-  // //게시글 아이디 불러오기
-  // Future<List<String>> getPostDocumentIds() async {
-  //   try {
-  //     final QuerySnapshot querySnapshot = await _firestore.collection('post').get();
-  //     final List<String> documentIds = querySnapshot.docs.map((doc) => doc.id).toList();
-  //     return documentIds;
-  //   } catch (e) {
-  //     print('게시물 ID를 불러오는 동안 오류 발생: $e');
-  //     return [];
-  //   }
-  // }
-
-
 
   Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
@@ -611,7 +595,7 @@ class _CommDetailState extends State<CommDetail> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(userNickName, style: TextStyle(fontSize: 10)),
+                    Text(userNickName, style: TextStyle(fontSize: 11)),
                     Row(
                       children: [
                         Text(
@@ -884,6 +868,8 @@ class _CommDetailState extends State<CommDetail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            // 댓글 1개 이상이면 접기
             for (int i = 0; i < replies.length; i++) _buildReplyRow(replies[i]),
             if (data.docs.length > _visibleReplyCount)
               Padding(
@@ -980,7 +966,7 @@ class _CommDetailState extends State<CommDetail> {
         title: Center(
           child: Text(
             '커뮤니티',
-            style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.black, fontSize: 15),
           ),
         ),
         backgroundColor: Colors.white,
@@ -1086,7 +1072,7 @@ class _CommDetailState extends State<CommDetail> {
 }
 
 
-
+//////답글 더보기/ 접기 버튼
 class ReplyToggleButton extends StatefulWidget {
   final bool showAllReplies;
   final VoidCallback onTap;
