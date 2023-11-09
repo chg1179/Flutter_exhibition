@@ -3,6 +3,9 @@ import 'package:exhibition_project/myPage/JTBI/graph.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+
+import '../../model/user_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진과의 연결을 초기화합니다.
@@ -11,6 +14,7 @@ void main() async {
 }
 
 class App extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,12 +26,58 @@ class App extends StatelessWidget {
   }
 }
 
+
 class JTBI extends StatefulWidget {
+
+
   @override
   _JTBIState createState() => _JTBIState();
 }
 
 class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
+  String sessionId = "";
+  @override
+  void initState() {
+    super.initState();
+    UserModel um = Provider.of<UserModel>(context, listen: false);
+
+    if (um.isSignIn) {
+      // 사용자가 로그인한 경우
+      sessionId = um.userNo!;
+      print(sessionId);
+    } else {
+      // 사용자가 로그인하지 않은 경우
+      sessionId = "없음";
+      print("로그인 안됨");
+      // 여기서 _tabController 초기화
+      _tabController = TabController(length: 9, vsync: this);
+      group1Score = 0.0;
+      group1OppositeScore = 0.0;
+      group2Score = 0.0;
+      group2OppositeScore = 0.0;
+      group3Score = 0.0;
+      group3OppositeScore = 0.0;
+      group4Score = 0.0;
+      group4OppositeScore = 0.0;
+    }
+  }
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 여기서 _tabController 초기화
+    _tabController = TabController(length: 9, vsync: this);
+    group1Score = 0.0;
+    group1OppositeScore = 0.0;
+    group2Score = 0.0;
+    group2OppositeScore = 0.0;
+    group3Score = 0.0;
+    group3OppositeScore = 0.0;
+    group4Score = 0.0;
+    group4OppositeScore = 0.0;
+  }
+
   late TabController _tabController;
   List<int> selectedAnswerIndices = List.generate(12, (index) => -1);
 
@@ -81,34 +131,29 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
     '이것저것 체험하고 만지고 경험해볼수있는 활동을 좋아한다.',
     '무엇이든지 신기하면 손으로 만져봐야 직성이 풀리는 편이다.',
   ];
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 9, vsync: this);
-    group1Score = 0.0;
-    group1OppositeScore = 0.0;
-    group2Score = 0.0;
-    group2OppositeScore = 0.0;
-    group3Score = 0.0;
-    group3OppositeScore = 0.0;
-    group4Score = 0.0;
-    group4OppositeScore = 0.0;
-  }
 
   void onAnswerSelected(int questionIndex, int answerIndex) {
+    if (_tabController == null) {
+      // _tabController가 초기화되지 않은 경우 초기화
+      _tabController = TabController(length: 9, vsync: this);
+      group1Score = 0.0;
+      group1OppositeScore = 0.0;
+      group2Score = 0.0;
+      group2OppositeScore = 0.0;
+      group3Score = 0.0;
+      group3OppositeScore = 0.0;
+      group4Score = 0.0;
+      group4OppositeScore = 0.0;
+    }
 
     setState(() {
       selectedAnswerIndices[questionIndex] = answerIndex;
       if (_tabController.index < _tabController.length - 1) {
         _tabController.animateTo(_tabController.index + 1);
       }
-      // print('그룹 점수:');
-      // print('그룹1: $group1Score (반대: $group1OppositeScore)');
-      // print('그룹2: $group2Score (반대: $group2OppositeScore)');
-      // print('그룹3: $group3Score (반대: $group3OppositeScore)');
-      // print('그룹4: $group4Score (반대: $group4OppositeScore)');
     });
   }
+
 
   double calculateGroupScore(List<int> groupIndices) {
     double score = 0;
