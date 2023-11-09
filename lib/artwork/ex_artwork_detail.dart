@@ -22,17 +22,23 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
   Map<String, dynamic>? _artworkInfo;
   Map<String, dynamic>? _artistInfo;
   bool _loading = true;
+  bool isLiked = false; // 좋아요
 
+  //아티스트의 작품 불러오기
   Future<void> _getArtworkData() async {
     final documentSnapshot = await _firestore.collection('artist').doc(widget.doc).collection('artist_artwork').doc(widget.artDoc).get();
 
     if (documentSnapshot.exists) {
+      final artTitle = documentSnapshot.data()?['artTitle']; // 가져온 데이터에서 exTitle 추출
       setState(() {
         _artworkInfo = documentSnapshot.data() as Map<String, dynamic>;
       });
+      // 데이터를 가져온 후 checkIfLiked 함수 호출
+      checkIfLiked(artTitle);
     }
   }
 
+  //아티스트 정보 불러오기
   Future<void> _getArtistData() async {
     final documentSnapshot = await _firestore.collection('artist').doc(widget.doc).get();
 
@@ -41,6 +47,27 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
         _artistInfo = documentSnapshot.data() as Map<String, dynamic>;
         _loading = false;
       });
+    }
+  }
+
+  //좋아요 상태 체크
+  Future<void> checkIfLiked(String artTitle) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      if (artTitle != null && artTitle.isNotEmpty) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .collection('artworkLike')
+            .where('artTitle', isEqualTo: artTitle)
+            .get();
+
+        final liked = querySnapshot.docs.isNotEmpty;
+        setState(() {
+          isLiked = liked;
+        });
+      }
     }
   }
 
@@ -112,9 +139,34 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                               ),
                               Spacer(),
                               IconButton(
-                                  onPressed: (){},
-                                  icon: Icon(Icons.favorite_border)
-                              )
+                                onPressed: () {
+                                  setState(() {
+                                    isLiked = !isLiked; // 좋아요 버튼 상태를 토글
+                                    if (isLiked) {
+                                      // 좋아요 버튼을 누른 경우
+                                      // 빨간 하트 아이콘로 변경하고 추가 작업 수행
+                                      _addLike(
+                                        _artworkInfo?['artTitle'],
+                                        _artworkInfo?['artDate'],
+                                        _artworkInfo?['artType'],
+                                        _artworkInfo?['imageURL'],
+                                        DateTime.now(),
+                                        _artistInfo?['artistName'],
+                                        _artistInfo?['expertise'],
+                                      );
+
+                                      print('좋아요목록에 추가되었습니다');
+                                    } else {
+                                      _removeLike(_artworkInfo?['artTitle']);
+                                      print('${_artworkInfo?['artTitle']}가 좋아요목록에서 삭제되었습니다');
+                                    }
+                                  });
+                                },
+                                icon: Icon(
+                                  isLiked ? Icons.favorite : Icons.favorite_border, // 토글 상태에 따라 아이콘 변경
+                                  color: isLiked ? Colors.red : null, // 빨간 하트 아이콘의 색상 변경
+                                ),
+                              ),
                             ],
                           ),
                           SizedBox(height: 5,),
@@ -253,24 +305,31 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
 
   }
 /////////////////////좋아요 파이어베이스//////////////////////////
-  void _addLike(String exTitle, String addr,String exImage, DateTime likeDate,DateTime startDate,DateTime endDate) async {
+  void _addLike(
+      String artTitle,
+      String artDate,
+      String artType,
+      String imageURL,
+      DateTime likeDate,
+      String artistName,
+      String expertise, ) async {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
-      final endDateTimestamp = Timestamp.fromDate(endDate);
-      final startDateTimestamp = Timestamp.fromDate(startDate);
-      // Firestore에서 'exhibition' 컬렉션을 참조
-      final exhibitionRef = FirebaseFirestore.instance.collection('exhibition');
+
+      ////////////////작가 - 작품컬렉션의 like/////////////////
+      // Firestore에서 'artwork' 컬렉션을 참조
+      final artworkRef = FirebaseFirestore.instance.collection('artist').doc(widget.doc).collection('artist_artwork');
 
       // 'exTitle'과 일치하는 문서를 쿼리로 찾음
-      final querySnapshot = await exhibitionRef.where('exTitle', isEqualTo: exTitle).get();
+      final querySnapshot = await artworkRef.where('artTitle', isEqualTo: artTitle).get();
 
       // 'exTitle'과 일치하는 문서가 존재하는지 확인
       if (querySnapshot.docs.isNotEmpty) {
         // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
-        final exhibitionDoc = querySnapshot.docs.first;
+        final artworkDoc = querySnapshot.docs.first;
 
         // 해당 전시회 문서의 like 필드를 1 증가시킴
-        await exhibitionDoc.reference.update({'like': FieldValue.increment(1)}).catchError((error) {
+        await artworkDoc.reference.update({'like': FieldValue.increment(1)}).catchError((error) {
           print('전시회 like 추가 Firestore 데이터 업데이트 중 오류 발생: $error');
         });
 
@@ -297,14 +356,15 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
       await FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)
-          .collection('like')
+          .collection('artworkLike')
           .add({
-        'exTitle': exTitle,
-        'addr': addr,
-        'exImage': exImage,
+        'artTitle': artTitle,
+        'artDate': artDate,
+        'artType': artType,
+        'imageURL': imageURL,
         'likeDate': Timestamp.fromDate(likeDate),
-        'startDate': startDateTimestamp,
-        'endDate': endDateTimestamp,
+        'artistName': artistName,
+        'expertise': expertise,
       })
           .catchError((error) {
         print('Firestore 데이터 추가 중 오류 발생: $error');
@@ -315,7 +375,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
     }
   }
 
-  void _removeLike(String exTitle) async{
+  void _removeLike(String artTitle) async{
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
       // Firestore에서 사용자 문서를 참조
@@ -332,11 +392,40 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
       await userDocRef.update({'heat': newHeat});
 
 
+      //////////전시회 like-1 // Firestore에서 'exhibition' 컬렉션을 참조///////////
+      // Firestore에서 'exhibition' 컬렉션을 참조
+      final artworkRef = FirebaseFirestore.instance.collection('artist').doc(widget.doc).collection('artist_artwork');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await artworkRef.where('artTitle', isEqualTo: artTitle).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final artworkDoc = querySnapshot.docs.first;
+
+        // 현재 'like' 필드의 값을 가져옴
+        final currentLikeCount = (artworkDoc.data()?['like'] as int?) ?? 0;
+
+        // 'like' 필드를 현재 값에서 -1로 감소시킴
+        final newLikeCount = currentLikeCount - 1;
+
+        // 'like' 필드를 업데이트
+        await artworkDoc.reference.update({'like': newLikeCount}).catchError((error) {
+          print('전시회 like 삭제 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에서 제거)를 계속 진행
+      } else {
+        print('해당 전시회를 찾을 수 없습니다.');
+      }
+
+
       FirebaseFirestore.instance
           .collection('user')
           .doc(user.userNo)
-          .collection('like')
-          .where('exTitle', isEqualTo: exTitle) // 'exTitle' 필드와 값이 일치하는 데이터 검색
+          .collection('artworkLike')
+          .where('artTitle', isEqualTo: artTitle) // 'exTitle' 필드와 값이 일치하는 데이터 검색
           .get()
           .then((querySnapshot) {
         querySnapshot.docs.forEach((doc) {

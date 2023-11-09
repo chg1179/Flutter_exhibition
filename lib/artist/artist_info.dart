@@ -3,7 +3,9 @@ import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
 import '../artwork/ex_artwork_detail.dart';
+import '../model/user_model.dart';
 
 class ArtistInfo extends StatefulWidget {
   final String document;
@@ -28,9 +30,11 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
     try {
       final documentSnapshot = await _firestore.collection('artist').doc(widget.document).get();
       if (documentSnapshot.exists) {
+        final artistName = documentSnapshot.data()?['artistName']; // 가져온 데이터에서 exTitle 추출
         setState(() {
           _artistData = documentSnapshot.data() as Map<String, dynamic>;
         });
+        checkIfLiked(artistName);
       } else {
         print('정보를 찾을 수 없습니다.');
       }
@@ -111,11 +115,27 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
     }
   }
 
-  void toggleLike() {
-    setState(() {
-      isLiked = !isLiked;
-    });
+  //좋아요 상태 체크
+  Future<void> checkIfLiked(String artistName) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      if (artistName != null && artistName.isNotEmpty) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .collection('artistLike')
+            .where('artistName', isEqualTo: artistName)
+            .get();
+
+        final liked = querySnapshot.docs.isNotEmpty;
+        setState(() {
+          isLiked = liked;
+        });
+      }
+    }
   }
+
 
   Widget buildSection(String title, List<Map<String, dynamic>> items) {
     return Padding(
@@ -234,11 +254,33 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           Padding(
                             padding: const EdgeInsets.only(top: 10, right: 10),
                             child: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isLiked = !isLiked; // 좋아요 버튼 상태를 토글
+                                  if (isLiked) {
+                                    // 좋아요 버튼을 누른 경우
+                                    // 빨간 하트 아이콘로 변경하고 추가 작업 수행
+                                    _addLike(
+                                      _artistData?['artistName'],
+                                      _artistData?['artistEnglishName'],
+                                      _artistData?['artistIntroduce'],
+                                      _artistData?['artistNationality'],
+                                      DateTime.now(),
+                                      _artistData?['expertise'],
+                                      _artistData?['imageURL'],
+                                    );
+
+                                    print('좋아요목록에 추가되었습니다');
+                                  } else {
+                                    _removeLike(_artistData?['artistName']);
+                                    print('${_artistData?['artistName']}가 좋아요목록에서 삭제되었습니다');
+                                  }
+                                });
+                              },
                               icon: Icon(
-                                isLiked ? Icons.favorite : Icons.favorite_border,
-                                color: isLiked ? Colors.red : Colors.black,
+                                isLiked ? Icons.favorite : Icons.favorite_border, // 토글 상태에 따라 아이콘 변경
+                                color: isLiked ? Colors.red : null, // 빨간 하트 아이콘의 색상 변경
                               ),
-                              onPressed: toggleLike,
                             ),
                           ),
                         ],
@@ -562,4 +604,138 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
       )
     );
   }
+  /////////////////////좋아요 파이어베이스//////////////////////////
+  void _addLike(
+      String artistName,
+      String artistEnglishName,
+      String artistIntroduce,
+      String artistNationality,
+      DateTime likeDate,
+      String expertise,
+      String imageURL) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+
+      ////////////////작가 컬렉션의 like/////////////////
+      // Firestore에서 'artwork' 컬렉션을 참조
+      final artistRef = FirebaseFirestore.instance.collection('artist');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await artistRef.where('artistName', isEqualTo: artistName).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final artistDoc = querySnapshot.docs.first;
+
+        // 해당 전시회 문서의 like 필드를 1 증가시킴
+        await artistDoc.reference.update({'like': FieldValue.increment(1)}).catchError((error) {
+          print('전시회 like 추가 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에 추가)를 계속 진행
+      } else {
+        print('해당 전시회를 찾을 수 없습니다.');
+      }
+
+      /////////////////////// 온도 +0.1//////////////////////////////////
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 증가시킴
+      final newHeat = currentHeat + 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+      // user 컬렉션에 좋아요
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('artistLike')
+          .add({
+        'artistName': artistName,
+        'artistEnglishName': artistEnglishName,
+        'artistIntroduce': artistIntroduce,
+        'artistNationality': artistNationality,
+        'likeDate': Timestamp.fromDate(likeDate),
+        'expertise': expertise,
+        'imageURL': imageURL,
+      })
+          .catchError((error) {
+        print('Firestore 데이터 추가 중 오류 발생: $error');
+      });
+
+    } else {
+      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+    }
+  }
+
+  void _removeLike(String artistName) async{
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 감소시킴
+      final newHeat = currentHeat - 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+
+      //////////전시회 like-1 // Firestore에서 'exhibition' 컬렉션을 참조///////////
+      // Firestore에서 'exhibition' 컬렉션을 참조
+      final artistRef = FirebaseFirestore.instance.collection('artist');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await artistRef.where('artistName', isEqualTo: artistName).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final artistDoc = querySnapshot.docs.first;
+
+        // 현재 'like' 필드의 값을 가져옴
+        final currentLikeCount = (artistDoc.data()?['like'] as int?) ?? 0;
+
+        // 'like' 필드를 현재 값에서 -1로 감소시킴
+        final newLikeCount = currentLikeCount - 1;
+
+        // 'like' 필드를 업데이트
+        await artistDoc.reference.update({'like': newLikeCount}).catchError((error) {
+          print('전시회 like 삭제 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에서 제거)를 계속 진행
+      } else {
+        print('해당 작가를 찾을 수 없습니다.');
+      }
+
+
+      FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('artistLike')
+          .where('artistName', isEqualTo: artistName) // 'exTitle' 필드와 값이 일치하는 데이터 검색
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete(); // 검색된 모든 문서를 삭제
+        });
+      })
+          .catchError((error) {
+        print('삭제 중 오류 발생: $error');
+      });
+    }
+  }
+
 }
