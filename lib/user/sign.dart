@@ -20,7 +20,7 @@ class _SignPageState extends State<SignPage> {
         body: Stack(
           children: <Widget>[
             Image.asset(
-              'assets/sign/img.png', // 배경 이미지
+              'assets/sign/login_back.png', // 배경 이미지
               fit: BoxFit.cover, // 이미지를 화면에 맞게 늘리기
               width: double.infinity,
               height: double.infinity,
@@ -32,6 +32,8 @@ class _SignPageState extends State<SignPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Image.asset('assets/sign/clearLogo.png', width: 280,),
+                    SizedBox(height: 180),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -40,9 +42,9 @@ class _SignPageState extends State<SignPage> {
                         );
                       },
                       style: fullGreenButtonStyle(),
-                      child: boldGreyButtonContainer('로그인'),
+                      child: boldGreyButtonContainer('로 그 인'),
                     ),
-                    SizedBox(height: 18),
+                    SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
                         Navigator.push(
@@ -51,9 +53,9 @@ class _SignPageState extends State<SignPage> {
                         );
                       },
                       style: fullLightGreenButtonStyle(),
-                      child: boldGreenButtonContainer('회원가입'),
+                      child: boldGreenButtonContainer('회 원 가 입'),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 80),
                   ],
                 ),
               ),

@@ -46,8 +46,15 @@ class _SignUpPageState extends State<SignUpPage> {
       home: Scaffold(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
         body: Container(
-          margin: EdgeInsets.all(30),
           padding: EdgeInsets.all(15),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/sign/login_back.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
           child: Center(
             child: Form(
               key: _key,
@@ -56,11 +63,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.fromLTRB(10, 20, 10, 30),
-                      padding: EdgeInsets.all(10),
-                      child: Text('회원 정보를 입력해 주세요.', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold))
-                    ),
+                    SizedBox(height: 60,),
+                    Center(child: Image.asset('assets/sign/clearLogo.png', width: 150,)),
+                    SizedBox(height: 10,),
                     Container(
                       padding: EdgeInsets.all(30),
                       child: Column(
@@ -73,18 +78,18 @@ class _SignUpPageState extends State<SignUpPage> {
                           if (duplicateEmail) duplicateText('중복된 이메일 주소입니다.'),
                           SizedBox(height: 30),
                           textFieldLabel('비밀번호'),
-                          textFieldInput(_pwdController,"특수 문자를 포함하는 8자 이상의 비밀번호를 입력해 주세요.", "pwd"),
+                          textFieldInput(_pwdController,"특수 문자 포함, 8자 이상", "pwd"),
                           SizedBox(height: 30),
                           textFieldLabel('비밀번호 확인'),
-                          textFieldInput(_pwdCheckController, "비밀번호를 확인해 주세요.", "pwdCheck"),
+                          textFieldInput(_pwdCheckController, "비밀번호를 확인", "pwdCheck"),
                           SizedBox(height: 30),
                           textFieldLabel('닉네임'),
-                          textFieldInput(_nickNameController,"한글이나 영어로 구성된 닉네임을 입력해 주세요.","nickName"),
+                          textFieldInput(_nickNameController,"한글 또는 영어로 구성된 닉네임(공백 제외)","nickName"),
                           if (duplicateNickName) SizedBox(height: 10),
                           if (duplicateNickName) duplicateText('중복된 닉네임입니다.'),
                           SizedBox(height: 30),
                           textFieldLabel('핸드폰 번호'),
-                          textFieldInput(_phoneController,"'-'을 제외한 핸드폰 번호를 입력해 주세요.","phone"),
+                          textFieldInput(_phoneController,"'-'을 제외한 핸드폰 번호 입력","phone"),
                           if (duplicatePhone) SizedBox(height: 10),
                           if (duplicatePhone) duplicateText('중복된 핸드폰 번호입니다.'),
                           SizedBox(height: 30),
@@ -97,9 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Column(
                         children: [
                           _checkboxTile('개인정보 수집·이용 (필수)', _termsChecked[0], '0'),
-                          SizedBox(height: 10),
                           _checkboxTile('서비스 이용을 위한 필수 약관 (필수)', _termsChecked[1], '1'),
-                          SizedBox(height: 10),
                           _checkboxTile('이벤트 수신 동의 (선택)', eventChecked, 'event')
                         ],
                       )
@@ -109,7 +112,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     Container(
                       margin: EdgeInsets.all(20),
                       child: submitButton()
-                    )
+                    ),
+                    SizedBox(height: 40,)
                   ],
                 ),
               ),
@@ -169,8 +173,9 @@ class _SignUpPageState extends State<SignUpPage> {
       },
       decoration: InputDecoration(
         hintText: hintTxt, //입력란에 나타나는 텍스트
+        hintStyle: TextStyle(fontSize: 13),
         labelStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
         focusedBorder: UnderlineInputBorder(
@@ -189,7 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
               icon: Icon(kind == 'pwd'
                   ? (pwdHide ? Icons.visibility_off : Icons.visibility)
                   : (pwdCheckHide ? Icons.visibility_off : Icons.visibility),
-                color: Color.fromRGBO(70, 77, 64, 1.0),
+                color: Color.fromRGBO(70, 77, 64, 1.0), size: 20,
               ),
               onPressed: () {
                 setState(() {
@@ -210,7 +215,7 @@ class _SignUpPageState extends State<SignUpPage> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(message, style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(message, style: TextStyle(fontSize: 15)),
           InkWell(
             onTap: () {
               setState(() {
@@ -225,7 +230,7 @@ class _SignUpPageState extends State<SignUpPage> {
             child: Container(
               child: checked
                   ? Icon(Icons.check, size: 30, color: Color.fromRGBO(70, 77, 64, 1.0)) // 체크 시 체크 아이콘
-                  : Icon(Icons.check, size: 30, color: Color.fromRGBO(212, 216, 200, 1.0)), // 체크되지 않은 경우
+                  : Icon(Icons.check, size: 30, color: Color.fromRGBO(169, 169, 169, 1.0)), // 체크되지 않은 경우
             ),
           )
         ],
@@ -326,7 +331,7 @@ class _SignUpPageState extends State<SignUpPage> {
         }
       },
       style: fullGreenButtonStyle(),
-      child: boldGreyButtonContainer('가입 하기')
+      child: boldGreyButtonContainer('회 원 가 입 하 기')
     );
   }
 }

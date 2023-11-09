@@ -33,51 +33,57 @@ class _SignInCheckState extends State<SignInCheck> {
   Widget build(BuildContext context) {
     return Scaffold(
           backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
-    body: SingleChildScrollView( // SingleChildScrollView 추가
-    child: Padding(
-            padding: const EdgeInsets.all(50.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                    margin: EdgeInsets.fromLTRB(10, 20, 10, 50),
-                    padding: EdgeInsets.all(10),
-                    child: Center(
-                        child: Text('로그인', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold))
-                    )
-                ),
-                _TextField(_emailController, '이메일', 'email'),
-                SizedBox(height: 20),
-                _TextField(_pwdController, '비밀번호', 'pwd'),
-                SizedBox(height: 80),
-                Center(
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: _login,
-                            style: fullGreenButtonStyle(),
-                            child: boldGreyButtonContainer('로그인'),
-                          ),
-                          SizedBox(height: 18),
-                          ElevatedButton(
-                            onPressed: (){
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SignUpPage(),
-                                ),
-                              );
-                            },
-                            style: fullLightGreenButtonStyle(),
-                            child: boldGreenButtonContainer('회원가입'),
-                          ),
-                        ]
-                    )
-                ),
-              ],
+      body: SingleChildScrollView( // SingleChildScrollView 추가
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/sign/login_back.png'),
+              fit: BoxFit.cover,
             ),
-          )
+          ),
+          child: Padding(
+                  padding: const EdgeInsets.all(50.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 70,),
+                      Image.asset('assets/sign/clearLogo.png', width: 180,),
+                      SizedBox(height: 20,),
+                      _TextField(_emailController, '이메일', 'email'),
+                      SizedBox(height: 20),
+                      _TextField(_pwdController, '비밀번호', 'pwd'),
+                      SizedBox(height: 80),
+                      Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: _login,
+                                  style: fullGreenButtonStyle(),
+                                  child: boldGreyButtonContainer('로 그 인'),
+                                ),
+                                SizedBox(height: 18),
+                                ElevatedButton(
+                                  onPressed: (){
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SignUpPage(),
+                                      ),
+                                    );
+                                  },
+                                  style: fullLightGreenButtonStyle(),
+                                  child: boldGreenButtonContainer('회 원 가 입'),
+                                ),
+                              ]
+                          )
+                      ),
+                    ],
+                  ),
+                ),
+        )
       )
     );
   }
@@ -90,7 +96,10 @@ class _SignInCheckState extends State<SignInCheck> {
         labelText: txt,
         suffixIcon: kind == 'pwd' || kind == 'pwdCheck'
             ? IconButton(
-          icon: Icon(pwdHide ? Icons.visibility_off : Icons.visibility),
+          icon: Padding(
+            padding: const EdgeInsets.only(top: 13),
+            child: Icon(pwdHide ? Icons.visibility_off : Icons.visibility, size: 20,),
+          ),
           color: Color.fromRGBO(70, 77, 64, 1.0),
           onPressed: () {
             setState(() {

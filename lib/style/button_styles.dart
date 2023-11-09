@@ -26,13 +26,13 @@ ButtonStyle fullGreyButtonStyle() {
 Container boldGreyButtonContainer(String txt){
   return Container(
     padding: const EdgeInsets.all(15),
-    child: Text(txt, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromRGBO(222, 222, 220, 1.0))),
+    child: Text(txt, style: TextStyle(fontSize: 17, color: Color.fromRGBO(222, 222, 220, 1.0))),
   );
 }
 Container boldGreenButtonContainer(String txt){
   return Container(
     padding: const EdgeInsets.all(15),
-    child: Text(txt, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0))),
+    child: Text(txt, style: TextStyle(fontSize: 17, color: Color.fromRGBO(70, 77, 64, 1.0))),
   );
 }
 
