@@ -331,11 +331,18 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               ],
                             ),
                             SizedBox(height: 30),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: ExhibitionTemperature(),
+                            Container(
+                              width: MediaQuery.of(context).size.width - 40,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: Color(0xffe8e8e5),
+                                borderRadius: BorderRadius.all(Radius.circular(10))
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 13),
+                                child: TemperatureBar(temperature: temperature),
+                              ),
                             ),
-                            TemperatureBar(temperature: temperature),
                             SizedBox(height: 16),
                             Padding(
                               padding: const EdgeInsets.only(left: 15, right: 15),
@@ -801,13 +808,22 @@ class TemperatureBar extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  ExhibitionTemperature(),
+                  Spacer(),
                   Padding(
-                    padding: const EdgeInsets.only(right: 40),
-                    child: Text('현재 밝기 ${userHeat}%'),
+                    padding: const EdgeInsets.only(right: 12),
+                    child: Container(
+                        padding: EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 3),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                          color: Color(0xffb6b6ac)
+                        ),
+                        child: Text('현재 밝기 ${userHeat}%', style: TextStyle(fontSize: 12, color: Colors.white),)
+                    ),
                   ),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 15),
               Container(
                 height: 12, // 온도바의 높이 조정
                 width: 350, // 온도바의 너비 조정
@@ -815,7 +831,7 @@ class TemperatureBar extends StatelessWidget {
                   color: Colors.grey[100], // 온도바의 배경 색상 설정
                   borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
                   border: Border.all(
-                    color: Color(0xffcecece),
+                    color: Color(0xffffffff),
                     width: 1
                   ),
                 ),
@@ -845,7 +861,7 @@ class ExhibitionTemperature extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel>(context); // 세션. UserModel
     return Padding(
-      padding: const EdgeInsets.only(left: 22.0),
+      padding: const EdgeInsets.only(left: 13),
       child: GestureDetector(
         onTap: () {
           final RenderBox overlay = Overlay.of(context)!.context
@@ -863,23 +879,25 @@ class ExhibitionTemperature extends StatelessWidget {
         },
         child: Row(
           children: [
+            Icon(Icons.highlight, size: 16),
+            SizedBox(width: 1,),
             DecoratedBox(
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    width: 1.0,
+                    width: 0.8,
                   ),
                 ),
               ),
               child: Text(
                 '손전등 게이지',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
               ),
             ),
-            SizedBox(width: 2,),
-            Icon(Icons.info_outline, size: 13),
+            SizedBox(width: 1,),
+            Icon(Icons.info_outline, size: 12),
           ],
         )
 

@@ -79,7 +79,7 @@ class _IsNotificationState extends State<IsNotification> {
                                     width: MediaQuery.of(context).size.width * 0.75,
                                     child: Text(
                                       _notificationList[index]['content'],
-                                      style: TextStyle(fontSize: 16),
+                                      style: TextStyle(fontSize: 14),
                                     ),
                                   ),
                                   SizedBox(height: 10),

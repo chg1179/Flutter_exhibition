@@ -3,36 +3,20 @@ import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/material.dart';
-class MyCollection extends StatelessWidget {
+
+class MyCollection extends StatefulWidget {
+  MyCollection({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: MyCollection2(),
-    );
-  }
+  State<MyCollection> createState() => _MyCollectionState();
 }
 
-
-class MyCollection2 extends StatefulWidget {
-  MyCollection2({super.key});
-
-  @override
-  State<MyCollection2> createState() => _MyCollection2State();
-}
-
-class _MyCollection2State extends State<MyCollection2> {
-  final List<Widget> _tabPages = [
-    ArtPage(),
-    ArtistPage(),
-    ExhibitionPage(),
-  ];
-
+class _MyCollectionState extends State<MyCollection> {
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: _tabPages.length,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: Text('나의 컬렉션', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
@@ -66,7 +50,77 @@ class _MyCollection2State extends State<MyCollection2> {
           ),
         ),
         body: TabBarView(
-          children: _tabPages,
+          children: [
+            InkWell(
+              onTap: (){
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: artist.id, artDoc: artwork.id,)));
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.43,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Color(0xff5d5148),// 액자 테두리 색상
+                            width: 5, // 액자 테두리 두께
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xffb2b2b2), // 그림자 색상
+                              blurRadius: 2, // 흐림 정도
+                              spreadRadius: 1, // 그림자 확산 정도
+                              offset: Offset(0, 1), // 그림자 위치 조정
+                            ),
+                          ],
+                        ),
+                        padding: EdgeInsets.all(6),
+                        child: Image.asset(
+                          'assets/ex/ex1.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 15,),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, right: 5),
+                      child: Container(
+                          width: MediaQuery.of(context).size.width * 0.43,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xffcbcbcb), // 그림자 색상
+                                  blurRadius: 0.5, // 흐림 정도
+                                  spreadRadius: 1.5, // 그림자 확산 정도
+                                  offset: Offset(1, 1.5), // 그림자 위치 조정
+                                ),
+                              ],
+                            ),
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('제목', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
+                                Text('작가', style: TextStyle(fontSize: 12),),
+                                Text('뭐시기 / 저시기', style: TextStyle(fontSize: 11, color: Colors.grey[700]),),
+                              ],
+                            ),
+                          )
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ArtistPage(),
+            ExhibitionPage(),
+          ],
         ),
       ),
     );
