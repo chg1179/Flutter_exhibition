@@ -9,6 +9,7 @@ import '../main.dart';
 import '../myPage/mypage.dart';
 import '../review/review_list.dart';
 import 'ex_list.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class Search extends StatefulWidget {
   const Search({super.key});
@@ -48,7 +49,7 @@ class _SearchState extends State<Search> {
     "국립현대미술관",
     "김환기",
     "사진",
-    "현대",
+    "김형무",
     "레이어41",
     "데이비드 호크니",
   ];
@@ -339,7 +340,11 @@ class _SearchState extends State<Search> {
     return Container(
         padding: EdgeInsets.only(bottom: appBarHeight+100),
         height: MediaQuery.of(context).size.height - bottomBarHeight - 30,
-        child: _isLoading ? Center(child: CircularProgressIndicator())
+        child: _isLoading ? Center(child: SpinKitWave( // FadingCube 모양 사용
+          color: Color(0xff464D40), // 색상 설정
+          size: 50.0, // 크기 설정
+          duration: Duration(seconds: 3), //속도 설정
+        ))
         :TabBarView(
           children: [
             Padding(

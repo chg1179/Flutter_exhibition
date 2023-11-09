@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../artwork/ex_artwork_detail.dart';
 
 class ArtistInfo extends StatefulWidget {
@@ -190,24 +190,18 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
         child: AppBar(
           elevation: 0,
           actions: [
-            IconButton(
-              icon: Icon(
-                isLiked ? Icons.favorite : Icons.favorite_border,
-                color: isLiked ? Colors.red : Colors.white,
-              ),
-              onPressed: toggleLike,
-            ),
+
           ],
           flexibleSpace: Stack(
             children: [
               _artistData?['imageURL'] == null
               ?Image.asset("assets/main/logo_green.png")
-              :Image.network(
-                _artistData?['imageURL'],
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width,
-                fit: BoxFit.cover,
-              ),
+              :Image.asset("assets/main/logo_green.png", width: MediaQuery.of(context).size.width,height: MediaQuery.of(context).size.width, fit: BoxFit.cover),
+              // :Image.network(
+              //   _artistData?['imageURL'],
+              //   width: MediaQuery.of(context).size.width,
+              //   height: MediaQuery.of(context).size.width,
+              //   fit: BoxFit.cover,),
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -225,19 +219,34 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 15.0, top: 16, bottom: 5),
-                        child: Text(
-                          _artistData?['artistName'],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 15.0, top: 16, bottom: 5),
+                            child: Text(
+                              _artistData?['artistName'],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
                           ),
-                        ),
+                          Spacer(),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10, right: 10),
+                            child: IconButton(
+                              icon: Icon(
+                                isLiked ? Icons.favorite : Icons.favorite_border,
+                                color: isLiked ? Colors.red : Colors.black,
+                              ),
+                              onPressed: toggleLike,
+                            ),
+                          ),
+                        ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 16, bottom: 16),
+                        padding: const EdgeInsets.only(left: 16, bottom: 17),
                         child: Text(
                           _artistData?['expertise'],
                           style: TextStyle(
@@ -246,33 +255,22 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           ),
                         ),
                       ),
+
                     ],
                   ),
                 ),
               ),
-              // Positioned(
-              //   top: 130,
-              //   right: 26,
-              //   child:
-              //   Container(
-              //     width: 80,
-              //     height: 80,
-              //     decoration: BoxDecoration(
-              //       shape: BoxShape.circle,
-              //       image: DecorationImage(
-              //         image: NetworkImage(_artistData?['imageURL']),
-              //         fit: BoxFit.cover,
-              //       ),
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),
       ),
       body:
       _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: SpinKitWave( // FadingCube 모양 사용
+        color: Color(0xff464D40), // 색상 설정
+        size: 50.0, // 크기 설정
+        duration: Duration(seconds: 3), //속도 설정
+      ))
           : CustomScrollView(
         slivers: <Widget>[
           SliverList(
@@ -409,7 +407,11 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                       .snapshots(),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return Center(child: CircularProgressIndicator());
+                                      return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                        color: Color(0xff464D40), // 색상 설정
+                                        size: 50.0, // 크기 설정
+                                        duration: Duration(seconds: 3), //속도 설정
+                                      ),);
                                     } else {
                                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                         return Center(
@@ -473,7 +475,11 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                       .snapshots(),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return CircularProgressIndicator();
+                                      return SpinKitWave( // FadingCube 모양 사용
+                                        color: Color(0xff464D40), // 색상 설정
+                                        size: 50.0, // 크기 설정
+                                        duration: Duration(seconds: 3), //속도 설정
+                                      );
                                     } else if (snapshot.hasError) {
                                       return Text('Error: ${snapshot.error}');
                                     } else {

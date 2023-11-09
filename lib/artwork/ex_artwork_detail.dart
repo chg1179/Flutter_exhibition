@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class ExArtworkDetail extends StatefulWidget {
   final String doc;
@@ -71,7 +72,13 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
         ],
       ),
       body:
-      _loading ? Center(child: CircularProgressIndicator())
+      _loading ? Center(
+          child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 50.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ),
+      )
       :CustomScrollView(
           slivers: <Widget>[
             SliverList(
@@ -178,7 +185,11 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                               .snapshots(),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
+                              return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                color: Color(0xff464D40), // 색상 설정
+                                size: 50.0, // 크기 설정
+                                duration: Duration(seconds: 3), //속도 설정
+                              ));
                             } else {
                               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                 return Center(
