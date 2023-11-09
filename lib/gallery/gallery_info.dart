@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/main.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../model/user_model.dart';
 
 class GalleryInfo extends StatefulWidget {
   final String document;
@@ -16,6 +19,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _galleryData;
   bool _isLoading = true;
+  bool isLiked = false; // 좋아요
 
   Future<void> openURL(String url) async {
     if (await canLaunch(url)) {
@@ -35,10 +39,12 @@ class _GalleryInfoState extends State<GalleryInfo> {
     try {
       final documentSnapshot = await _firestore.collection('gallery').doc(widget.document).get();
       if (documentSnapshot.exists) {
+        final galleryName = documentSnapshot.data()?['galleryName']; // 가져온 데이터에서 exTitle 추출
         setState(() {
           _galleryData = documentSnapshot.data() as Map<String, dynamic>;
           _isLoading = false;
         });
+        checkIfLiked(galleryName);
       } else {
         print('정보를 찾을 수 없습니다.');
       }
@@ -47,7 +53,26 @@ class _GalleryInfoState extends State<GalleryInfo> {
       _isLoading = false;
     }
   }
+//좋아요 상태 체크
+  Future<void> checkIfLiked(String galleryName) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
 
+    if (user != null && user.isSignIn) {
+      if (galleryName != null && galleryName.isNotEmpty) {
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(user.userNo)
+            .collection('galleryLike')
+            .where('galleryName', isEqualTo: galleryName)
+            .get();
+
+        final liked = querySnapshot.docs.isNotEmpty;
+        setState(() {
+          isLiked = liked;
+        });
+      }
+    }
+  }
   @override
   Widget build(BuildContext context) {
 
@@ -107,9 +132,38 @@ class _GalleryInfoState extends State<GalleryInfo> {
                               ),
                               Spacer(),
                               IconButton(
-                                  onPressed: (){},
-                                  icon: Icon(Icons.favorite_border)
-                              )
+                                onPressed: () {
+                                  setState(() {
+                                    isLiked = !isLiked; // 좋아요 버튼 상태를 토글
+                                    if (isLiked) {
+                                      // 좋아요 버튼을 누른 경우
+                                      // 빨간 하트 아이콘로 변경하고 추가 작업 수행
+                                      _addLike(
+                                        _galleryData?['galleryName'],
+                                        _galleryData?['galleryEmail'],
+                                        _galleryData?['galleryClose'],
+                                        _galleryData?['galleryIntroduce'],
+                                        _galleryData?['galleryPhone'],
+                                        _galleryData?['region'],
+                                        _galleryData?['webSite'],
+                                        _galleryData?['imageURL'],
+                                        DateTime.now(),
+                                        _galleryData?['addr'],
+                                        _galleryData?['detailsAddress'],
+                                      );
+
+                                      print('좋아요목록에 추가되었습니다');
+                                    } else {
+                                      _removeLike(_galleryData?['galleryName']);
+                                      print('${_galleryData?['galleryName']}가 좋아요목록에서 삭제되었습니다');
+                                    }
+                                  });
+                                },
+                                icon: Icon(
+                                  isLiked ? Icons.favorite : Icons.favorite_border, // 토글 상태에 따라 아이콘 변경
+                                  color: isLiked ? Colors.red : null, // 빨간 하트 아이콘의 색상 변경
+                                ),
+                              ),
                             ],
                           ),
                         ],
@@ -295,5 +349,145 @@ class _GalleryInfoState extends State<GalleryInfo> {
     );
 
   }
+/////////////////////좋아요 파이어베이스//////////////////////////
+  void _addLike(
+      String galleryName,
+      String galleryEmail,
+      String galleryClose,
+      String galleryIntroduce,
+      String galleryPhone,
+      String region,
+      String webSite,
+      String imageURL,
+      DateTime likeDate,
+      String addr,
+      String detailsAddress, ) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
 
+      ////////////////작가 - 작품컬렉션의 like/////////////////
+      // Firestore에서 'artwork' 컬렉션을 참조
+      final galleryRef = FirebaseFirestore.instance.collection('gallery');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await galleryRef.where('galleryName', isEqualTo: galleryName).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final galleryDoc = querySnapshot.docs.first;
+
+        // 해당 전시회 문서의 like 필드를 1 증가시킴
+        await galleryDoc.reference.update({'like': FieldValue.increment(1)}).catchError((error) {
+          print('전시회 like 추가 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에 추가)를 계속 진행
+      } else {
+        print('해당 전시회를 찾을 수 없습니다.');
+      }
+
+      /////////////////////// 온도 +0.1//////////////////////////////////
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 증가시킴
+      final newHeat = currentHeat + 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+      // user 컬렉션에 좋아요
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('galleryLike')
+          .add({
+        'galleryName': galleryName,
+        'galleryEmail': galleryEmail,
+        'galleryClose': galleryClose,
+        'galleryIntroduce': galleryIntroduce,
+        'galleryPhone': galleryPhone,
+        'region': region,
+        'webSite': webSite,
+        'imageURL': imageURL,
+        'likeDate': Timestamp.fromDate(likeDate),
+        'addr': addr,
+        'detailsAddress': detailsAddress,
+      })
+          .catchError((error) {
+        print('Firestore 데이터 추가 중 오류 발생: $error');
+      });
+
+    } else {
+      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+    }
+  }
+
+  void _removeLike(String galleryName) async{
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      // Firestore에서 사용자 문서를 참조
+      final userDocRef = FirebaseFirestore.instance.collection('user').doc(user.userNo);
+
+      // 사용자 문서의 heat 필드를 가져옴
+      final userDoc = await userDocRef.get();
+      final currentHeat = (userDoc.data()?['heat'] as double?) ?? 0.0;
+
+      // 'heat' 필드를 0.1씩 감소시킴
+      final newHeat = currentHeat - 0.1;
+
+      // 'heat' 필드를 업데이트
+      await userDocRef.update({'heat': newHeat});
+
+
+      //////////전시회 like-1 // Firestore에서 'exhibition' 컬렉션을 참조///////////
+      // Firestore에서 'exhibition' 컬렉션을 참조
+      final galleryRef = FirebaseFirestore.instance.collection('gallery');
+
+      // 'exTitle'과 일치하는 문서를 쿼리로 찾음
+      final querySnapshot = await galleryRef.where('galleryName', isEqualTo: galleryName).get();
+
+      // 'exTitle'과 일치하는 문서가 존재하는지 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서를 가져오거나 원하는 방법으로 선택
+        final galleryDoc = querySnapshot.docs.first;
+
+        // 현재 'like' 필드의 값을 가져옴
+        final currentLikeCount = (galleryDoc.data()?['like'] as int?) ?? 0;
+
+        // 'like' 필드를 현재 값에서 -1로 감소시킴
+        final newLikeCount = currentLikeCount - 1;
+
+        // 'like' 필드를 업데이트
+        await galleryDoc.reference.update({'like': newLikeCount}).catchError((error) {
+          print('전시회 like 삭제 Firestore 데이터 업데이트 중 오류 발생: $error');
+        });
+
+        // 나머지 코드 (사용자의 'like' 컬렉션에서 제거)를 계속 진행
+      } else {
+        print('해당 갤러리를 찾을 수 없습니다.');
+      }
+
+
+      FirebaseFirestore.instance
+          .collection('user')
+          .doc(user.userNo)
+          .collection('galleryLike')
+          .where('galleryName', isEqualTo: galleryName) // 'exTitle' 필드와 값이 일치하는 데이터 검색
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete(); // 검색된 모든 문서를 삭제
+        });
+      })
+          .catchError((error) {
+        print('삭제 중 오류 발생: $error');
+      });
+    }
+  }
 }
