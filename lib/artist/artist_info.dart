@@ -212,14 +212,13 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
           elevation: 0,
           flexibleSpace: Stack(
             children: [
-              _artistData?['imageURL'] == null
-              ?Image.asset("assets/main/logo_green.png")
-              :Image.asset("assets/main/logo_green.png", width: MediaQuery.of(context).size.width,height: MediaQuery.of(context).size.width, fit: BoxFit.cover),
-              // :Image.network(
-              //   _artistData?['imageURL'],
-              //   width: MediaQuery.of(context).size.width,
-              //   height: MediaQuery.of(context).size.width,
-              //   fit: BoxFit.cover,),
+              _artistData?['imageURL'] == null || _artistData?['imageURL'] == ""
+              ?Image.asset("assets/main/logo_green.png", width: MediaQuery.of(context).size.width,height: MediaQuery.of(context).size.width, fit: BoxFit.cover)
+              :Image.network(
+                _artistData?['imageURL'],
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width,
+                fit: BoxFit.cover,),
               Positioned(
                 bottom: 0,
                 left: 0,
@@ -268,6 +267,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                                       DateTime.now(),
                                       _artistData?['expertise'],
                                       _artistData?['imageURL'],
+                                      widget.document
                                     );
 
                                     print('좋아요목록에 추가되었습니다');
@@ -612,7 +612,8 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
       String artistNationality,
       DateTime likeDate,
       String expertise,
-      String imageURL) async {
+      String imageURL,
+      String artistId) async {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
 
@@ -665,6 +666,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
         'likeDate': Timestamp.fromDate(likeDate),
         'expertise': expertise,
         'imageURL': imageURL,
+        'artistId': artistId,
       })
           .catchError((error) {
         print('Firestore 데이터 추가 중 오류 발생: $error');

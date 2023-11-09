@@ -1,8 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 class MyCollection extends StatefulWidget {
   MyCollection({super.key});
@@ -12,9 +17,39 @@ class MyCollection extends StatefulWidget {
 }
 
 class _MyCollectionState extends State<MyCollection> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName = "";
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double inkWidth = screenWidth / 2;
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -51,323 +86,311 @@ class _MyCollectionState extends State<MyCollection> {
         ),
         body: TabBarView(
           children: [
-            InkWell(
-              onTap: (){
-                //Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: artist.id, artDoc: artwork.id,)));
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.43,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Color(0xff5d5148),// 액자 테두리 색상
-                            width: 5, // 액자 테두리 두께
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0xffb2b2b2), // 그림자 색상
-                              blurRadius: 2, // 흐림 정도
-                              spreadRadius: 1, // 그림자 확산 정도
-                              offset: Offset(0, 1), // 그림자 위치 조정
-                            ),
-                          ],
-                        ),
-                        padding: EdgeInsets.all(6),
-                        child: Image.asset(
-                          'assets/ex/ex1.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 15,),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, right: 5),
-                      child: Container(
-                          width: MediaQuery.of(context).size.width * 0.43,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Color(0xffcbcbcb), // 그림자 색상
-                                  blurRadius: 0.5, // 흐림 정도
-                                  spreadRadius: 1.5, // 그림자 확산 정도
-                                  offset: Offset(1, 1.5), // 그림자 위치 조정
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: StreamBuilder(
+                stream: _firestore
+                    .collection('user')
+                    .where('nickName', isEqualTo: _userNickName)
+                    .snapshots(),
+                builder: (context, userSnapshot) {
+                  if (!userSnapshot.hasData) {
+                    return SpinKitWave( // FadingCube 모양 사용
+                      color: Color(0xff464D40), // 색상 설정
+                      size: 20.0, // 크기 설정
+                      duration: Duration(seconds: 3), //속도 설정
+                    );
+                  } else {
+                    return ListView.builder(
+                      itemCount: userSnapshot.data!.docs.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        return StreamBuilder(
+                          stream: _firestore
+                              .collection('user')
+                              .doc(userSnapshot.data!.docs.first.id)
+                              .collection('artworkLike')
+                              .snapshots(),
+                          builder: (context, artworkLikeSnapshot) {
+                            if (!artworkLikeSnapshot.hasData) {
+                              return SpinKitWave( // FadingCube 모양 사용
+                                color: Color(0xff464D40), // 색상 설정
+                                size: 20.0, // 크기 설정
+                                duration: Duration(seconds: 3), //속도 설정
+                              );
+                            } else {
+                              return GridView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                                    maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
+                                    crossAxisSpacing: 10, // 열 간의 간격
+                                    mainAxisSpacing: 5.0, // 행 간의 간격
+                                    childAspectRatio: 2.5/5
                                 ),
-                              ],
-                            ),
-                            padding: EdgeInsets.all(10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('제목', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
-                                Text('작가', style: TextStyle(fontSize: 12),),
-                                Text('뭐시기 / 저시기', style: TextStyle(fontSize: 11, color: Colors.grey[700]),),
-                              ],
-                            ),
-                          )
-                      ),
-                    ),
-                  ],
-                ),
+                                itemCount: artworkLikeSnapshot.data!.docs.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  DocumentSnapshot artwork = artworkLikeSnapshot.data!.docs[index];
+                                  return InkWell(
+                                    onTap: (){
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: artwork['artistId'], artDoc: artwork['artworkId'],)));
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            width: MediaQuery.of(context).size.width * 0.43,
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                border: Border.all(
+                                                  color: Color(0xff5d5148),// 액자 테두리 색상
+                                                  width: 5, // 액자 테두리 두께
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Color(0xffb2b2b2), // 그림자 색상
+                                                    blurRadius: 2, // 흐림 정도
+                                                    spreadRadius: 1, // 그림자 확산 정도
+                                                    offset: Offset(0, 1), // 그림자 위치 조정
+                                                  ),
+                                                ],
+                                              ),
+                                              padding: EdgeInsets.all(6),
+                                              child: Image.asset(
+                                                "assets/ex/ex1.png",
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: 15,),
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 4, right: 5),
+                                            child: Container(
+                                                width: MediaQuery.of(context).size.width * 0.43,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Color(0xffcbcbcb), // 그림자 색상
+                                                        blurRadius: 0.5, // 흐림 정도
+                                                        spreadRadius: 1.5, // 그림자 확산 정도
+                                                        offset: Offset(1, 1.5), // 그림자 위치 조정
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  padding: EdgeInsets.all(10),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text('${artwork['artTitle']}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
+                                                      Text('${artwork['artistName']}', style: TextStyle(fontSize: 12),),
+                                                      Text('${artwork['artDate']} / ${artwork['artType']}', style: TextStyle(fontSize: 11, color: Colors.grey[700]),),
+                                                    ],
+                                                  ),
+                                                )
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                          },
+                        );
+                      },
+                    );
+                  }
+                },
               ),
             ),
-            ArtistPage(),
-            ExhibitionPage(),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: StreamBuilder(
+                stream: _firestore
+                    .collection('user')
+                    .where('nickName', isEqualTo: _userNickName)
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                  if (!userSnapshot.hasData) {
+                    return SpinKitWave(
+                      color: Color(0xff464D40),
+                      size: 20.0,
+                      duration: Duration(seconds: 3),
+                    );
+                  } else {
+                    if (userSnapshot.data!.docs.isEmpty) {
+                      return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                    }
+                    return Column(
+                      children: userSnapshot.data!.docs.map((userDoc) {
+                        return StreamBuilder(
+                          stream: _firestore
+                              .collection('user')
+                              .doc(userDoc.id)
+                              .collection('artistLike')
+                              .snapshots(),
+                          builder: (context, AsyncSnapshot<QuerySnapshot> artistLikeSnapshot) {
+                            if (!artistLikeSnapshot.hasData) {
+                              return SpinKitWave(
+                                color: Color(0xff464D40),
+                                size: 20.0,
+                                duration: Duration(seconds: 3),
+                              );
+                            } else {
+                              if (artistLikeSnapshot.data!.docs.isEmpty) {
+                                return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                              }
+                              return Column(
+                                children: artistLikeSnapshot.data!.docs.map((artistDoc) {
+                                  return InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => ArtistInfo(document: artistDoc['artistId'])),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                      child: Row(
+                                        children: [
+                                          artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
+                                          CircleAvatar(
+                                          backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                           radius: 40,
+                                            )
+                                          : CircleAvatar(
+                                            backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                            radius: 40,
+                                          ),
+                                          SizedBox(width: 30),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                artistDoc['artistName'],
+                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                              ),
+                                              Text(
+                                                artistDoc['expertise'],
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }
+                          },
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: StreamBuilder(
+                stream: _firestore
+                    .collection('user')
+                    .where('nickName', isEqualTo: _userNickName)
+                    .snapshots(),
+                builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                  if (!userSnapshot.hasData) {
+                    return SpinKitWave(
+                      color: Color(0xff464D40),
+                      size: 20.0,
+                      duration: Duration(seconds: 3),
+                    );
+                  } else {
+                    if (userSnapshot.data!.docs.isEmpty) {
+                      return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                    }
+                    return Column(
+                      children: userSnapshot.data!.docs.map((userDoc) {
+                        return StreamBuilder(
+                          stream: _firestore
+                              .collection('user')
+                              .doc(userDoc.id)
+                              .collection('galleryLike')
+                              .snapshots(),
+                          builder: (context, AsyncSnapshot<QuerySnapshot> galleryLikeSnapshot) {
+                            if (!galleryLikeSnapshot.hasData) {
+                              return SpinKitWave(
+                                color: Color(0xff464D40),
+                                size: 20.0,
+                                duration: Duration(seconds: 3),
+                              );
+                            } else {
+                              if (galleryLikeSnapshot.data!.docs.isEmpty) {
+                                return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                              }
+                              return Column(
+                                children: galleryLikeSnapshot.data!.docs.map((gallery) {
+                                  return InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery['galleryId'])),
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                      child: Row(
+                                        children: [
+                                          gallery['imageURL']==null || gallery['imageURL'] == "" ?
+                                          CircleAvatar(
+                                            backgroundImage: NetworkImage(gallery['imageURL']),
+                                            radius: 40,
+                                          )
+                                              : CircleAvatar(
+                                            backgroundImage: NetworkImage(gallery['imageURL']),
+                                            radius: 40,
+                                          ),
+                                          SizedBox(width: 30),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                gallery['galleryName'],
+                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                              ),
+                                              Text(
+                                                gallery['region'],
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }
+                          },
+                        );
+                      }).toList(),
+                    );
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-}
-
-class ArtPage extends StatefulWidget {
-  @override
-  _ArtPageState createState() => _ArtPageState();
-}
-
-class _ArtPageState extends State<ArtPage> {
-  @override
-  Widget build(BuildContext context) {
-    // 예시 아트워크 데이터. 실제 데이터로 대체해야 합니다.
-    final List<Artwork> artworks = [
-      Artwork(
-        image: 'assets/main/전시5.jpg',
-        title: '아트워크 1',
-        subtitle: '작가 이름 1',
-      ),
-      Artwork(
-        image: 'assets/main/전시3.jpg',
-        title: '아트워크 2',
-        subtitle: '작가 이름 2',
-      )
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 5, // 열 간 간격
-          mainAxisSpacing: 5, // 행 간 간격
-          childAspectRatio: 1/1.5, // 가로 세로 비율
-        ),
-        itemCount: artworks.length,
-        itemBuilder: (context, index) {
-          return Center(
-            child: ArtworkItem(
-              artwork: artworks[index],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Artwork {
-  final String image;
-  final String title;
-  final String subtitle;
-
-  Artwork({
-    required this.image,
-    required this.title,
-    required this.subtitle,
-  });
-}
-
-class ArtworkItem extends StatelessWidget {
-  final Artwork artwork;
-
-  ArtworkItem({required this.artwork});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: "", artDoc: "",)));
-      },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.asset(
-            artwork.image,
-            width: 150, // 이미지 너비 조정
-            height: 200, // 이미지 높이 조정
-            fit: BoxFit.cover,
-          ),
-          SizedBox(height: 10),
-          Text(
-            artwork.title,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          ),
-          Text(
-            artwork.subtitle,
-            style: TextStyle(fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class ArtistPage extends StatefulWidget {
-  @override
-  _ArtistPageState createState() => _ArtistPageState();
-}
-
-class _ArtistPageState extends State<ArtistPage> {
-  final List<Artist> artists = [
-    Artist(
-      name: "김소월",
-      profileImage: "assets/main/전시3.jpg",
-      subtitle: "회화",
-    ),
-    Artist(
-      name: "김동률",
-      profileImage: "assets/main/전시1.png",
-      subtitle: "갓우",
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: artists.length,
-        itemBuilder: (context, index) {
-          final artist = artists[index];
-          return InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ArtistInfo(document: "")));
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(artist.profileImage),
-                    radius: 40,
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        artist.name,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        artist.subtitle,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Artist {
-  final String name;
-  final String profileImage;
-  final String subtitle;
-
-  Artist({
-    required this.name,
-    required this.profileImage,
-    required this.subtitle,
-  });
-}
-
-class ExhibitionPage extends StatefulWidget {
-  @override
-  _ExhibitionPageState createState() => _ExhibitionPageState();
-}
-
-class _ExhibitionPageState extends State<ExhibitionPage> {
-  final List<Gallery> gallerys = [
-    Gallery(
-      name: "국립현대미술관 창동레지던시",
-      description: "서울",
-      imageUrl: "assets/main/가로1.jpg",
-    ),
-    Gallery(
-      name: "국립현대미술관 서면레지던시",
-      description: "부산",
-      imageUrl: "assets/main/가로2.jpg",
-    ),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 15),
-      child: ListView.builder(
-        itemCount: gallerys.length,
-        itemBuilder: (context, index) {
-          final gallery = gallerys[index];
-          return InkWell(
-            onTap: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery.imageUrl)));
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage(gallery.imageUrl),
-                    radius: 40,
-                  ),
-                  SizedBox(width: 30),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        gallery.name,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      Text(
-                        gallery.description,
-                        style: TextStyle(fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class Gallery {
-  final String name;
-  final String description;
-  final String imageUrl;
-
-  Gallery({
-    required this.name,
-    required this.description,
-    required this.imageUrl,
-  });
 }

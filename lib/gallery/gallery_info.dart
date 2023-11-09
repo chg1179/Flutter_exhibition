@@ -151,6 +151,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                         DateTime.now(),
                                         _galleryData?['addr'],
                                         _galleryData?['detailsAddress'],
+                                        widget.document
                                       );
 
                                       print('좋아요목록에 추가되었습니다');
@@ -242,7 +243,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
                                 ),
                                 Container(
                                     width: 250,
-                                    child: Text(_galleryData?['galleryEmail'] == null ? "-" : _galleryData?['galleryEmail'])
+                                    child: Text(_galleryData?['galleryEmail'] == null || _galleryData?['galleryEmail'] == "" ? "-" : _galleryData?['galleryEmail'])
                                 )
                               ],
                             ),
@@ -364,7 +365,8 @@ class _GalleryInfoState extends State<GalleryInfo> {
       String imageURL,
       DateTime likeDate,
       String addr,
-      String detailsAddress, ) async {
+      String detailsAddress,
+      String galleryId) async {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
 
@@ -421,6 +423,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
         'likeDate': Timestamp.fromDate(likeDate),
         'addr': addr,
         'detailsAddress': detailsAddress,
+        'galleryId': galleryId
       })
           .catchError((error) {
         print('Firestore 데이터 추가 중 오류 발생: $error');
@@ -461,7 +464,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
         final galleryDoc = querySnapshot.docs.first;
 
         // 현재 'like' 필드의 값을 가져옴
-        final currentLikeCount = (galleryDoc.data()?['like'] as int?) ?? 0;
+        final currentLikeCount = (galleryDoc.data()['like'] as int?) ?? 0;
 
         // 'like' 필드를 현재 값에서 -1로 감소시킴
         final newLikeCount = currentLikeCount - 1;

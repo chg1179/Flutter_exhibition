@@ -153,6 +153,8 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
                                         DateTime.now(),
                                         _artistInfo?['artistName'],
                                         _artistInfo?['expertise'],
+                                        widget.doc,
+                                        widget.artDoc
                                       );
 
                                       print('좋아요목록에 추가되었습니다');
@@ -312,7 +314,9 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
       String imageURL,
       DateTime likeDate,
       String artistName,
-      String expertise, ) async {
+      String expertise,
+      String artistId,
+      String artworkId) async {
     final user = Provider.of<UserModel?>(context, listen: false);
     if (user != null && user.isSignIn) {
 
@@ -365,6 +369,8 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
         'likeDate': Timestamp.fromDate(likeDate),
         'artistName': artistName,
         'expertise': expertise,
+        'artistId': artistId,
+        'artworkId': artworkId,
       })
           .catchError((error) {
         print('Firestore 데이터 추가 중 오류 발생: $error');
