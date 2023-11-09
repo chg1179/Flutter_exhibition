@@ -424,7 +424,7 @@ class _GalleryInfoState extends State<GalleryInfo> {
       });
 
     } else {
-      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+      print('사용자가 로그인되지 않았거나 galleryName이비어 있습니다.');
     }
   }
 

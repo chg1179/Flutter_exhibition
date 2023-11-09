@@ -371,7 +371,7 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
       });
 
     } else {
-      print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
+      print('사용자가 로그인되지 않았거나 artTitle이 비어 있습니다.');
     }
   }
 
