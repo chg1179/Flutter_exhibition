@@ -207,11 +207,17 @@ class _ReviewListState extends State<ReviewList> {
             content: Text('로그인 후 이용 가능합니다.'),
             actions: [
               TextButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
+              ),
+              TextButton(
                 onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => SignPage()));
                 },
-                child: Text('확인', style: TextStyle(color: Colors.black),),
-              ),
+                child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
+              )
             ],
           );
         }
@@ -279,7 +285,7 @@ class _ReviewListState extends State<ReviewList> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),),
+                Text(data['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
                 buildLikeButton(doc.id, data['likeCount'])
               ],
             ),
@@ -288,11 +294,11 @@ class _ReviewListState extends State<ReviewList> {
               children: [
                 Row(
                   children: [
-                    Text('${DateFormat('yyyy.MM.dd').format(data['write_date'].toDate())}  | ', style: TextStyle(fontSize: 11) ),
+                    Text('${DateFormat('yyyy.MM.dd').format(data['write_date'].toDate())}  | ', style: TextStyle(fontSize: 13) ),
                     SizedBox(width: 2),
                     Icon(Icons.visibility, size: 13),
                     SizedBox(width: 2),
-                    Text(data['viewCount'].toString(), style: TextStyle(fontSize: 11)),
+                    Text(data['viewCount'].toString(), style: TextStyle(fontSize: 13)),
                   ],
                 ),
                 //Text(data['content'], style: TextStyle(fontSize: 13),),

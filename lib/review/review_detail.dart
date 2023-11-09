@@ -16,10 +16,12 @@ class ReviewDetail extends StatefulWidget {
 
 class _ReviewDetailState extends State<ReviewDetail> {
 
+  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _hashtags = [];
+
   String _formatTimestamp(Timestamp timestamp) {
     final currentTime = DateTime.now();
     final commentTime = timestamp.toDate();
-
     final difference = currentTime.difference(commentTime);
 
     if (difference.inDays > 0) {
@@ -30,6 +32,28 @@ class _ReviewDetailState extends State<ReviewDetail> {
       return '${difference.inMinutes}분 전';
     } else {
       return '방금 전';
+    }
+  }
+
+  Future<void> _getHashtags() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('review')
+          .doc(widget.document)
+          .collection('hashtag')
+          .get();
+      final hashtags = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'tag_name': data['tag_name'] as String,
+        };
+      }).toList();
+      print(hashtags);
+      setState(() {
+        _hashtags = hashtags;
+      });
+    } catch (e) {
+      print('댓글을 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
@@ -120,8 +144,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
     );
   }
 
-
-
   // 리뷰 삭제
   void _deleteReview(DocumentSnapshot document) async {
     await FirebaseFirestore.instance.collection("review").doc(document.id).delete();
@@ -152,6 +174,14 @@ class _ReviewDetailState extends State<ReviewDetail> {
           final nickName = data['userNickName'] as String;
           final isPublic = data['isPublic'] == 'Y' ? '공개' : '비공개';
 
+          List<String> hashtags = [];
+
+          if (data.containsKey('hashtag')) {
+            var hashtagDocs = data['hashtag'] as List<dynamic>;
+            hashtags = List<String>.from(hashtagDocs);
+          }
+
+
           return SingleChildScrollView(
               child : Column(
                 children: [
@@ -173,7 +203,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                   children: [
                                     CircleAvatar(
                                       radius: 20,
-                                      backgroundImage: AssetImage('assets/ex/ex1.png'),
                                     ),
                                     SizedBox(width: 10),
                                     Column(
@@ -232,7 +261,8 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                 color: Color(0xff464D40),
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: Text('# tag', style: TextStyle(color: Color(0xffD4D8C8), fontSize: 10.5, fontWeight: FontWeight.bold,),
+                              child: Text('#tag_name',
+                                style: TextStyle(color: Color(0xffD4D8C8), fontSize: 11),
                               ),
                             ),
                           ),
