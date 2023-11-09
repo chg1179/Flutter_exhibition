@@ -125,7 +125,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     return followingLength;
   }
   Widget build(BuildContext context) {
-    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.ㅅ
+    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
     if (!user.isSignIn) {
       // 로그인이 안 된 경우
       return const SignPage();
@@ -199,387 +199,391 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                     ),
                     body: ListView(
                       children: <Widget>[
-                        Center(
-                          child: Column(
-                            children: [
-                              //프로필사진
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Column(
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 60),
+                                  child: Column(
                                     children: [
                                       CircleAvatar(
-                                        radius: 30,
+                                        radius: 40,
                                         backgroundImage: AssetImage(
-                                            'assets/main/가로1.jpg'),
+                                            'assets/main/더보기.jpg'),
                                       ),
                                       SizedBox(height: 5),
                                       Text(_userNickName ?? '', style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold),),
+                                          fontSize: 15,
+                                          )
+                                      ),
                                       //Text('${user.userNo}')
                                     ],
                                   ),
-                                  SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment
-                                        .start,
-                                    children: <Widget>[
-                                      Row(
-                                        children: [
-                                          SizedBox(width: 10),
-                                          GestureDetector(
-                                            onTap: () {
-                                             
-                                            },
-                                            child: FutureBuilder<QuerySnapshot>(
-                                              future: FirebaseFirestore.instance
-                                                  .collection('review')
-                                                  .where('userNickName', isEqualTo: _userNickName)
-                                                  .get(),
-                                              builder: (context, reviewsSnapshot) {
-                                                if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
-                                                  return CircularProgressIndicator();
-                                                } else if (reviewsSnapshot.hasError) {
-                                                  return Text('오류: ${reviewsSnapshot.error}');
-                                                } else {
-                                                  // 사용자의 후기글 개수를 계산
-                                                  int reviewCount = reviewsSnapshot.data?.docs.length ?? 0;
+                                ),
+                                Spacer(),
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 60),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 10),
+                                      GestureDetector(
+                                        onTap: () {},
+                                        child: FutureBuilder<QuerySnapshot>(
+                                          future: FirebaseFirestore.instance
+                                              .collection('review')
+                                              .where('userNickName', isEqualTo: _userNickName)
+                                              .get(),
+                                          builder: (context, reviewsSnapshot) {
+                                            if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
+                                              return CircularProgressIndicator();
+                                            } else if (reviewsSnapshot.hasError) {
+                                              return Text('오류: ${reviewsSnapshot.error}');
+                                            } else {
+                                              // 사용자의 후기글 개수를 계산
+                                              int reviewCount = reviewsSnapshot.data?.docs.length ?? 0;
 
-                                                  return Column(
-                                                    children: [
-                                                      Text(reviewCount.toString(), style: TextStyle(fontWeight: FontWeight.bold)),
-                                                      Text('후기글', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                                    ],
-                                                  );
-                                                }
-                                              },
-                                            )
-                                          ),
-                                          SizedBox(width: 10),
-                                          GestureDetector(
-                                            onTap: () {
-                                              // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                              _showFollowersDialog(
-                                                  context, '팔로워');
-                                            },
-                                            child: FutureBuilder<int>(
-                                              future: getFollowerLength(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  // 데이터 로딩 중
-                                                  return CircularProgressIndicator(); // 원하는 로딩 UI 표시
-                                                } else if (snapshot.hasError) {
-                                                  // 오류 발생
-                                                  return Text('오류: ${snapshot.error}');
-                                                } else {
-                                                  // 데이터 로딩 완료
-                                                  int followerLength = snapshot.data ?? 0;
-                                                  return Column(
-                                                    children: [
-                                                      Text(followerLength.toString(), style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                      )),
-                                                      Text('팔로워', style: TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight
-                                                              .bold)),
-                                                    ],
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          GestureDetector(
-                                            onTap: () {
-                                              // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                              _showFollowingsDialog(
-                                                  context, '팔로잉');
-                                            },
-                                            child: FutureBuilder<int>(
-                                              future: getFollowingLength(),
-                                              builder: (context, snapshot) {
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  // 데이터 로딩 중
-                                                  return CircularProgressIndicator(); // 원하는 로딩 UI 표시
-                                                } else if (snapshot.hasError) {
-                                                  // 오류 발생
-                                                  return Text('오류: ${snapshot.error}');
-                                                } else {
-                                                  // 데이터 로딩 완료
-                                                  int followingLength = snapshot.data ?? 0;
-                                                  return Column(
-                                                    children: [
-                                                      Text(followingLength.toString(), style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                      )),
-                                                      Text('팔로잉', style: TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight
-                                                              .bold)),
-                                                    ],
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      )
+                                              return Column(
+                                                children: [
+                                                  Text(reviewCount.toString(), style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                                  SizedBox(height: 10),
+                                                  Text('후기글', style: TextStyle(fontSize: 13)),
+                                                ],
+                                              );
+                                            }
+                                          },
+                                        )
+                                      ),
+                                      SizedBox(width: 20),
+                                      GestureDetector(
+                                        onTap: () {
+                                          // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                          _showFollowersDialog(
+                                              context, '팔로워');
+                                        },
+                                        child: FutureBuilder<int>(
+                                          future: getFollowerLength(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              // 데이터 로딩 중
+                                              return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                            } else if (snapshot.hasError) {
+                                              // 오류 발생
+                                              return Text('오류: ${snapshot.error}');
+                                            } else {
+                                              // 데이터 로딩 완료
+                                              int followerLength = snapshot.data ?? 0;
+                                              return Column(
+                                                children: [
+                                                  Text(followerLength.toString(), style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15
+                                                  )),
+                                                  SizedBox(height: 10),
+                                                  Text('팔로워', style: TextStyle(
+                                                      fontSize: 13,
+                                                      )
+                                                  ),
+                                                ],
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(width: 20),
+                                      GestureDetector(
+                                        onTap: () {
+                                          // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
+                                          _showFollowingsDialog(
+                                              context, '팔로잉');
+                                        },
+                                        child: FutureBuilder<int>(
+                                          future: getFollowingLength(),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              // 데이터 로딩 중
+                                              return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                            } else if (snapshot.hasError) {
+                                              // 오류 발생
+                                              return Text('오류: ${snapshot.error}');
+                                            } else {
+                                              // 데이터 로딩 완료
+                                              int followingLength = snapshot.data ?? 0;
+                                              return Column(
+                                                children: [
+                                                  Text(followingLength.toString(), style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15
+                                                  )),
+                                                  SizedBox(height: 10,),
+                                                  Text('팔로잉', style: TextStyle(
+                                                      fontSize: 13,
+                                                      )
+                                                  ),
+                                                ],
+                                              );
+                                            }
+                                          },
+                                        ),
+                                      ),
                                     ],
-                                  )
-
+                                  ),
+                                )
+                              ],
+                            ),
+                            SizedBox(height: 30),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: ExhibitionTemperature(),
+                            ),
+                            TemperatureBar(temperature: temperature),
+                            SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15, right: 15),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Column(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      BeBackEx()));
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Image.asset(
+                                            'assets/icons/ticket.png',
+                                            width: 30,
+                                            height: 30,
+                                          ),
+                                        ),
+                                      ),
+                                      Text('다녀온 전시', style: TextStyle(
+                                          )),
+                                    ],
+                                  ),
+                                  SizedBox(width: 7),
+                                  Column(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      LikeEx()));
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child:
+                                          //  Icon(Icons.favorite_border, size: 30,)
+                                          Image.asset(
+                                            'assets/icons/heart.png',
+                                            width: 27,
+                                            height: 30,
+                                          ),
+                                        ),
+                                      ),
+                                      Text('좋아하는 전시', style: TextStyle(
+                                          )),
+                                    ],
+                                  ),
+                                  SizedBox(width: 7),
+                                  Column(
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MyCalendar()));
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(10.0),
+                                          child: Image.asset(
+                                            'assets/icons/calender.png',
+                                            width: 30,
+                                            height: 30,
+                                          ),
+                                        ),
+                                      ),
+                                      Text('캘린더',),
+                                    ],
+                                  ),
                                 ],
                               ),
-                              SizedBox(height: 20),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: ExhibitionTemperature(),
-                              ),
-                              TemperatureBar(temperature: temperature),
-                              SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 15, right: 15),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceEvenly,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        BeBackEx()));
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Image.asset(
-                                              'assets/icons/ticket.png',
-                                              width: 30,
-                                              height: 30,
-                                            ),
-                                          ),
-                                        ),
-                                        Text('다녀온 전시', style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    SizedBox(width: 7),
-                                    Column(
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        LikeEx()));
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Image.asset(
-                                              'assets/icons/heart.png',
-                                              width: 30,
-                                              height: 30,
-                                            ),
-                                          ),
-                                        ),
-                                        Text('좋아요 한 전시', style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                      ],
-                                    ),
-                                    SizedBox(width: 7),
-                                    Column(
-                                      children: [
-                                        InkWell(
-                                          onTap: () {
-                                            Navigator.push(context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        MyCalendar()));
-                                          },
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(10.0),
-                                            child: Image.asset(
-                                              'assets/icons/calender.png',
-                                              width: 30,
-                                              height: 30,
-                                            ),
-                                          ),
-                                        ),
-                                        Text('캘린더', style: TextStyle(
-                                            fontWeight: FontWeight.bold),),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            ),
 
-                              SizedBox(height: 10),
-                              FutureBuilder<DocumentSnapshot>(
-                                future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
-                                builder: (context, userSnapshot) {
-                                  if (userSnapshot.connectionState == ConnectionState.waiting) {
-                                    return CircularProgressIndicator();
-                                  } else if (userSnapshot.hasError) {
-                                    return Text('오류: ${userSnapshot.error}');
-                                  } else if (userSnapshot.hasData) {
-                                    final userDocument = userSnapshot.data as DocumentSnapshot;
-                                    final userNickName = userDocument['nickName'] ?? 'No Nickname';
+                            SizedBox(height: 10),
+                            FutureBuilder<DocumentSnapshot>(
+                              future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
+                              builder: (context, userSnapshot) {
+                                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                                  return CircularProgressIndicator();
+                                } else if (userSnapshot.hasError) {
+                                  return Text('오류: ${userSnapshot.error}');
+                                } else if (userSnapshot.hasData) {
+                                  final userDocument = userSnapshot.data as DocumentSnapshot;
+                                  final userNickName = userDocument['nickName'] ?? 'No Nickname';
 
-                                    return FutureBuilder<QuerySnapshot>(
-                                      future: FirebaseFirestore.instance
-                                          .collection('review')
-                                          .where('userNickName', isEqualTo: userNickName)
-                                          .get(),
-                                      builder: (context, reviewsSnapshot) {
-                                        if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
-                                          return CircularProgressIndicator();
-                                        } else if (reviewsSnapshot.hasError) {
-                                          return Text('오류: ${reviewsSnapshot.error}');
-                                        } else {
-                                          final reviews = reviewsSnapshot.data?.docs;
-                                          if (reviews == null || reviews.isEmpty) {
-                                            return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
-                                          }
-
-                                          List<Widget> reviewItems = reviews.map((review) {
-                                            final reviewData = review.data() as Map<String, dynamic>;
-                                            final reviewImageURL = reviewData['imageURL'] ?? '';
-
-                                            return Image.network(
-                                              reviewImageURL,
-                                              fit: BoxFit.cover,
-                                              width: 100.0,
-                                              height: 100.0,
-                                            );
-                                          }).toList();
-
-                                          return GridView.builder(
-                                            shrinkWrap: true,
-                                            physics: NeverScrollableScrollPhysics(),
-                                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                              crossAxisCount: 3,
-                                            ),
-                                            itemCount: reviewItems.length > 8 ? 8 + 1 : reviewItems.length, // "더보기"를 위해 항목 하나 추가
-                                            itemBuilder: (context, index) {
-                                              if (index == 8 && reviewItems.length > 8) {
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    // 더보기 버튼 클릭 시 더보기 페이지로 이동
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: Container(
-                                                    color: Colors.grey.withOpacity(0.3), // 회색 반투명 배경
-                                                    child: Center(
-                                                      child: Text('더보기', style: TextStyle(color: Colors.black)),
-                                                    ),
-                                                  ),
-                                                );
-                                              } else {
-                                                return reviewItems[index];
-                                              }
-                                            },
-                                          );
+                                  return FutureBuilder<QuerySnapshot>(
+                                    future: FirebaseFirestore.instance
+                                        .collection('review')
+                                        .where('userNickName', isEqualTo: userNickName)
+                                        .get(),
+                                    builder: (context, reviewsSnapshot) {
+                                      if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
+                                        return CircularProgressIndicator();
+                                      } else if (reviewsSnapshot.hasError) {
+                                        return Text('오류: ${reviewsSnapshot.error}');
+                                      } else {
+                                        final reviews = reviewsSnapshot.data?.docs;
+                                        if (reviews == null || reviews.isEmpty) {
+                                          return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
                                         }
+
+                                        List<Widget> reviewItems = reviews.map((review) {
+                                          final reviewData = review.data() as Map<String, dynamic>;
+                                          final reviewImageURL = reviewData['imageURL'] ?? '';
+
+                                          return Image.network(
+                                            reviewImageURL,
+                                            fit: BoxFit.cover,
+                                            width: 100.0,
+                                            height: 100.0,
+                                          );
+                                        }).toList();
+
+                                        return GridView.builder(
+                                          shrinkWrap: true,
+                                          physics: NeverScrollableScrollPhysics(),
+                                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                          ),
+                                          itemCount: reviewItems.length > 8 ? 8 + 1 : reviewItems.length, // "더보기"를 위해 항목 하나 추가
+                                          itemBuilder: (context, index) {
+                                            if (index == 8 && reviewItems.length > 8) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  // 더보기 버튼 클릭 시 더보기 페이지로 이동
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
+                                                    ),
+                                                  );
+                                                },
+                                                child: Container(
+                                                  color: Colors.grey.withOpacity(0.3), // 회색 반투명 배경
+                                                  child: Center(
+                                                    child: Text('더보기', style: TextStyle(color: Colors.black)),
+                                                  ),
+                                                ),
+                                              );
+                                            } else {
+                                              return reviewItems[index];
+                                            }
+                                          },
+                                        );
+                                      }
+                                    },
+                                  );
+                                } else {
+                                  return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
+                                }
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15, right: 5, top: 10, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: [
+                                  Text('나의 취향분석', style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16),),
+                                  IconButton(
+                                      onPressed: () {
+                                        //취향분석 상세페이지로 이동
+                                        Navigator.push(context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    JtbiResult()));
                                       },
-                                    );
-                                  } else {
-                                    return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
-                                  }
-                                },
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
-                                  children: [
-                                    Text('나의 취향분석', style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16),),
-                                    IconButton(
-                                        onPressed: () {
-                                          //취향분석 상세페이지로 이동
-                                          //취향분석 상세페이지로 이동
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      JtbiResult()));
-                                        },
-                                        icon: Icon(Icons.arrow_forward_ios)
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('사진', style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Colors.deepPurpleAccent)),
-                                    Text(' 장르를 선호하시네요', style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15))
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
-                                  children: [
-                                    Text('나의 컬렉션', style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16),),
-                                    IconButton(
-                                        onPressed: () {
-                                          Navigator.push(context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      MyCollection()));
-                                          // 컬렉션 상세페이지로 이동
-                                        },
-                                        icon: Icon(Icons.arrow_forward_ios)
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => MyCollection()));
-                                },
-                                child: Container(
-                                  child: TabBar(
-                                    controller: _tabController,
-                                    tabs: [
-                                      Tab(text: '작품'),
-                                      Tab(text: '작가'),
-                                      Tab(text: '전시관')
-                                    ],
-                                    indicator: BoxDecoration(
-                                        border: Border(bottom: BorderSide(
-                                            color: Colors.black, width: 2.0),)
-                                    ),
-                                    labelColor: Colors.black,
-                                    labelStyle: TextStyle(
-                                        fontWeight: FontWeight.bold),
+                                      icon: Icon(Icons.arrow_forward_ios)
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
+                                ],
+                              ),
+                            ),
+                            Center(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text("${_userNickName} 님의 선호 장르는 "),
+                                  Text('사진', style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: Color(0xff464D40))),
+                                  Text(' 입니다.',)
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 20,),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 15, right: 5, bottom: 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment
+                                        .spaceBetween,
+                                    children: [
+                                      Text('나의 컬렉션', style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16),),
+                                      IconButton(
+                                          onPressed: () {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyCollection()));
+                                            // 컬렉션 상세페이지로 이동
+                                          },
+                                          icon: Icon(Icons.arrow_forward_ios)
+                                      ),
+                                    ],
+                                  ),
+                                  Text("좋아하는 작품, 작가, 전시관 보러가기", style: TextStyle(fontSize: 13, color: Colors.grey[600]),)
+                                ],
+                              ),
+                            ),
+                            // GestureDetector(
+                            //   onTap: () {
+                            //     Navigator.push(context, MaterialPageRoute(
+                            //         builder: (context) => MyCollection()));
+                            //   },
+                            //   child: Container(
+                            //     child: TabBar(
+                            //       controller: _tabController,
+                            //       tabs: [
+                            //         Tab(text: '작품'),
+                            //         Tab(text: '작가'),
+                            //         Tab(text: '전시관')
+                            //       ],
+                            //       indicator: BoxDecoration(
+                            //           border: Border(bottom: BorderSide(
+                            //               color: Colors.black, width: 2.0),)
+                            //       ),
+                            //       labelColor: Colors.black,
+                            //       labelStyle: TextStyle(
+                            //           fontWeight: FontWeight.bold),
+                            //     ),
+                            //   ),
+                            // )
+                          ],
                         ),
                       ],
                     ),
@@ -662,7 +666,6 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
             builder: (context, snapshot) {
               return Column(
                 children: <Widget>[
-
                 ],
               );
             }
@@ -715,56 +718,56 @@ class TemperatureBar extends StatelessWidget {
     if (temperature <= 30) {
       return LinearGradient(
         colors: [
-          Colors.orange,
-          Colors.red,
+          Color(0xffde8c24),
+          Color(0xffef9f3f),
         ],
         stops: [0.0, 1.0],
       );
     } else if (temperature <= 35) {
       return LinearGradient(
         colors: [
-          Colors.orange,
-          Colors.redAccent,
-          Colors.yellow,
+          Color(0xffde8c24),
+          Color(0xffef9f3f),
+          Color(0xffdeb286),
         ],
         stops: [0.0,0.3, 1.0],
       );
     } else if (temperature <= 40) {
       return LinearGradient(
         colors: [
-          Colors.deepOrangeAccent,
-          Colors.yellow,
-          Colors.lightGreen,
+          Color(0xffde8c24),
+          Color(0xffef9f3f),
+          Color(0xffdeb286),
         ],
         stops: [0.0, 0.3, 1.0],
       );
     } else if (temperature <= 45) {
       return LinearGradient(
         colors: [
-          Colors.lightGreenAccent,
-          Colors.green,
-          Colors.lightBlue,
+          Color(0xffde8c24),
+          Color(0xffe7ae71),
+          Color(0xffeacb9d),
         ],
         stops: [0.0, 0.3, 1.0],
       );
     } else if (temperature <= 50) {
       return LinearGradient(
         colors: [
-          Colors.green,
-          Colors.lightBlue,
-          Colors.blue,
+          Color(0xffde8c24),
+          Color(0xffe7ae71),
+          Color(0xfff5debc),
         ],
         stops: [0.0,0.3, 1.0],
       );
     } else {
       return LinearGradient(
         colors: [
-          Colors.red,
-          Colors.orange,
-          Colors.yellow,
-          Colors.green,
-          Colors.blue,
-          Colors.purple, // 예를 들어, 무지개색 추가
+          Color(0xffde8c24),
+          Color(0xffef9f3f),
+          Color(0xffdaa367),
+          Color(0xffe1b98b),
+          Color(0xffefdbbc),
+          Color(0xffffffff),
         ],
         stops: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
       );
@@ -802,18 +805,21 @@ class TemperatureBar extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(right: 40),
-                    child: Text('현재 온도: ${userHeat}°C', style: TextStyle(
-                        color: Colors.green, fontWeight: FontWeight.bold)),
+                    child: Text('현재 밝기 ${userHeat}%'),
                   ),
                 ],
               ),
               SizedBox(height: 10),
               Container(
-                height: 10, // 온도바의 높이 조정
+                height: 12, // 온도바의 높이 조정
                 width: 350, // 온도바의 너비 조정
                 decoration: BoxDecoration(
-                  color: Colors.grey[300], // 온도바의 배경 색상 설정
+                  color: Colors.grey[100], // 온도바의 배경 색상 설정
                   borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
+                  border: Border.all(
+                    color: Color(0xffcecece),
+                    width: 1
+                  ),
                 ),
                 child: Stack(
                   children: [
@@ -853,7 +859,7 @@ class ExhibitionTemperature extends StatelessWidget {
 
           showTooltip(
             context,
-            message: '전시온도는 내 손안의 전시회 사용자로부터 받은 좋아요, 후기, 커뮤니티 활동량 등을 종합해서 만든 매너 지표예요.',
+            message: '손전등 게이지는 내 손안의 전시회 사용자로부터 받은 좋아요, 후기, 커뮤니티 활동량 등을 종합해서 만든 활동 지표예요.',
             top: top, // 툴팁 위치 조정
           );
         },
@@ -863,20 +869,19 @@ class ExhibitionTemperature extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Colors.black,
                     width: 1.0,
                   ),
                 ),
               ),
               child: Text(
-                '전시온도',
+                '손전등 게이지',
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            Icon(Icons.info_outline, size: 16),
+            SizedBox(width: 2,),
+            Icon(Icons.info_outline, size: 13),
           ],
         )
 
@@ -904,8 +909,6 @@ class ExhibitionTemperature extends StatelessWidget {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 11,
-                fontWeight: FontWeight.bold,
-                backgroundColor: Colors.black,
               ),
             ),
           ),

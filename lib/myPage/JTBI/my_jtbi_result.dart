@@ -1,7 +1,5 @@
-import 'dart:js';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
