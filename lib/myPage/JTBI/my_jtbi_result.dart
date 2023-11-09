@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../model/user_model.dart';
 
 
@@ -31,16 +30,8 @@ import '../../model/user_model.dart';
 //  document: widget.document,
 
 
-
-
-
-
-
-
 class JtbiResult extends StatefulWidget {
-  String? userNick;
-
-  JtbiResult({required this.userNick});
+  JtbiResult({super.key});
 
   @override
   State<JtbiResult> createState() => _JtbiResultState();
