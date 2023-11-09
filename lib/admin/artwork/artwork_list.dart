@@ -36,7 +36,7 @@ class _ArtworkListState extends State<ArtworkList> {
   @override
   Widget build(BuildContext context) {
     return CommonList(
-      title: '작품',
+      title: 'Artwork',
       children: [
         ChildList(
           parentCollection: 'artist',
@@ -46,7 +46,9 @@ class _ArtworkListState extends State<ArtworkList> {
           loadMoreItems: loadMoreItems,
           displayLimit: displayLimit,
         ),
-        Center(
+        Container(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: 50,
           child: ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -55,7 +57,7 @@ class _ArtworkListState extends State<ArtworkList> {
               );
             },
             style: greenButtonStyle(),
-            child: Text("추가"),
+            child: Text("작품 추가", style: TextStyle(fontSize: 16),),
           ),
         ),
         SizedBox(height: 40),

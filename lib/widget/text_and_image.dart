@@ -82,14 +82,17 @@ Widget setImgTextList(
             ),
           ),
           if (displayLimit < snap.data!.docs.length)
-            ElevatedButton(
-              onPressed: loadMoreItems,
-              style: ButtonStyle(
-                elevation: MaterialStateProperty.all(0), // 그림자 비활성화
-                backgroundColor: MaterialStateProperty.all(Colors.transparent), // 버튼의 배경색을 투명하게 설정
-                overlayColor: MaterialStateProperty.all(Colors.transparent), // 버튼을 누르거나 호버할 때의 색을 투명하게 설정
-              ),
-              child: Text("더 보기", style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)), // 버튼 텍스트 색상을 설정할 수 있습니다.
+            Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              height: 45,
+              child: ElevatedButton(
+                onPressed: loadMoreItems,
+                style: ButtonStyle(
+                  elevation: MaterialStateProperty.all(1), // 그림자 비활성화
+                  backgroundColor: MaterialStateProperty.all(Color(0xffe4e5e0)),
+                ),
+                child: Text("더 보기", style: TextStyle(color: Colors.black, fontSize: 15), // 버튼 텍스트 색상을 설정할 수 있습니다.
+                ),
               ),
             ),
           SizedBox(height: 15),

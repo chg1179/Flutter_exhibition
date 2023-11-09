@@ -36,7 +36,7 @@ class _ArtistListState extends State<ArtistList> {
   @override
   Widget build(BuildContext context) {
     return CommonList(
-      title: '작가',
+      title: 'Artist',
       children: [
         setImgTextList(
           'artist',
@@ -52,18 +52,16 @@ class _ArtistListState extends State<ArtistList> {
           loadMoreItems,
           displayLimit,
         ),
-        Center(
-          child: CommonAddDeleteButton(
-            onAddPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ArtistEditPage(document: null)),
-              );
-            },
-            onDeletePressed: () {
-              removeCheckList(context, checkedList, 'artist');
-            },
-          ),
+        CommonAddDeleteButton(
+          onAddPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ArtistEditPage(document: null)),
+            );
+          },
+          onDeletePressed: () {
+            removeCheckList(context, checkedList, 'artist');
+          },
         ),
       ],
     );

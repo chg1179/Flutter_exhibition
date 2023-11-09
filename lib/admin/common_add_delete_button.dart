@@ -14,16 +14,24 @@ class CommonAddDeleteButton extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: onAddPressed,
-              style: greenButtonStyle(),
-              child: Text("추가"),
+            Container(
+              width: MediaQuery.of(context).size.width * 0.434,
+              height: 45,
+              child: ElevatedButton(
+                onPressed: onAddPressed,
+                style: greenButtonStyle(),
+                child: Text("작가 추가", style: TextStyle(fontSize: 16),),
+              ),
             ),
             SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: onDeletePressed,
-              style: greenButtonStyle(),
-              child: Text('선택 항목 삭제'),
+            Container(
+              width: MediaQuery.of(context).size.width * 0.44,
+              height: 45,
+              child: ElevatedButton(
+                onPressed: onDeletePressed,
+                style: greenButtonStyle(),
+                child: Text('선택 항목 삭제', style: TextStyle(fontSize: 16),),
+              ),
             ),
           ],
         ),
