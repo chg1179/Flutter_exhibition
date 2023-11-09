@@ -3,22 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../model/user_model.dart';
 
 
-void main() {
-  runApp(JtbiResult2());
-}
-
-class JtbiResult2 extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: JtbiResult(),
-    );
-  }
-}
 
 // document에서 원하는 값 뽑기
 // Future<void> _loadUserData() async {
@@ -45,14 +33,7 @@ class JtbiResult2 extends StatelessWidget {
 
 
 
-void setState(Null Function() param0) {
-}
 
-// 세션으로 document 값 구하기
-Future<DocumentSnapshot> getDocumentById(String documentId) async {
-  DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
-  return document;
-}
 
 
 
@@ -66,25 +47,69 @@ class JtbiResult extends StatefulWidget {
 class _JtbiResultState extends State<JtbiResult> {
 late DocumentSnapshot _userDocument;
 late String? _userNickName = "";
+late double _a;
+late double _b;
+late double _c;
+late double _d;
+late double _e;
+late double _f;
+late double _g;
+late double _h;
 
 
-// @override
-//   void initState() {
-//   super.initState();
-//     _loadUserData(context);
-// }
+@override
+  void initState() {
+  super.initState();
+  Future.delayed(Duration.zero, () {
+    _loadUserData(context);
+  });
+}
 
 Future<void> _loadUserData(BuildContext context) async {
-    final user = Provider.of<UserModel?>(context, listen: false);
-    if (user != null && user.isSignIn) {
-    DocumentSnapshot document = await getDocumentById(user.userNo!);
+  final user = Provider.of<UserModel?>(context, listen: false);
+  if (user != null && user.isSignIn) {
+    // 사용자의 jbti 컬렉션에 접근
+    CollectionReference jbtiCollection = FirebaseFirestore.instance.collection('users').doc(user.userNo!).collection('jbti');
+
+    // 사용자의 jbti 컬렉션 내에서 문서 가져오기
+    DocumentSnapshot jbtiDocument = await jbtiCollection.doc('documentId').get();
+
+    // 필드 값 가져오기
+    double a = jbtiDocument.get('a');
+    double b = jbtiDocument.get('b');
+    double c = jbtiDocument.get('c');
+    double d = jbtiDocument.get('d');
+    double e = jbtiDocument.get('e');
+    double f = jbtiDocument.get('f');
+    double g = jbtiDocument.get('g');
+    double h = jbtiDocument.get('h');
+
+    // 가져온 필드 값 사용
     setState(() {
-      _userDocument = document;
-      _userNickName = _userDocument.get('nickName');
-      print('닉네임: $_userNickName');
+      _a = a;
+      _b = b;
+      _c = c;
+      _d = d;
+      _e = e;
+      _f = f;
+      _g = g;
+      _h = h;
     });
   }
 }
+
+  //     if (userDocument.exists) {
+  //       // 문서가 존재하면 필드 값 가져오기
+  //       setState(() {
+  //         _userDocument = userDocument;
+  //         _userNickName = _userDocument.get('nickName');
+  //         print('닉네임: $_userNickName');
+  //       });
+  //     } else {
+  //       print('사용자 문서가 존재하지 않습니다.');
+  //     }
+  //   }
+  // }
 
 
 @override
@@ -149,13 +174,13 @@ Future<void> _loadUserData(BuildContext context) async {
             ),
             SizedBox(height: 10,),
             KeywordText(keyword: "마음"),
-            TemperatureBar1(leftPercentage: 60, rightPercentage: 40),
+            TemperatureBar1(leftPercentage: _a, rightPercentage: _b),
             KeywordText(keyword: "에너지"),
-            TemperatureBar2(leftPercentage: 70, rightPercentage: 30),
+            TemperatureBar2(leftPercentage: _c, rightPercentage: _d),
             KeywordText(keyword: "본성"),
-            TemperatureBar3(leftPercentage: 50, rightPercentage: 50),
+            TemperatureBar3(leftPercentage: _e, rightPercentage: _f),
             KeywordText(keyword: "전술"),
-            TemperatureBar4(leftPercentage: 80, rightPercentage: 20),
+            TemperatureBar4(leftPercentage: _g, rightPercentage: _h),
 
             Divider(
               color: Colors.grey[300], // 수평선의 색상 설정
@@ -480,8 +505,8 @@ class TemperatureBar3 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('이성적사고형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('원칙주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('고전 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('현대 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
@@ -546,8 +571,8 @@ class TemperatureBar4 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('계획형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('탐색형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('탐구 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('감상 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],

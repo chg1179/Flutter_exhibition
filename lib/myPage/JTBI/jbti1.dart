@@ -364,7 +364,7 @@ class AnswerOption extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        margin: EdgeInsets.symmetric(horizontal: 7),
+        margin: EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
           border: Border.all(color: borderColor, width: 2),
