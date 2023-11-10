@@ -24,10 +24,15 @@ class _CommProfileState extends State<CommProfile> {
   ButtonStyle getFollowButtonStyle() {
     return isFollowed
         ? ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Color(0xffD4D8C8)),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+      elevation: MaterialStateProperty.all<double>(0),
+    )
+        : ButtonStyle(
       backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
       foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-    )
-        : ButtonStyle(); // 기본 스타일 반환
+      elevation: MaterialStateProperty.all<double>(0),
+    ); // 기본 스타일 반환
   }
 
   Future<void> toggleFollow() async {
@@ -275,7 +280,6 @@ class _CommProfileState extends State<CommProfile> {
               title: Text(
                 "프로필",
                 style: TextStyle(
-                  fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
@@ -287,153 +291,159 @@ class _CommProfileState extends State<CommProfile> {
                   onPressed: () {
                     // 물음표 아이콘 클릭 시 수행할 동작
                   },
-                  icon: Icon(Icons.search_outlined, size: 35),
+                  icon: Icon(Icons.search_outlined, size: 30, color: (Color(0xff464D40))),
                 ),
-                IconButton(
-                  onPressed: () {
-                    // 프로필 아이콘 클릭 시 수행할 동작
-                  },
-                  icon: Icon(Icons.account_circle, size: 35),
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: IconButton(
+                    onPressed: () {
+                      // 프로필 아이콘 클릭 시 수행할 동작
+                    },
+                    icon: Icon(Icons.account_circle, size: 30, color: (Color(0xff464D40))),
+                  ),
                 ),
               ],
+              leading: IconButton(
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+                icon: Icon(Icons.arrow_back, color: Colors.black,),
+              ),
             ),
             body: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(20),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(left: 30,right: 35,top: 20, bottom: 20),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundImage: _userProfileImage != null
+                                ? NetworkImage(_userProfileImage!)
+                                : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
+                          ),
+                        ),
+                      ),
+                      Container(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.nickName,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
+                            Container(
+                              padding: EdgeInsets.only(right: 5),
+                              width: MediaQuery.of(context).size.width * 0.55,
+                              child: Row(
+                                children: [
+                                  Text(
+                                    widget.nickName,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  Spacer(),
+                                  Container(
+                                    padding: EdgeInsets.only(top: 3),
+                                    width: 90,
+                                    height: 30,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {
+                                        toggleFollow();
+                                      },
+                                      style: getFollowButtonStyle(),
+                                      icon: Icon(isFollowed ? Icons.check : Icons.add, size: 17,),
+                                      label: Text(isFollowed ? "팔로잉" : "팔로우", style: TextStyle(fontSize: 13),),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 20,),
+                            Container(
+                              width: MediaQuery.of(context).size.width - 180,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Text(
+                                        "1",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 17,
+                                        ),
+                                      ),
+                                      Text(
+                                        "게시물",
+                                        style: TextStyle(
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        _followerCount.toString(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 17,
+                                        ),
+                                      ),
+                                      Text(
+                                        "팔로워",
+                                        style: TextStyle(
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      Text(
+                                        _followingCount.toString(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          fontSize: 17,
+                                        ),
+                                      ),
+                                      Text(
+                                        "팔로잉",
+                                        style: TextStyle(
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(width: 5,)
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.all(20),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundImage: _userProfileImage != null
-                              ? NetworkImage(_userProfileImage!)
-                              : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    padding: EdgeInsets.only(left: 20, right: 20),
-                    child: Row(
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              "1",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                            ),
-                            Text(
-                              "게시물",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(width: 20),
-                        Column(
-                          children: [
-                            Text(
-                              _followerCount.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                            ),
-                            Text(
-                              "팔로워",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(width: 20),
-                        Column(
-                          children: [
-                            Text(
-                              _followingCount.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                                fontSize: 20,
-                              ),
-                            ),
-                            Text(
-                              "팔로잉",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(8),
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // 버튼이 클릭되었을 때 수행할 동작
-                            toggleFollow();
-                          },
-                          // 토글 버튼 스타일을 가져옴
-                          style: getFollowButtonStyle(),
-                          icon: Icon(isFollowed ? Icons.check : Icons.add),
-                          label: Text(isFollowed ? "팔로잉" : "팔로우"),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10),
+                Divider(),
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(10),
                     child: GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 5,
+                        mainAxisSpacing: 5,
                       ),
                       itemCount: _imgList.length,
                       itemBuilder: (context, index) {
                         return Container(
                           child: Image.network(
                             _imgList[index]['image']!,
-                            fit: BoxFit.contain,
+                            fit: BoxFit.cover,
                           ),
                         );
                       },
