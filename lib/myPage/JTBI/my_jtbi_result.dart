@@ -16,7 +16,7 @@ class JtbiResult extends StatefulWidget {
 
 class _JtbiResultState extends State<JtbiResult> {
 late DocumentSnapshot _userDocument;
-late String? _userNickName = "";
+late String? _userNickName;
 late double _a = 0.0;
 late double _b = 0.0;
 late double _c = 0.0;
@@ -30,14 +30,26 @@ late double _h = 0.0;
 @override
   void initState() {
   super.initState();
-  Future.delayed(Duration.zero, () {
-    _loadUserData(context);
-  });
+  _loadUserData(context);
+}
+
+// 세션으로 document 값 구하기
+Future<DocumentSnapshot> getDocumentById(String documentId) async {
+  DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+  return document;
 }
 
 Future<void> _loadUserData(BuildContext context) async {
   final user = Provider.of<UserModel?>(context, listen: false);
   if (user != null && user.isSignIn) {
+
+    DocumentSnapshot document = await getDocumentById(user.userNo!);
+    setState(() {
+      _userDocument = document;
+      _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+      print("닉네임 : ${_userNickName}");
+    });
+
     // 사용자의 jbti 컬렉션에 접근
     CollectionReference jbtiCollection = FirebaseFirestore.instance.collection('user').doc(user.nickName!).collection('jbti');
 
@@ -67,19 +79,6 @@ Future<void> _loadUserData(BuildContext context) async {
     });
   }
 }
-
-  //     if (userDocument.exists) {
-  //       // 문서가 존재하면 필드 값 가져오기
-  //       setState(() {
-  //         _userDocument = userDocument;
-  //         _userNickName = _userDocument.get('nickName');
-  //         print('닉네임: $_userNickName');
-  //       });
-  //     } else {
-  //       print('사용자 문서가 존재하지 않습니다.');
-  //     }
-  //   }
-  // }
 
 
 @override
