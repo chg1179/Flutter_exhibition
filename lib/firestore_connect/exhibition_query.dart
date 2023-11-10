@@ -6,7 +6,7 @@ import 'package:timezone/timezone.dart';
 Future<String> addExhibition(String collectionStr, Map<String, String> formData, DateTime startDate, DateTime endDate) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
 
-  // 갤러리 정도 받아오기
+  // 갤러리 정보 받아오기
   DocumentSnapshot<Map<String, dynamic>> gallerySnapshot = await _fs.collection('gallery').doc(formData['galleryNo']).get();
   Map<String, dynamic> galleryData = gallerySnapshot.data()!;
   String galleryName = galleryData['galleryName'];
@@ -39,15 +39,15 @@ Future<String> addExhibition(String collectionStr, Map<String, String> formData,
 Future<void> updateExhibition(String collectionStr, DocumentSnapshot<Object?> document, Map<String, String> formData, DateTime startDate, DateTime endDate) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   CollectionReference exhibition = _fs.collection(collectionStr);
-  print('정보받아올거임');
-  // 갤러리 정도 받아오기
+
+  // 갤러리 정보 받아오기
   DocumentSnapshot<Map<String, dynamic>> gallerySnapshot = await _fs.collection('gallery').doc(formData['galleryNo']).get();
   Map<String, dynamic> galleryData = gallerySnapshot.data()!;
   String galleryName = galleryData['galleryName'];
   String region = galleryData['region'];
-  print('갤러리겟');
+
   String documentId = document.id;
-  print('업데이트시작');
+
   await exhibition.doc(documentId).update({
     'exTitle': formData['exTitle'],
     'phone': formData['phone'],

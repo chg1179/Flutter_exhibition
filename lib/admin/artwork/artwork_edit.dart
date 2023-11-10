@@ -93,7 +93,7 @@ class _ArtworkEditState extends State<ArtworkEdit> {
   void settingArtistOption() async {
     artistData = await getArtistData(); // Firestore에서 작가 이름과 문서 ID를 가져와 맵에 저장
     setState(() {
-      if (artistData.isEmpty && widget.parentDocument == null) {
+      if (artistData.isNotEmpty && widget.parentDocument == null) {
         selectedArtist = artistData.keys.first; // 첫 번째 작가를 선택한 작가로 설정
       } else if(widget.parentDocument != null){
         String? artistName = widget.parentDocument!['artistName'];

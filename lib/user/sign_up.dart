@@ -36,37 +36,30 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          textSelectionTheme: TextSelectionThemeData(
-            cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상
+    return Scaffold(
+      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
+      body: Container(
+        padding: EdgeInsets.all(15),
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/sign/login_back.png'),
+            fit: BoxFit.cover,
           ),
-      ),
-      home: Scaffold(
-        backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
-        body: Container(
-          padding: EdgeInsets.all(15),
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/sign/login_back.png'),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Center(
-            child: Form(
-              key: _key,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(height: 60,),
-                    Center(child: Image.asset('assets/sign/clearLogo.png', width: 150,)),
-                    SizedBox(height: 10,),
-                    Container(
+        ),
+        child: Center(
+          child: Form(
+            key: _key,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  SizedBox(height: 60,),
+                  Center(child: Image.asset('assets/sign/clearLogo.png', width: 150,)),
+                  SizedBox(height: 10,),
+                  Container(
                       padding: EdgeInsets.all(30),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -95,9 +88,9 @@ class _SignUpPageState extends State<SignUpPage> {
                           SizedBox(height: 30),
                         ],
                       )
-                    ),
-                    // 이벤트 수신 동의
-                    Container(
+                  ),
+                  // 이벤트 수신 동의
+                  Container(
                       padding: EdgeInsets.all(10),
                       child: Column(
                         children: [
@@ -106,21 +99,20 @@ class _SignUpPageState extends State<SignUpPage> {
                           _checkboxTile('이벤트 수신 동의 (선택)', eventChecked, 'event')
                         ],
                       )
-                    ),
-                    SizedBox(height: 30),
-                    // 회원가입
-                    Container(
+                  ),
+                  SizedBox(height: 30),
+                  // 회원가입
+                  Container(
                       margin: EdgeInsets.all(20),
                       child: submitButton()
-                    ),
-                    SizedBox(height: 40,)
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 40,)
+                ],
               ),
             ),
           ),
         ),
-      )
+      ),
     );
   }
 

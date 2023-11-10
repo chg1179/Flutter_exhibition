@@ -1,10 +1,7 @@
-import 'package:exhibition_project/myPage/myPageSettings/pwchange.dart';
+import 'package:exhibition_project/myPage/myPageSettings/pwd_change.dart';
 import 'package:flutter/material.dart';
 
-import 'mypageSettings.dart';
-
 class Security extends StatefulWidget {
-
   @override
   State<Security> createState() => _State();
 }
@@ -42,74 +39,14 @@ class _State extends State<Security> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Pwchange()),
+                  MaterialPageRoute(builder: (context) => PwdChange()),
                 );
-              },
-            ),
-            Divider(),
-            ListTile(
-              title: Text('회원탈퇴'),
-              onTap: () {
-                _confirmDialog(context, '탈퇴 확인', '정말 탈퇴하시겠습니까?', () {
-                  // 확인 버튼 눌렀을 때
-                  _unRegisterDialog(context, '알림', '정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.');
-                });
               },
             ),
             Divider(),
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> _unRegisterDialog(BuildContext context, String title, String message) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('확인'),
-              onPressed: () {
-                Navigator.of(context).pop(MyPageSettings());
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _confirmDialog(BuildContext context, String title, String message, Function() onConfirm) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('확인'),
-              onPressed: () {
-                onConfirm(); // 확인 버튼을 누르면 onConfirm 함수 호출
-                _unRegisterDialog(context, '알림', '정상적으로 탈퇴되었습니다. 이용해주셔서 감사합니다.'); // _unRegisterDialog 호출
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('취소'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 }

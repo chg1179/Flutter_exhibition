@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 Future<void> addUserFirestore(String collectionStr, String email, String hashedPassword, String randomSalt, String nickName, String phone, bool eventChecked) async {
   final FirebaseFirestore _fs = FirebaseFirestore.instance;
   final CollectionReference user = _fs.collection(collectionStr);
-
   await user.add({
     'email': email,
     'password': hashedPassword,
@@ -19,6 +18,14 @@ Future<void> addUserFirestore(String collectionStr, String email, String hashedP
   });
 }
 
+Future<void> updateUserPassword(String collectionName, String documentId, String hashedPassword) async {
+  await FirebaseFirestore.instance
+      .collection(collectionName)
+      .doc(documentId)
+      .update({
+        'password' : hashedPassword,
+      });
+}
 
 // Firebase 예외 처리 함수
 void firebaseException(FirebaseAuthException e) {

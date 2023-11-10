@@ -62,7 +62,7 @@ Widget textControllerBtn(
                     ),
                   ),
                   SizedBox(
-                    width: inkWidth * 5.5,
+                    width: inkWidth * 6.7,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
                       child: textFieldType(textControllers[i][1], secondText),
@@ -71,31 +71,22 @@ Widget textControllerBtn(
                   SizedBox(
                     width: inkWidth,
                     child: IconButton(
-                      icon: Icon(Icons.dangerous_outlined, size: 14), // 아이콘 크기를 변경해보세요 (예시로 20으로 변경)
+                      icon: Icon(Icons.dangerous_outlined, size: 16),
                       onPressed: () {
                         onRemove(i);
                       },
                     ),
                   ),
-                  if (i == textControllers.length - 1)
-                    SizedBox(
-                      width: inkWidth,
-                      child: IconButton(
-                        icon: Icon(Icons.add, size: 14), // 아이콘 크기를 변경해보세요 (예시로 20으로 변경)
-                        onPressed: onAdd,
-                      ),
-                    ),
                 ],
               ),
           ],
         ),
-        if(textControllers.length == 0)
-          Center(
-            child: IconButton(
-              icon: Icon(Icons.add),
-              onPressed: onAdd,
-            ),
+        Center(
+          child: IconButton(
+            icon: Icon(Icons.add, size: 18),
+            onPressed: onAdd,
           ),
+        ),
       ],
     ),
   );
