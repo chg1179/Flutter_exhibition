@@ -12,7 +12,6 @@ class PostSearch extends StatefulWidget {
 
 class _PostSearchState extends State<PostSearch> {
   final _searchCtr = TextEditingController();
-  final List<String> _recentSearches = [];
   List<String> _tagList = ['전시', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'];
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   Future<List<Map<String, dynamic>>>? _searchResults;
@@ -215,14 +214,6 @@ class _PostSearchState extends State<PostSearch> {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 20, top: 20),
-            child: Text('최근 검색어', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, top: 10),
-            child: _recentSearch(),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 20, top: 20),
             child: Text('추천 태그', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
           Padding(
@@ -232,24 +223,6 @@ class _PostSearchState extends State<PostSearch> {
           SizedBox(height: 100), // Add a SizedBox to provide space at the bottom
         ],
       ),
-    );
-  }
-
-  Widget _recentSearch() {
-    return Wrap(
-      spacing: 5,
-      children: _recentSearches.asMap().entries.map((entry) {
-        final index = entry.key;
-        final keyword = entry.value;
-        return ElevatedButton(
-          child: Text(keyword),
-          onPressed: () {
-            _searchCtr.text = _recentSearches[index];
-            _updateSearchResults(_searchCtr.text);
-          },
-          style: _unPushBtnStyle(),
-        );
-      }).toList(),
     );
   }
 
