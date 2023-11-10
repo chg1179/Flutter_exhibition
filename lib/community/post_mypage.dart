@@ -99,21 +99,24 @@ class _CommMyPageState extends State<CommMyPage> {
 
   Widget _buildUserSection(String message, Widget button) {
     return Container(
-      padding: EdgeInsets.all(30),
+      width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: CircleAvatar(
-              radius: 80,
-              backgroundImage: AssetImage('assets/ex/ex1.png'),
-            ),
-          ),
-          Text(message, style: TextStyle(fontSize: 15)),
-          Text(message, style: TextStyle(fontSize: 13, color: Colors.black45)),
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: button,
+          // Padding(
+          //   padding: const EdgeInsets.all(20.0),
+          //   child: CircleAvatar(
+          //     radius: 80,
+          //     backgroundImage: AssetImage('assets/ex/ex1.png'),
+          //   ),
+          // ),
+          Text(message, style: TextStyle(fontSize: 16)),
+          SizedBox(height: 20,),
+          Container(
+            width: MediaQuery.of(context).size.width * 0.5,
+            height: 45,
+              child: button
           )
         ],
       ),
@@ -123,7 +126,7 @@ class _CommMyPageState extends State<CommMyPage> {
   // 작성한 글이 없을 때
   Widget _nonMyPost(){
     return _buildUserSection(
-      '작성한 게시글이 없어요',
+      '작성한 게시글이 없어요. 😢',
       ElevatedButton(
         onPressed: () {
           setState(() {
@@ -141,7 +144,7 @@ class _CommMyPageState extends State<CommMyPage> {
   // 작성한 댓글이 없을 때
   Widget _nonComment(){
     return _buildUserSection(
-      '작성한 댓글이 없어요',
+      '작성한 댓글이 없어요. 😢',
       ElevatedButton(
         onPressed: () {
           setState(() {
@@ -163,6 +166,7 @@ class _CommMyPageState extends State<CommMyPage> {
       itemBuilder: (context, index) {
         final post = posts[index];
         final title = post['data']['title'] as String;
+        final view = post['data']['viewCount'] as int;
         final content = post['data']['content'] as String;
         final imageURL = post['data']['imageURL'];
 
@@ -173,6 +177,12 @@ class _CommMyPageState extends State<CommMyPage> {
           child: Container(
             padding: EdgeInsets.all(15),
             decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey,  // 테두리 색상
+                  width: 0.5,           // 테두리 두께
+                ),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,24 +193,21 @@ class _CommMyPageState extends State<CommMyPage> {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(fontSize: 17),
+                      style: TextStyle(fontSize: 15),
                     ),
-                    if (post['data']['write_date'] != null)
-                      Text(
-                        DateFormat('yyyy년 MM월 dd일').format(post['data']['write_date'].toDate()),
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
+                    Row(
+                      children: [
+                        Text('조회 $view  │  ', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                        if (post['data']['write_date'] != null)
+                          Text(
+                            DateFormat('yyyy.MM.dd').format(post['data']['write_date'].toDate()),
+                            style: TextStyle(fontSize: 13, color: Colors.grey[600])
+                          ),
+                      ],
+                    )
                   ],
                 ),
                 SizedBox(height: 8),
-                // Text(
-                //   content,
-                //   style: TextStyle(fontSize: 15),
-                // ),
-                // if(imageURL != null)
-                //   Image.network(imageURL, width: 400, height: 150,)
-                // else
-                //   Container(), // 이미지가 null일 때 빈 컨테이너 반환
               ],
             ),
           ),
@@ -288,7 +295,7 @@ class _CommMyPageState extends State<CommMyPage> {
         appBar: AppBar(
           elevation: 0,
           centerTitle: true,
-          title: Text('내 활동 내역', style: TextStyle(color: Colors.black, fontSize: 16)),
+          title: Text('내 활동 내역', style: TextStyle(color: Colors.black)),
           backgroundColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
@@ -300,7 +307,7 @@ class _CommMyPageState extends State<CommMyPage> {
           bottom: TabBar(
             indicatorColor: Color(0xff464D40),
             labelColor: Colors.black,
-            labelStyle: TextStyle(fontWeight: FontWeight.bold),
+            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             unselectedLabelColor: Colors.black45,
             labelPadding: EdgeInsets.symmetric(horizontal: 16),
             tabs: [
