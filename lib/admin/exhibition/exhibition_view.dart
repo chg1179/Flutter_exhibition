@@ -70,11 +70,15 @@ class _ExhibitionViewState extends State<ExhibitionView> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '${exhibitionData!['exTitle']}',
-            style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold),
-          ),
+        title: Text(
+          '${exhibitionData!['exTitle']}',
+          style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontSize: 17),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -86,30 +90,81 @@ class _ExhibitionViewState extends State<ExhibitionView> {
             children: [
               Column(
                 children: [
-                  ClipOval(
-                    child: exhibitionData!['imageURL'] != null
-                        ? Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover)//Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                        : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
+                  Center(
+                    child: ClipOval(
+                      child: exhibitionData!['imageURL'] != null
+                          ? Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover)//Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
+                          : Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover),
+                    ),
                   ),
-                  Text('전시회 이미지', style: TextStyle(fontSize: 13),)
+                ],
+              ),
+              SizedBox(height: 30),
+              Text('${exhibitionData!['exTitle']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    child: Text("갤러리", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Container(
+                      width: MediaQuery.of(context).size.width*0.65,
+                      child: Text('${exhibitionData!['galleryName']} / ${exhibitionData!['region']}')
+                  ),
                 ],
               ),
               SizedBox(height: 10),
-              Text('전시회명 : ${exhibitionData!['exTitle']}'),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    child: Text("작가", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text(exhibitionData!['artistNo'] != '' && exhibitionData!['artistNo'] != null ? '$artistName' : '선택된 작가가 없습니다.'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text('갤러리 : ${exhibitionData!['galleryName']} / ${exhibitionData!['region']}'),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    child: Text("전시일정", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text('${DateFormat('yyyy.MM.dd').format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text(exhibitionData!['artistNo'] != '' && exhibitionData!['artistNo'] != null ? '작가 : $artistName' : '작가 : 선택된 작가가 없습니다.'),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    child: Text("전화번호", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text(exhibitionData!['phone'] != '' && exhibitionData!['phone'] != null ? '${exhibitionData!['phone']}' : '등록된 번호가 없습니다.'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text('전시일정 : ${DateFormat('yyyy.MM.dd').format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}'),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.25,
+                    child: Text("전시 페이지", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.65,
+                      child: Text(exhibitionData!['exPage'] != '' && exhibitionData!['exPage'] != null ? '${exhibitionData!['exPage']}' : '등록된 페이지가 없습니다.')
+                  ),
+                ],
+              ),
               SizedBox(height: 10),
-              Text(exhibitionData!['phone'] != '' && exhibitionData!['phone'] != null ? '전화번호 : ${exhibitionData!['phone']}' : '전화번호 : 등록된 번호가 없습니다.'),
-              SizedBox(height: 10),
-              Text(exhibitionData!['exPage'] != '' && exhibitionData!['exPage'] != null ? '전시 페이지 : ${exhibitionData!['exPage']}' : '전시 페이지 : 등록된 페이지가 없습니다.'),
-              SizedBox(height: 10),
-              Text('입장료'),
+              Container(
+                width: MediaQuery.of(context).size.width*0.25,
+                child: Text("입장료", style: TextStyle(fontWeight: FontWeight.bold),),
+              ),
+              SizedBox(height: 5),
               listContent(widget.document, 'exhibition', 'exhibition_fee', 'exKind', 'exFee', false),
-              SizedBox(height: 10),
+              SizedBox(height: 15),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -117,17 +172,25 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                       ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('상세 이미지 : '),
-                          //Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
+                          Text("상세 이미지", style: TextStyle(fontWeight: FontWeight.bold),),
+                          SizedBox(height: 10,),
+                          Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
                         ],
                       )
                       : Text('상세 이미지 : 상세 이미지가 없습니다.'),
                 ],
               ),
               SizedBox(height: 15),
-              Text(exhibitionData!['content'] != '' && exhibitionData!['content'] != null ? '전시회 설명 : ${exhibitionData!['content']}' : '전시회 설명 : 작성된 설명이 없습니다.'),
-              SizedBox(height: 15),
-              Center(
+              Container(
+                width: MediaQuery.of(context).size.width*0.25,
+                child: Text("전시회 설명", style: TextStyle(fontWeight: FontWeight.bold),),
+              ),
+              SizedBox(height: 10,),
+              Text(exhibitionData!['content'] != '' && exhibitionData!['content'] != null ? '${exhibitionData!['content']}' : '작성된 설명이 없습니다.'),
+              SizedBox(height: 30),
+              Container(
+                width: MediaQuery.of(context).size.width -30,
+                height: 45,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -136,9 +199,10 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                     );
                   },
                   style: greenButtonStyle(),
-                  child: Text("수정하기"),
+                  child: Text("수 정 하 기", style: TextStyle(fontSize: 16),),
                 ),
-              )
+              ),
+              SizedBox(height: 20,)
             ],
           ),
         ),

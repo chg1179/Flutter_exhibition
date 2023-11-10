@@ -44,7 +44,6 @@ Widget textControllerBtn(
   double screenWidth = MediaQuery.of(context).size.width;
   double inkWidth = screenWidth / 13;
   return Container(
-    padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,

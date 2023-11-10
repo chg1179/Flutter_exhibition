@@ -95,8 +95,8 @@ class _ChildListState extends State<ChildList> {
                                                 borderRadius: BorderRadius.circular(50),
                                                 child:
                                                 childData['imageURL'] != null
-                                                    ? Image.network(childData['imageURL'],fit: BoxFit.cover, width: 130, height: 130)
-                                                    : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
+                                                    ? Image.network(childData['imageURL'],fit: BoxFit.cover, width: 60, height: 60)
+                                                    : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 60, height: 60),
                                               ),
                                               SizedBox(width: 18),
                                               Column(

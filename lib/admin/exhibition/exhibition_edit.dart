@@ -243,9 +243,12 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text('전시회 정보 관리', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold),
-          ),
+        title: Text('전시회 정보 관리', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: Container(
@@ -283,10 +286,9 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                             defaultImgURL: 'assets/logo/basic_logo.png',
                                           )
                                           : (widget.document != null && selectImgURL != null)
-                                          ? Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover)//Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                          : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
+                                          ? Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover)//Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
+                                          : Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover),
                                     ),
-                                    Text('전시회 이미지', style: TextStyle(fontSize: 13),),
                                   ],
                                 )
                             ),
@@ -311,10 +313,16 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                 onPressed: () {
                                   _selectDateRange(context);
                                 },
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(Color(0xffdededc)), // 배경색
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.black), // 텍스트 색상
+                                  side: MaterialStateProperty.all<BorderSide>(BorderSide(width: 1, color: Color(0xff464D40))), // 테두리 속성 추가
+                                  elevation: MaterialStateProperty.all<double>(0),
+                                ),
                                 child: Text(
                                   _startDate != null && _endDate != null
                                       ? '${_startDate.toString().split(" ")[0]} ~ ${_endDate.toString().split(" ")[0]}'
-                                      : '날짜 선택',
+                                      : '날짜 선택', style: TextStyle(fontWeight: FontWeight.w400),
                                 ),
                               ),
                             ],
@@ -322,9 +330,9 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                           SizedBox(height: 30),
                           TextAndTextField('전화번호', _phoneController, 'phone'),
                           SizedBox(height: 30),
-                          TextAndTextField('전시페이지', _exPageController, 'exPage'),
+                          TextAndTextField('전시 페이지', _exPageController, 'exPage'),
                           SizedBox(height: 30),
-                          TextAndTextField('전시회설명', _contentController, 'introduce'),
+                          TextAndTextField('전시회 설명', _contentController, 'introduce'),
                           SizedBox(height: 30),
                           textControllerBtn(context, '입장료', '금액', '대상', feeControllers, () {
                             setState(() {
@@ -343,6 +351,12 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                 onPressed: (){
                                   getImage('contentImage');
                                 },
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(Color(0xffdededc)), // 배경색
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.black), // 텍스트 색상
+                                  side: MaterialStateProperty.all<BorderSide>(BorderSide(width: 1, color: Color(0xff464D40))), // 테두리 속성 추가
+                                  elevation: MaterialStateProperty.all<double>(0),
+                                ),
                                 child:  _imageContentFile != null
                                     ? buildImageWidget(
                                       // 이미지 빌더 호출
@@ -357,13 +371,12 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 30),
                         ],
                       )
                   ),
                   // 추가
                   Container(
-                    margin: EdgeInsets.all(20),
+                    margin: EdgeInsets.only(right: 20, left: 20, bottom: 30, top: 10),
                     child: submitButton()
                   ),
                 ],
