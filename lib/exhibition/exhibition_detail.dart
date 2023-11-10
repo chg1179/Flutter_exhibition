@@ -3,6 +3,7 @@ import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
+import 'package:exhibition_project/maps/address_google_maps.dart';
 import 'package:exhibition_project/user/sign_in.dart';
 import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
@@ -598,7 +599,18 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               height: 40,
                               width: 40,
                               child: IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  // 지도 띄우기
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AddressGoogleMaps(
+                                        address: _galleryData!['addr'],
+                                        locationName: _exDetailData!['galleryName'],
+                                      );
+                                    },
+                                  );
+                                },
                                 icon: Icon(Icons.location_on),
                               ),
                             ),
