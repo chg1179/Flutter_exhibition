@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../model/user_model.dart';
+import '../myPage/addAlarm.dart';
 
 class CommentDetail extends StatefulWidget {
   final String? postId;
@@ -102,10 +103,12 @@ class _CommentDetailState extends State<CommentDetail> {
 
   // 대댓글 추가
   Future<void> _addReply() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
     String replyText = _replyCtr.text;
 
     if (replyText.isNotEmpty) {
       try {
+        // Firestore에 대댓글 추가
         await _firestore
             .collection('post')
             .doc(widget.postId)
@@ -115,9 +118,34 @@ class _CommentDetailState extends State<CommentDetail> {
             .add({
           'reply': replyText,
           'write_date': FieldValue.serverTimestamp(),
-          'userNickName' : _userNickName!
+          'userNickName': _userNickName!,
         });
 
+        // 이전에 작성한 함수를 활용하여 코멘트의 userNickName을 가져오기
+        String? commentUserNickName = await getCommentUserNickName(widget.postId!, widget.commentId!);
+
+        // 코멘트의 userNickName을 확인하고 null이 아니면 _userNickName에 할당
+        if (commentUserNickName != null) {
+          setState(() {
+            _userNickName = commentUserNickName;
+          });
+
+          // 닉네임을 이용하여 유저 ID를 가져오기
+          String? userId = await getUserIdByNickName(_userNickName!);
+
+          if (userId != null) {
+            // userId를 사용하여 추가적인 작업 수행
+            // 예: Firestore에서 해당 유저 문서를 가져오기 등
+            print('해당 닉네임을 가진 유저의 ID: $userId');
+
+            // 알림 추가
+            addAlarm(user?.userNo as String, userId, '님이 회원님의 댓글에 답글을 남겼습니다.');
+          } else {
+            print('해당 닉네임을 가진 유저를 찾을 수 없습니다.');
+          }
+        }
+
+        // 나머지 로직은 그대로 유지
         _replyCtr.clear();
         FocusScope.of(context).unfocus();
         _showSnackBar('답글이 등록되었습니다!');
@@ -127,6 +155,51 @@ class _CommentDetailState extends State<CommentDetail> {
       }
     }
   }
+  //1. 댓글단 user에게 대댓글시 알림보내기 위한 댓글단user 닉네임 뽑기
+  Future<String?> getCommentUserNickName(String postId, String commentId) async {
+    try {
+      DocumentSnapshot commentSnapshot = await _firestore
+          .collection('post')
+          .doc(postId)
+          .collection('comment')
+          .doc(commentId)
+          .get();
+
+      if (commentSnapshot.exists) {
+        Map<String, dynamic> commentData = commentSnapshot.data() as Map<String, dynamic>;
+        String userNickName = commentData['userNickName'] as String;
+
+        // userNickName 값 반환
+        return userNickName;
+      } else {
+        print('코멘트를 찾을 수 없습니다.');
+        return null;
+      }
+    } catch (e) {
+      print('코멘트 데이터를 불러오는 중 오류가 발생했습니다: $e');
+      return null;
+    }
+  }
+  //2. 댓글단 user 닉네임을 찾은걸로 user컬렉션에 같은닉네임을 가진 문서ID 추출
+  Future<String?> getUserIdByNickName(String nickName) async {
+    try {
+      // 닉네임을 가진 유저를 찾기 위한 쿼리
+      QuerySnapshot querySnapshot = await _firestore.collection('user').where('nickName', isEqualTo: nickName).get();
+
+      // 쿼리 결과 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서의 ID 반환 (닉네임이 중복되지 않는 것을 가정)
+        return querySnapshot.docs.first.id;
+      } else {
+        print('일치하는 닉네임을 가진 유저를 찾을 수 없습니다.');
+        return null;
+      }
+    } catch (e) {
+      print('닉네임으로 유저 ID를 가져오는 중 오류가 발생했습니다: $e');
+      return null;
+    }
+  }
+
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -15,6 +15,8 @@ class _IsNotificationState extends State<IsNotification> {
     {'content': '참깨빵위에순쇠고기패티두장 님이 회원님을 팔로우하기 시작했습니다.', 'time': '어제'},
     {'content': '"박영하" 작가의 전시가 등록되었습니다.', 'time': '2023.10.28'},
     {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
+    {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
+    {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
   ];
 
   @override
@@ -36,7 +38,11 @@ class _IsNotificationState extends State<IsNotification> {
         actions: [
           SizedBox(
             child: TextButton(
-                onPressed: (){},
+                onPressed: (){
+                  setState(() {
+                    _notificationList.clear(); // 리스트를 초기화
+                  });
+                },
                 child: Text("전체 삭제", style: TextStyle(color: Colors.black, fontSize: 13),)
             ),
           ),

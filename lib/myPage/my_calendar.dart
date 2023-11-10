@@ -8,6 +8,7 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../firebase_options.dart';
 import '../model/user_model.dart';
+import 'addAlarm.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -518,11 +519,11 @@ class _MyCalendarState extends State<MyCalendar> {
                     final friendIDs = snapshot.data!.docs.map((doc) {
                       var data = doc.data() as Map<String, dynamic>?;
                       if (data != null &&
-                          data.containsKey('fwName') &&
-                          data.containsKey('imageURL')) {
+                          data.containsKey('nickName') &&
+                          data.containsKey('profileImage')) {
                         return {
-                          'fwName': data['fwName'].toString(),
-                          'imageURL': data['imageURL'].toString(),
+                          'nickName': data['nickName'].toString(),
+                          'profileImage': data['profileImage'].toString(),
                         };
                       } else {
                         return null;
@@ -537,16 +538,16 @@ class _MyCalendarState extends State<MyCalendar> {
                         return ListTile(
                           leading: ClipOval(
                             child: Image.network(
-                              friend!['imageURL']!,
+                              friend!['profileImage']!,
                               width: 40,
                               height: 40,
                               fit: BoxFit.cover,
                             ),
                           ),
-                          title: Text(friend!['fwName']!),
+                          title: Text(friend!['nickName']!),
                           onTap: () {
-                            Navigator.of(context).pop(friend!['fwName']);
-                            print(friend['fwName']);
+                            Navigator.of(context).pop(friend!['nickName']);
+                            print(friend['nickName']);
                           },
                         );
                       },
@@ -594,35 +595,6 @@ class _MyCalendarState extends State<MyCalendar> {
 
   void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl, String? friendNickName) async{
     final user = Provider.of<UserModel?>(context, listen: false);
-    // if (user != null && user.isSignIn) {
-    //   FirebaseFirestore.instance
-    //       .collection('user')
-    //       .doc(user.userNo)
-    //       .collection('events')
-    //       .add({
-    //           'evtTitle': evtTitle,
-    //           'evtImage': imageUrl,
-    //           'evtDate': selectedDay,
-    //           'evtContent': evtContent,
-    //           'friendNickName' : friendNickName
-    //      })
-    //    .then((documentReference) {
-    //     final event = Event(evtTitle, selectedDay, evtContent, documentReference.id,friendNickName!);
-    //     final events = _events[selectedDay] ?? [];
-    //     events.add(event);
-    //     _events[selectedDay] = events;
-    //     _updateEventList(selectedDay); // 11/09 목록 업데이트 위치변경
-    //     _eventController.clear();
-    //     _memoController.clear();
-    //
-    //   })
-    //       .catchError((error) {
-    //     print('Firestore 데이터 추가 중 오류 발생: $error');
-    //   });
-    // } else {
-    //   print('사용자가 로그인되지 않았거나 evtTitle이 비어 있습니다.');
-    // }
-    ///////////////////////////11월09일수정전//////////////////////////
     if (_eventController.text.isEmpty || _memoController.text.isEmpty) {
       // 필수 입력값이 비어있을 때 처리
       _noticeDialog('제목과 내용을 모두 입력해주세요.');
@@ -693,10 +665,13 @@ class _MyCalendarState extends State<MyCalendar> {
           'evtContent': evtContent,
           // 여기에 필요한 다른 정보 추가
         });
+        //상대에게 알림보내기
+        String formattedDate = DateFormat('MM/dd').format(selectedDay);
+        addAlarm(user.userNo as String,friendUserId, '님이 ${formattedDate}일 함께한 기록을 공유했어요!');
         // 스낵바 띄우기
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(' $friendNickName에게 나의 일정을 공유했어요!'),
+            content: Text(' $friendNickName에게 나의 기록을 공유했어요!'),
           ),
         );
       }
