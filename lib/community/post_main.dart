@@ -83,7 +83,7 @@ class _CommMainState extends State<CommMain> {
 
   }
 
-  late String _userNickName;
+  String? _userNickName;
   String? _profileImage;
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
@@ -538,7 +538,7 @@ class _CommMainState extends State<CommMain> {
                         children: [
                           GestureDetector(
                             onTap: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: _userNickName)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
                             },
                             child: Row(
                               children: [
