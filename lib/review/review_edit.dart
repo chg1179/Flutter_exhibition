@@ -151,7 +151,7 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
-// 선택된 해시태그를 제거하는 함수
+  // 선택된 해시태그를 제거하는 함수
   void removeSelectedTag(String tagName) {
     if (_selectTag.contains(tagName)) {
       setState(() {

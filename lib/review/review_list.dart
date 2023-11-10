@@ -37,6 +37,8 @@ class _ReviewListState extends State<ReviewList> {
   int _currentIndex = 0;
   String? _userNickName;
   String? _profileImage;
+
+  // 좋아요 상태를 저장할 맵
   Map<String, bool> isLikedMap = {};
   List<Map<String, dynamic>> _filterList = [
     {'title': '최신순', 'value': 'latest'},
@@ -80,43 +82,64 @@ class _ReviewListState extends State<ReviewList> {
     }
   }
 
+  // 좋아요 상태 유지
+  Future<void> initializeLikeStatus() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      final userNo = user.userNo;
+      if (userNo != null) {
+        for (final reviewId in _reviewList.map((review) => review['id'] as String)) {
+          final isLiked = await isLikedByUser(reviewId, userNo);
+          isLikedMap[reviewId] = isLiked;
+        }
+      }
+    }
+  }
+
   Future<void> _loadReviewData(String searchText) async {
     final user = Provider.of<UserModel?>(context, listen: false);
+
+    // Firestore에서 'review' 컬렉션의 데이터를 가져오기 위한 쿼리를 생성
     QuerySnapshot querySnapshot = await _firestore.collection('review').get();
 
     List<Map<String, dynamic>> tempReviewList = [];
 
     if (querySnapshot.docs.isNotEmpty) {
+      // Firestore로부터 받아온 문서들을 매핑하고 필터링
       tempReviewList = querySnapshot.docs
           .map((doc) {
+        // 문서 데이터를 map 형태로 추출 하로 Id 추가
         Map<String, dynamic> reviewData = doc.data() as Map<String, dynamic>;
         reviewData['id'] = doc.id; // 문서의 ID를 추가
+
+        // 사용자가 이 게시물을 이미 좋아요했는지 확인하고 상태 업데이트
+        if (user != null && user.isSignIn) {
+          final userNo = user.userNo;
+          if (userNo != null) {
+            final isLiked = isLikedByUser(doc.id, userNo);
+            reviewData['isLiked'] = isLiked;
+          }
+        }
+
         return reviewData;
       })
           .where((review) {
-        return review['title'].toString().contains(searchText) ||
+          // 검색이 searchText 를 포함하는 후기만 남김
+          return review['title'].toString().contains(searchText) ||
             review['content'].toString().contains(searchText);
       })
           .toList();
-    } else {
-
     }
 
-    // 좋아요 상태 추가
-    if(user != null && user.isSignIn) {
-      for(var review in tempReviewList){
-        final liked = await _checkIfLiked(review['id'], user.userNo.toString());
-        isLikedMap[review['id']] = liked;
-      }
-    }
-    setState(() {
-      _reviewList = tempReviewList;
-    });
+    // 화면 다시 그림
+    _reviewList = tempReviewList;
 
     print(_reviewList);
     await _loadUserData();
-    _likeCheck();
-    setState(() {});
+    await initializeLikeStatus();
+
+    // 사용자 데이터 로드
   }
 
   // document에서 원하는 값 뽑기
@@ -132,7 +155,6 @@ class _ReviewListState extends State<ReviewList> {
         _profileImage = _userDocument.get('profileImage');
         print('닉네임: $_userNickName');
         print('임이지: $_profileImage');
-
       });
     }
   }
@@ -183,28 +205,10 @@ class _ReviewListState extends State<ReviewList> {
     );
   }
 
-
-  // 좋아요 체크
-  void _likeCheck() {
-    final user = Provider.of<UserModel?>(context, listen: false);
-    if (user != null && user.isSignIn) {
-      for (var review in _reviewList) {
-        _checkIfLiked(review['id'], user.userNo.toString()).then((liked) {
-          setState(() {
-            isLikedMap[review['id']] = liked;
-          });
-        });
-      }
-    }
-  }
-
-  Future<bool> _checkIfLiked(String reviewId, String userId) async {
-    final likeSnapshot = await FirebaseFirestore.instance
-        .collection('review')
-        .doc(reviewId)
-        .collection('likes')
-        .where('userId', isEqualTo: userId)
-        .get();
+  // 유저의 좋아요 상태
+  Future<bool> isLikedByUser(String reviewId, String userNo) async {
+    final likeRef = _firestore.collection('review').doc(reviewId).collection('likes');
+    final likeSnapshot = await likeRef.where('userId', isEqualTo: userNo).get();
     return likeSnapshot.docs.isNotEmpty;
   }
 
@@ -213,30 +217,34 @@ class _ReviewListState extends State<ReviewList> {
     final user = Provider.of<UserModel?>(context, listen: false);
 
     if (user != null && user.isSignIn) {
-      final reviewDoc = FirebaseFirestore.instance.collection('review').doc(reviewId);
-      final reviewRef = reviewDoc.collection('likes');
+      final userNo = user.userNo;
+      if (userNo == null) {
+        _showDialog();
+        return;
+      }
 
-      final currentIsLiked = isLikedMap[reviewId] ?? false; // 현재 상태 가져오기
+      final isLiked = await isLikedByUser(reviewId, userNo);
 
-      if (!currentIsLiked) {
-        // 좋아요 추가
-        await reviewRef.add({'userId' : user.userNo});
-        await reviewDoc.update({'likeCount' : FieldValue.increment(1)});
-
+      if (!isLiked) {
+        // 사용자가 이 게시물을 좋아요하지 않았다면 Firestore에 저장
+        final reviewDoc = FirebaseFirestore.instance.collection('review').doc(reviewId);
+        final reviewRef = reviewDoc.collection('likes');
+        await reviewRef.add({'userId': userNo});
+        await reviewDoc.update({'likeCount': FieldValue.increment(1)});
 
       } else {
-        // 좋아요 삭제
-        final likeSnapshot = await reviewRef.where('userId', isEqualTo: user.userNo).get();
+        // 사용자가 이미 이 게시물을 좋아요했다면 Firestore에서 삭제
+        final likeSnapshot = await FirebaseFirestore.instance.collection('review').doc(reviewId).collection('likes').where('userId', isEqualTo: userNo).get();
         for (final doc in likeSnapshot.docs) {
           await doc.reference.delete();
         }
-        await reviewDoc.update({'likeCount': FieldValue.increment(-1)});
+        await FirebaseFirestore.instance.collection('review').doc(reviewId).update({'likeCount': FieldValue.increment(-1)});
       }
 
+      // 사용자의 "좋아요" 상태를 Firestore에 저장한 후에, UI 상태도 업데이트
       setState(() {
-        isLikedMap[reviewId] = !currentIsLiked; // 현재 상태를 토글합니다.
+        isLikedMap[reviewId] = !isLiked;
       });
-
     } else {
       _showDialog();
     }
@@ -254,10 +262,9 @@ class _ReviewListState extends State<ReviewList> {
       },
       child: Icon(
           currentIsLiked ? Icons.favorite : Icons.favorite_border,
-          size: 15,
+          size: 20,
           color: Colors.red,
       ),
-
     );
   }
 
