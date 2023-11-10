@@ -126,8 +126,8 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     // 팔로잉 정보를 Map으로 변환
     List<Map<String, dynamic>> followingList = followingQuerySnapshot.docs.map((DocumentSnapshot document) {
       return {
-        'fwName': document['fwName'],  // 팔로잉의 fwName 필드 값
-        'imageURL': document['imageURL'],  // 팔로잉의 imageURL 필드 값
+        'nickName': document['nickName'],  // 팔로잉의 fwName 필드 값
+        'profileImage': document['profileImage'],  // 팔로잉의 imageURL 필드 값
       };
     }).toList();
 
@@ -163,8 +163,8 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     // 팔로잉 정보를 Map으로 변환
     List<Map<String, dynamic>> followerList = followerQuerySnapshot.docs.map((DocumentSnapshot document) {
       return {
-        'fwName': document['fwName'],  // 팔로잉의 fwName 필드 값
-        'imageURL': document['imageURL'],  // 팔로잉의 imageURL 필드 값
+        'nickName': document['nickName'],  // 팔로잉의 fwName 필드 값
+        'profileImage': document['profileImage'],  // 팔로잉의 imageURL 필드 값
       };
     }).toList();
 
@@ -706,9 +706,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     );
   }
   }
-
   /// 팔로워 클릭시 나타나는 다이얼로그
   Future<void> _showFollowersDialog(BuildContext context, String title) async {
+    // 팔로워 정보 가져오기
     List<Map<String, dynamic>> followerList = await getFollowerList();
 
     showDialog(
@@ -716,22 +716,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(title),
-          content: Column(
-            children: <Widget>[
-              // 팔로잉 목록을 활용하여 원하는 형태로 표시
-              for (var follower in followerList)
-                ListTile(
-                  leading: CircleAvatar(
-                    // 팔로잉의 프로필 사진
-                    backgroundImage: NetworkImage(follower['imageURL']),
-                  ),
-                  title: Text(follower['fwName']), // 팔로잉의 닉네임
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: follower['fwName'])));
-                  },
-                ),
-            ],
-          ),
+          content: _buildFollowerContent(followerList),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -745,7 +730,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     );
   }
 
-  ///팔로잉  클릭시 나타나는 다이얼로그
+  /// 팔로잉 클릭시 나타나는 다이얼로그
   void _showFollowingsDialog(BuildContext context, String title) async {
     // 팔로잉 정보 가져오기
     List<Map<String, dynamic>> followingList = await getFollowingList();
@@ -755,22 +740,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(title),
-          content: Column(
-            children: <Widget>[
-              // 팔로잉 목록을 활용하여 원하는 형태로 표시
-              for (var following in followingList)
-                ListTile(
-                  leading: CircleAvatar(
-                    // 팔로잉의 프로필 사진
-                    backgroundImage: NetworkImage(following['imageURL']),
-                  ),
-                  title: Text(following['fwName']), // 팔로잉의 닉네임
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: following['fwName'])));
-                  },
-                ),
-            ],
-          ),
+          content: _buildFollowingContent(followingList),
           actions: <Widget>[
             TextButton(
               onPressed: () {
@@ -784,6 +754,51 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     );
   }
 
+  Widget _buildFollowerContent(List<Map<String, dynamic>> followerList) {
+    if (followerList.isEmpty) {
+      return Text('아직 친구가 없어요!');
+    }
+
+    return Column(
+      children: <Widget>[
+        // 팔로워 목록을 활용하여 원하는 형태로 표시
+        for (var follower in followerList)
+          ListTile(
+            leading: CircleAvatar(
+              // 팔로워의 프로필 사진
+              backgroundImage: NetworkImage(follower['profileImage']),
+            ),
+            title: Text(follower['nickName']), // 팔로워의 닉네임
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: follower['nickName'])));
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFollowingContent(List<Map<String, dynamic>> followingList) {
+    if (followingList.isEmpty) {
+      return Text('아직 친구가 없어요!');
+    }
+
+    return Column(
+      children: <Widget>[
+        // 팔로잉 목록을 활용하여 원하는 형태로 표시
+        for (var following in followingList)
+          ListTile(
+            leading: CircleAvatar(
+              // 팔로잉의 프로필 사진
+              backgroundImage: NetworkImage(following['profileImage']),
+            ),
+            title: Text(following['nickName']), // 팔로잉의 닉네임
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: following['nickName'])));
+            },
+          ),
+      ],
+    );
+  }
 }
 
 class TemperatureBar extends StatelessWidget {
