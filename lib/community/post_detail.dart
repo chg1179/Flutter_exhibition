@@ -4,10 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comment_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
+import 'package:exhibition_project/myPage/addAlarm.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../model/user_model.dart';
+
+class CommentData {
+  String userNickName;
+  CommentData(this.userNickName);
+}
 
 class CommDetail extends StatefulWidget {
   final String document;
@@ -48,7 +54,7 @@ class _CommDetailState extends State<CommDetail> {
   }
 
   String? _userNickName;
-
+  String? _alarmNickName;
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -102,7 +108,6 @@ class _CommDetailState extends State<CommDetail> {
       _likeCheck(postIds);
     }
   }
-
   Future<void> _getPostData() async {
     try {
       final documentSnapshot = await _firestore.collection('post').doc(widget.document).get();
@@ -112,6 +117,9 @@ class _CommDetailState extends State<CommDetail> {
           final timestamp = _postData?['write_date'] as Timestamp;
           final formattedDate = _formatTimestamp(timestamp);
           _postData?['write_date'] = formattedDate;
+
+          _alarmNickName = _postData?['userNickName'] as String;
+
           _dataLoaded = true;
         });
       } else {
@@ -167,6 +175,7 @@ class _CommDetailState extends State<CommDetail> {
   }
 
   void _addComment() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
     String commentText = _commentCtr.text;
 
     if (commentText.isNotEmpty) {
@@ -180,6 +189,13 @@ class _CommDetailState extends State<CommDetail> {
         _commentCtr.clear();
         FocusScope.of(context).unfocus();
 
+        await _loadComments();
+        String? userId = await getUserIdByNickName(_alarmNickName!);
+        addAlarm(user?.userNo as String, userId! , '님이 회원님의 게시글에 댓글을 남겼습니다.');
+        print('유저세션 =============> ${user?.userNo}');
+        print('작성자ID================>${userId}');
+
+
         // 화면 업데이트
         _loadComments();
         _showSnackBar('댓글이 등록되었습니다!');
@@ -187,6 +203,26 @@ class _CommDetailState extends State<CommDetail> {
       } catch (e) {
         print('댓글 등록 오류: $e');
       }
+    }
+  }
+
+  //닉네임으로 문서ID찾기 (알림에 활용)
+  Future<String?> getUserIdByNickName(String nickName) async {
+    try {
+      // 해당 닉네임을 가진 유저를 찾기 위한 쿼리
+      QuerySnapshot querySnapshot = await _firestore.collection('user').where('nickName', isEqualTo: nickName).get();
+
+      // 쿼리 결과 확인
+      if (querySnapshot.docs.isNotEmpty) {
+        // 첫 번째 문서의 ID 반환 (닉네임이 중복되지 않는 것을 가정)
+        return querySnapshot.docs.first.id;
+      } else {
+        print('일치하는 닉네임을 가진 유저를 찾을 수 없습니다.');
+        return null;
+      }
+    } catch (e) {
+      print('닉네임으로 유저 ID를 가져오는 중 오류가 발생했습니다: $e');
+      return null;
     }
   }
 
