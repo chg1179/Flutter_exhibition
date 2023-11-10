@@ -13,11 +13,151 @@ class CommProfile extends StatefulWidget {
 }
 
 class _CommProfileState extends State<CommProfile> {
-
+  final _firestore = FirebaseFirestore.instance;
+  bool isLiked = false; // 좋아요
+  bool isFollowed = false;
+  bool _loading = true;
+  List<Map<String, dynamic>>? _followInfo;
+  Map<String, dynamic>? _userInfo;
   List<Map<String, String>> _imgList = [];
 
+  ButtonStyle getFollowButtonStyle() {
+    return isFollowed
+        ? ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+      foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+    )
+        : ButtonStyle(); // 기본 스타일 반환
+  }
+
+  Future<void> toggleFollow() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      final sessionUserId = user.userNo;
+      final userSnapshot = await _firestore.collection('user').doc(user.userNo).get();
+      final userDoc = userSnapshot.data() as Map<String, dynamic>;
+      final sessionUserNickName = userDoc['nickName'];
+      final profileImage = userDoc['profileImage'];
+
+      try {
+        final userQuerySnapshot = await _firestore.collection('user').where('nickName', isEqualTo: widget.nickName).get();
+
+        if (userQuerySnapshot.docs.isNotEmpty) {
+          final userId = userQuerySnapshot.docs.first.id;
+          final followerQuerySnapshot = await _firestore.collection('user').doc(userId).collection('follower').where('nickName', isEqualTo: sessionUserNickName).get();
+          
+          //상대유저프로필사진 갯또다제
+          final userProfileSnapshot = await _firestore.collection('user').doc(userId).get();
+          final userProfileImage = userProfileSnapshot['profileImage'];
+
+          if (followerQuerySnapshot.docs.isEmpty) {
+            // 팔로우: 세션 유저를 상대 유저의 follower 서브컬렉션에 추가
+            await _firestore.collection('user').doc(userId).collection('follower').add({
+              'nickName': sessionUserNickName,
+              'profileImage': profileImage,
+            });
+
+            // 세션 유저의 following 서브컬렉션에 상대 유저 정보 추가
+            await _firestore.collection('user').doc(sessionUserId).collection('following').add({
+              'nickName': widget.nickName,
+              'profileImage': userProfileImage
+            });
+
+            // UI 업데이트 및 필요한 작업 수행
+            setState(() {
+              isFollowed = true;
+            });
+          } else {
+            // 언팔로우: 세션 유저를 상대 유저의 follower 서브컬렉션에서 제거
+            final followerDocId = followerQuerySnapshot.docs.first.id;
+            await _firestore.collection('user').doc(userId).collection('follower').doc(followerDocId).delete();
+
+            // 세션 유저의 following 서브컬렉션에서 상대 유저 정보 제거
+            final followingQuerySnapshot = await _firestore.collection('user').doc(sessionUserId).collection('following').where('nickName', isEqualTo: widget.nickName).get();
+            if (followingQuerySnapshot.docs.isNotEmpty) {
+              final followingDocId = followingQuerySnapshot.docs.first.id;
+              await _firestore.collection('user').doc(sessionUserId).collection('following').doc(followingDocId).delete();
+            }
+
+            // UI 업데이트 및 필요한 작업 수행
+            setState(() {
+              isFollowed = false;
+            });
+          }
+        }
+      } catch (e) {
+        print('팔로우 토글 에러: $e');
+      }
+    }
+  }
+
+  Future<void> _getFollowData() async {
+    try {
+      final userQuerySnapshot = await _firestore.collection('user').where('nickName', isEqualTo: widget.nickName).get();
+      if (userQuerySnapshot.docs.isNotEmpty) {
+        final userId = userQuerySnapshot.docs.first.id;
+        final documentSnapshot = await _firestore.collection('user').doc(userId).collection('follower').get();
+
+        setState(() {
+          _followInfo = documentSnapshot.docs.map((doc) => doc.data()! as Map<String, dynamic>).toList() as List<Map<String, dynamic>>?;
+        });
+
+        // 데이터를 가져온 후 팔로우 여부 확인
+        bool isCurrentlyFollowed = await checkIfFollowed(userId);
+
+        // isCurrentlyFollowed 값에 따라 UI 등 필요한 작업 수행
+        if (isCurrentlyFollowed) {
+          // 팔로우 상태 처리
+          setState(() {
+            isFollowed = true;
+          });
+        } else {
+          // 언팔로우 상태 처리
+          setState(() {
+            isFollowed = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('팔로우 데이터 가져오기 에러: $e');
+    }
+  }
 
 
+  Future<bool> checkIfFollowed(String userId) async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    if (user != null && user.isSignIn) {
+      final sessionUserId = user.userNo;
+
+      try {
+        // 팔로우 여부 확인
+        final querySnapshot = await FirebaseFirestore.instance
+            .collection('user')
+            .doc(sessionUserId)
+            .collection('follower')
+            .where('nickName', isEqualTo: widget.nickName)
+            .get();
+
+        return querySnapshot.docs.isNotEmpty;
+      } catch (e) {
+        print('팔로우 여부 확인 에러: $e');
+      }
+    }
+
+    return false;
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _fetchUserImages(); // 초기 유저 이미지 데이터 가져오기
+    _getFollowData();
+  }
+
+///////////////////////////////////////////////////////////////////////
   //이미지 리스트 불러오기
   Future<void> _fetchUserImages() async {
     final userSnapshot = await FirebaseFirestore.instance
@@ -87,6 +227,7 @@ class _CommProfileState extends State<CommProfile> {
 
     return 0; // 유저를 찾지 못한 경우 0을 반환합니다.
   }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<QuerySnapshot>(
@@ -258,11 +399,15 @@ class _CommProfileState extends State<CommProfile> {
                     Expanded(
                       child: Container(
                         margin: EdgeInsets.all(8),
-                        child: ElevatedButton(
+                        child: ElevatedButton.icon(
                           onPressed: () {
                             // 버튼이 클릭되었을 때 수행할 동작
+                            toggleFollow();
                           },
-                          child: Text("팔로우"),
+                          // 토글 버튼 스타일을 가져옴
+                          style: getFollowButtonStyle(),
+                          icon: Icon(isFollowed ? Icons.check : Icons.add),
+                          label: Text(isFollowed ? "팔로잉" : "팔로우"),
                         ),
                       ),
                     ),

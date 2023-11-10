@@ -397,7 +397,6 @@ class _ExArtworkDetailState extends State<ExArtworkDetail> {
       // 'heat' 필드를 업데이트
       await userDocRef.update({'heat': newHeat});
 
-
       //////////전시회 like-1 // Firestore에서 'exhibition' 컬렉션을 참조///////////
       // Firestore에서 'exhibition' 컬렉션을 참조
       final artworkRef = FirebaseFirestore.instance.collection('artist').doc(widget.doc).collection('artist_artwork');
