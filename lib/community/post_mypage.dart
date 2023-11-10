@@ -159,7 +159,6 @@ class _CommMyPageState extends State<CommMyPage> {
   // 작성한 글이 있을 때
   Widget _myPostList(List<Map<String, dynamic>> posts) {
     return ListView.builder(
-      padding: EdgeInsets.all(10),
       itemCount: posts.length,
       itemBuilder: (context, index) {
         final post = posts[index];
@@ -172,44 +171,36 @@ class _CommMyPageState extends State<CommMyPage> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: post['id'])));
           },
           child: Container(
-            margin: EdgeInsets.all(10),
             padding: EdgeInsets.all(15),
             decoration: BoxDecoration(
-              border: Border.all(width: 0.8, color: Color(0xff464D40)),
-              borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if(widget.nickName != null)
                     Text(
-                      widget.nickName.toString(),
-                      style: TextStyle(fontSize: 15),
+                      title,
+                      style: TextStyle(fontSize: 17),
                     ),
                     if (post['data']['write_date'] != null)
                       Text(
-                        DateFormat('yyyy.MM.dd').format(post['data']['write_date'].toDate()),
+                        DateFormat('yyyy년 MM월 dd일').format(post['data']['write_date'].toDate()),
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                   ],
                 ),
                 SizedBox(height: 8),
-                Text(
-                  title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  content,
-                  style: TextStyle(fontSize: 15),
-                ),
-                if(imageURL != null)
-                  Image.network(imageURL, width: 400, height: 150,)
-                else
-                  Container(), // 이미지가 null일 때 빈 컨테이너 반환
+                // Text(
+                //   content,
+                //   style: TextStyle(fontSize: 15),
+                // ),
+                // if(imageURL != null)
+                //   Image.network(imageURL, width: 400, height: 150,)
+                // else
+                //   Container(), // 이미지가 null일 때 빈 컨테이너 반환
               ],
             ),
           ),
@@ -297,7 +288,7 @@ class _CommMyPageState extends State<CommMyPage> {
         appBar: AppBar(
           elevation: 0,
           centerTitle: true,
-          title: Text('내 활동 내역', style: TextStyle(color: Colors.black, fontSize: 15)),
+          title: Text('내 활동 내역', style: TextStyle(color: Colors.black, fontSize: 16)),
           backgroundColor: Colors.transparent,
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
