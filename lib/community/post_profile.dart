@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/myPage/addAlarm.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../model/user_model.dart';
@@ -69,6 +70,8 @@ class _CommProfileState extends State<CommProfile> {
               'profileImage': userProfileImage
             });
 
+            //팔로우 알림 메세지 전송
+            addAlarm(user.userNo as String, userId, '님이 회원님을 팔로우하기 시작했습니다.');
             // UI 업데이트 및 필요한 작업 수행
             setState(() {
               isFollowed = true;

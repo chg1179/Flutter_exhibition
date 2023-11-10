@@ -69,6 +69,20 @@ class _IsNotificationState extends State<IsNotification> {
       }
     }
 
+    String formatNotificationTime(DateTime notificationTime) {
+      Duration difference = DateTime.now().difference(notificationTime);
+
+      if (difference.inDays > 0) {
+        return '${difference.inDays}일 전';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours}시간 전';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes}분 전';
+      } else {
+        return '방금 전';
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -171,7 +185,7 @@ class _IsNotificationState extends State<IsNotification> {
                                               ),
                                               SizedBox(height: 13),
                                               Text(
-                                                DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                DateFormat('yyyy-MM-dd HH:mm')
                                                     .format(_notificationList[index]['time'].toDate()),
                                                 style: TextStyle(color: Color(0xff464D40), fontSize: 13),
                                               ),
@@ -182,9 +196,24 @@ class _IsNotificationState extends State<IsNotification> {
                                             margin: EdgeInsets.only(right: 15),
                                             padding: EdgeInsets.all(1),
                                             decoration: BoxDecoration(
-                                                color: Color(0xffD4D8C8),
-                                                borderRadius: BorderRadius.all(Radius.circular(6))),
-                                            child: InkWell(child: Icon(Icons.clear, size: 19)),
+                                              color: Color(0xffD4D8C8),
+                                              borderRadius: BorderRadius.all(Radius.circular(6)),
+                                            ),
+                                            child: InkWell(
+                                              onTap: () async {
+                                                await removeAlarm(index);
+                                                setState(() {
+                                                  _notificationList.removeAt(index);
+                                                });
+                                              },
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(4.0),
+                                                child: Text(
+                                                  formatNotificationTime(_notificationList[index]['time'].toDate()),
+                                                  style: TextStyle(color: Color(0xff464D40), fontSize: 12),
+                                                ),
+                                              ),
+                                            ),
                                           )
                                         ],
                                       ),
