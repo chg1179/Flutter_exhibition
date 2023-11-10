@@ -15,6 +15,7 @@ import 'package:exhibition_project/user/sign.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../community/post_profile.dart';
 import '../model/user_model.dart';
 
 class MyPage extends StatelessWidget {
@@ -99,19 +100,6 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
   
  // 팔로잉 수 구하기
-  Future<int> getFollowerLength() async {
-    final user = Provider.of<UserModel?>(context, listen: false);
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('user')
-        .doc(user?.userNo)
-        .collection('follower')
-        .get();
-
-    int followerLength = querySnapshot.size;
-
-    return followerLength;
-  }
-  // 팔로워 수 구하기
   Future<int> getFollowingLength() async {
     final user = Provider.of<UserModel?>(context, listen: false);
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
@@ -124,6 +112,67 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
 
     return followingLength;
   }
+  //팔로잉 정보 구하기
+  Future<List<Map<String, dynamic>>> getFollowingList() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    // 팔로잉 정보
+    QuerySnapshot followingQuerySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('following')
+        .get();
+
+    // 팔로잉 정보를 Map으로 변환
+    List<Map<String, dynamic>> followingList = followingQuerySnapshot.docs.map((DocumentSnapshot document) {
+      return {
+        'fwName': document['fwName'],  // 팔로잉의 fwName 필드 값
+        'imageURL': document['imageURL'],  // 팔로잉의 imageURL 필드 값
+      };
+    }).toList();
+
+    return followingList;
+  }
+
+
+
+  // 팔로워 수 구하기
+  Future<int> getFollowerLength() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('follower')
+        .get();
+
+    int followerLength = querySnapshot.size;
+
+    return followerLength;
+  }
+  //팔로워 정보 구하기
+  Future<List<Map<String, dynamic>>> getFollowerList() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    // 팔로잉 정보
+    QuerySnapshot followerQuerySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('follower')
+        .get();
+
+    // 팔로잉 정보를 Map으로 변환
+    List<Map<String, dynamic>> followerList = followerQuerySnapshot.docs.map((DocumentSnapshot document) {
+      return {
+        'fwName': document['fwName'],  // 팔로잉의 fwName 필드 값
+        'imageURL': document['imageURL'],  // 팔로잉의 imageURL 필드 값
+      };
+    }).toList();
+
+    return followerList;
+  }
+
+
+
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
     if (!user.isSignIn) {
@@ -659,21 +708,29 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
 
   /// 팔로워 클릭시 나타나는 다이얼로그
-  void _showFollowersDialog(BuildContext context, String title) {
-    final user = Provider.of<UserModel>(context); // 세션. UserModel
+  Future<void> _showFollowersDialog(BuildContext context, String title) async {
+    List<Map<String, dynamic>> followerList = await getFollowerList();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(title),
-          content: FutureBuilder<Object>(
-            future: null,
-            builder: (context, snapshot) {
-              return Column(
-                children: <Widget>[
-                ],
-              );
-            }
+          content: Column(
+            children: <Widget>[
+              // 팔로잉 목록을 활용하여 원하는 형태로 표시
+              for (var follower in followerList)
+                ListTile(
+                  leading: CircleAvatar(
+                    // 팔로잉의 프로필 사진
+                    backgroundImage: NetworkImage(follower['imageURL']),
+                  ),
+                  title: Text(follower['fwName']), // 팔로잉의 닉네임
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: follower['fwName'])));
+                  },
+                ),
+            ],
           ),
           actions: <Widget>[
             TextButton(
@@ -689,7 +746,10 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   }
 
   ///팔로잉  클릭시 나타나는 다이얼로그
-  void _showFollowingsDialog(BuildContext context, String title) {
+  void _showFollowingsDialog(BuildContext context, String title) async {
+    // 팔로잉 정보 가져오기
+    List<Map<String, dynamic>> followingList = await getFollowingList();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -697,7 +757,18 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
           title: Text(title),
           content: Column(
             children: <Widget>[
-
+              // 팔로잉 목록을 활용하여 원하는 형태로 표시
+              for (var following in followingList)
+                ListTile(
+                  leading: CircleAvatar(
+                    // 팔로잉의 프로필 사진
+                    backgroundImage: NetworkImage(following['imageURL']),
+                  ),
+                  title: Text(following['fwName']), // 팔로잉의 닉네임
+                  onTap: (){
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: following['fwName'])));
+                  },
+                ),
             ],
           ),
           actions: <Widget>[
@@ -712,6 +783,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       },
     );
   }
+
 }
 
 class TemperatureBar extends StatelessWidget {
