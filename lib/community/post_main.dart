@@ -291,6 +291,11 @@ class _CommMainState extends State<CommMain> {
             actions: [
               TextButton(
                 onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('취소', style: TextStyle(color: Colors.black),),
+              ),TextButton(
+                onPressed: () {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => SignPage()));
                 },
                 child: Text('확인', style: TextStyle(color: Colors.black),),
@@ -642,9 +647,16 @@ class _CommMainState extends State<CommMain> {
               icon: Icon(Icons.search),
               color: Colors.black,
             ),
+
             TextButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => CommMyPage(nickName: _userNickName)));
+                if (_userNickName != null && _userNickName!.isNotEmpty) {
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) =>
+                          CommMyPage(nickName: _userNickName)));
+                } else {
+                  _showDialog();
+                }
               },
               child: Container(
                 alignment: Alignment.center,
