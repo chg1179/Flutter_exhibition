@@ -11,7 +11,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -58,19 +57,39 @@ class _Ex_listState extends State<Ex_list> {
   }
 
   // StreamBuilder를 재구성
+
+  /*
+    구현 - 지역 여러 개 선택
+    구현해야 하는 부분 - 전시중이면서, 최신순, 인기순, 종료 출력 / 전시가 종료된 항목들의 최신순, 인기순, 종료순 출력
+   */
   Stream<QuerySnapshot> _createStream() {
+    Query collectionQuery = FirebaseFirestore.instance.collection('exhibition');
+
     // 선택된 지역이 '전체'가 아니면 스트림을 필터링하는 쿼리 생성
-    Query collectionQuery = FirebaseFirestore.instance.collection('exhibition').orderBy(_order, descending: _trueOrfalse);
+    // 선택한 지역과 하나라도 일치한다면 출력
     if (!_placeSelectedOptions.contains('전체')) {
-      collectionQuery = collectionQuery.where('region', isEqualTo: _placeSelectedOptions.first);
+      collectionQuery = collectionQuery.where('region', whereIn: _placeSelectedOptions);
     }
 
+    DateTime currentDate = DateTime.now(); // 현재 날짜를 받아와 진행중인 전시인지를 확인
+
+
+    // 여기 아래부터 전시중을 비교하는 부분으로, 수정 필요
+    
+    // ongoing이 true이면 endDate가 현재 날짜보다 큰 문서를 가져옴
+    if (_ongoing && _order == 'endDate') { // 마감이 되지 않았으면서, 종료가 빠른 순서를 출력.
+      collectionQuery = collectionQuery
+          .where(_order, isGreaterThanOrEqualTo: currentDate)
+          .orderBy(_order, descending: _trueOrfalse);
+    } else {
+      // ongoing이 아닌 경우 orderBy를 그대로 사용
+      collectionQuery = collectionQuery.orderBy(_order, descending: _trueOrfalse);
+    }
     return collectionQuery.snapshots();
   }
 
   String getOngoing(DateTime startDate, DateTime endDate) {
     DateTime currentDate = DateTime.now();
-
     if(currentDate.isBefore(startDate)){
       return "예정";
     }else if(currentDate.isBefore(endDate)) {
@@ -971,6 +990,7 @@ class _ResetState extends State<Reset> {
     setState(() {
       _placeSelectedOptions = ["전체"];
       widget.onReset(); // 초기화 버튼을 눌렀을 때 콜백 함수를 호출합니다.
+      Navigator.pop(context);
     });
   }
 
