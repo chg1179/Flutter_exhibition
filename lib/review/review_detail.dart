@@ -301,10 +301,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
                       width: MediaQuery.of(context).size.width,
                       color: Colors.black12
                   ),
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    child: Text('이런 후기는 어떠세요?📝', style: TextStyle(),),
-                  )
                 ],
               )
           );

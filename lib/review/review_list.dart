@@ -32,6 +32,7 @@ class ReviewList extends StatefulWidget {
 }
 
 class _ReviewListState extends State<ReviewList> {
+  List<Map<String, dynamic>> _searchList = [];
   final _searchCtr = TextEditingController();
   int _currentIndex = 0;
   String? _userNickName;
@@ -43,6 +44,7 @@ class _ReviewListState extends State<ReviewList> {
   ];
   String? _selectedList = '최신순';
   bool isDataLoaded = false;
+
 
   @override
   void initState() {
@@ -94,6 +96,11 @@ class _ReviewListState extends State<ReviewList> {
     });
   }
 
+  void filterReviews(String query){
+    setState(() {
+
+    });
+  }
 
   // 검색바
   Widget buildSearchBar() {

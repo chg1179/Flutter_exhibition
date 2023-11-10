@@ -12,7 +12,7 @@ import '../myPage/mypage.dart';
 import '../review/review_list.dart';
 
 class CommMyPage extends StatefulWidget {
-  final String nickName;
+  final String? nickName;
   CommMyPage({required this.nickName});
 
   @override
@@ -97,7 +97,6 @@ class _CommMyPageState extends State<CommMyPage> {
   }
 
 
-
   Widget _buildUserSection(String message, Widget button) {
     return Container(
       padding: EdgeInsets.all(30),
@@ -110,8 +109,8 @@ class _CommMyPageState extends State<CommMyPage> {
               backgroundImage: AssetImage('assets/ex/ex1.png'),
             ),
           ),
-          Text(widget.nickName),
-          Text(message, style: TextStyle(fontSize: 15),),
+          Text(message, style: TextStyle(fontSize: 15)),
+          Text(message, style: TextStyle(fontSize: 13, color: Colors.black45)),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: button,
@@ -185,8 +184,9 @@ class _CommMyPageState extends State<CommMyPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    if(widget.nickName != null)
                     Text(
-                      widget.nickName,
+                      widget.nickName.toString(),
                       style: TextStyle(fontSize: 15),
                     ),
                     if (post['data']['write_date'] != null)
@@ -240,7 +240,7 @@ class _CommMyPageState extends State<CommMyPage> {
 
               return GestureDetector(
                 onTap: (){
-                  //Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: comment['id'])));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: comment['id'])));
                 },
                 child: Container(
                   margin: EdgeInsets.all(10),
