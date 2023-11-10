@@ -35,11 +35,15 @@ class _ArtworkViewState extends State<ArtworkView> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '${widget.childData['artTitle']}',
-            style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold),
-          ),
+        title: Text(
+          '${widget.childData['artTitle']}',
+          style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -51,26 +55,63 @@ class _ArtworkViewState extends State<ArtworkView> {
             children: [
               Column(
                 children: [
-                  ClipOval(
-                    child: widget.childData['imageURL'] != null
-                        ? Image.network(widget.childData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                        : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
+                  Center(
+                    child: ClipOval(
+                      child:
+                      widget.childData['imageURL'] != null
+                          ? Image.network(widget.childData['imageURL'], fit: BoxFit.cover, width: 130, height: 130) //파일 터짐 방지
+                          : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
+                    ),
                   ),
-                  Text('작품 이미지', style: TextStyle(fontSize: 13),)
                 ],
               ),
-              Text('작품명 : ${widget.childData['artTitle']}'),
+              SizedBox(height: 30,),
+              Row(
+                children: [
+                  Container(
+                    width: 90,
+                    child: Text("작품명", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text('${widget.childData['artTitle']}'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text('제작 연도 : ${widget.childData['artDate']}'),
+              Row(
+                children: [
+                  Container(
+                    width: 90,
+                    child: Text("작가", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text('${parentData['artistName']}'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text('타입 : ${widget.childData['artType']}'),
+              Row(
+                children: [
+                  Container(
+                    width: 90,
+                    child: Text("제작 연도", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text('${widget.childData['artDate']}'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text('작가 : ${parentData['artistName']}'),
-              SizedBox(height: 10),
-              Center(
-                child: Row(
-                  children: [
-                    ElevatedButton(
+              Row(
+                children: [
+                  Container(
+                    width: 90,
+                    child: Text("타입", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text('${widget.childData['artType']}'),
+                ],
+              ),
+              SizedBox(height: 35),
+              Row(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.43,
+                    height: 45,
+                    child: ElevatedButton(
                       onPressed: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).pop();
@@ -80,10 +121,14 @@ class _ArtworkViewState extends State<ArtworkView> {
                         );
                       },
                       style: greenButtonStyle(),
-                      child: Text("수정하기"),
+                      child: Text("수 정 하 기", style: TextStyle(fontSize: 15),),
                     ),
-                    SizedBox(width: 10),
-                    ElevatedButton(
+                  ),
+                  SizedBox(width: 10),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.43,
+                    height: 45,
+                    child: ElevatedButton(
                       onPressed: () {
                         // 삭제 작업 수행
                         deleteArtistArtwork('artist', widget.parentDocument!.id, 'artist_artwork', widget.childData['documentId']); // 해당 내역 삭제
@@ -97,11 +142,11 @@ class _ArtworkViewState extends State<ArtworkView> {
                         );
                       },
                       style: greenButtonStyle(),
-                      child: Text("삭제하기"),
+                      child: Text("삭 제 하 기", style: TextStyle(fontSize: 15),),
                     ),
-                  ],
-                  )
-              )
+                  ),
+                ],
+                )
             ],
           ),
         ),

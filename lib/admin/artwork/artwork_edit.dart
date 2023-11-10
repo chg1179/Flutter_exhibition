@@ -149,93 +149,94 @@ class _ArtworkEditState extends State<ArtworkEdit> {
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '작품 정보 관리',
-            style: TextStyle(
-                color: Color.fromRGBO(70, 77, 64, 1.0),
-                fontWeight: FontWeight.bold),
+        title: Text(
+          '작품 정보 관리',
+          style: TextStyle(
+              color: Color.fromRGBO(70, 77, 64, 1.0),
           ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: Container(
-        margin: EdgeInsets.all(10),
         padding: EdgeInsets.all(10),
-        child: Center(
-          child: Form(
-            key: _key,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.all(30),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 10),
-                          Center(
-                            child: InkWell(
-                                onTap: getImage, // 이미지를 선택하는 함수 호출
-                                child: Column(
-                                  children: [
-                                    ClipOval(
-                                      child: _imageFile != null
-                                          ? buildImageWidget(
-                                        // 이미지 빌더 호출
-                                        imageFile: _imageFile,
-                                        imgPath: imgPath,
-                                        selectImgURL: selectImgURL,
-                                        defaultImgURL: 'assets/logo/basic_logo.png',
-                                      )
-                                          : (widget.childData != null && selectImgURL != null)
-                                          ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                          : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
-                                    ),
-                                    Text('작품 이미지', style: TextStyle(fontSize: 13),)
-                                  ],
-                                )
+        child: Form(
+          key: _key,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                    padding: EdgeInsets.all(30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10),
+                        Center(
+                          child: InkWell(
+                              onTap: getImage, // 이미지를 선택하는 함수 호출
+                              child: Column(
+                                children: [
+                                  ClipOval(
+                                    child:
+                                      _imageFile != null
+                                        ? buildImageWidget(
+                                      // 이미지 빌더 호출
+                                      imageFile: _imageFile,
+                                      imgPath: imgPath,
+                                      selectImgURL: selectImgURL,
+                                      defaultImgURL: 'assets/logo/basic_logo.png',
+                                    )
+                                        : (widget.childData != null && selectImgURL != null)
+                                        ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
+                                        : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
+                                  ),
+                                ],
+                              )
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Row(
+                          children: [
+                            textFieldLabel('작가'),
+                            DropdownButton<String>(
+                              value: selectedArtist,
+                              items: artistData.keys.map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedArtist = newValue!;
+                                });
+                              },
                             ),
-                          ),
-                          SizedBox(height: 30),
-                          Row(
-                            children: [
-                              textFieldLabel('작가'),
-                              DropdownButton<String>(
-                                value: selectedArtist,
-                                items: artistData.keys.map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    selectedArtist = newValue!;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 30),
-                          TextAndTextField('작품명', _artTitleController, 'artTitle'),
-                          SizedBox(height: 30),
-                          TextAndTextField('제작 연도', _artDateController, 'artDate'),
-                          SizedBox(height: 30),
-                          TextAndTextField('타입', _artTypeAddressController, 'artType'),
-                          SizedBox(height: 30),
-                        ],
-                      )
-                  ),
-                  // 추가
-                  Container(
-                      margin: EdgeInsets.all(20),
-                      child: submitButton()
-                  ),
-                ],
-              ),
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        TextAndTextField('작품명', _artTitleController, 'artTitle'),
+                        SizedBox(height: 30),
+                        TextAndTextField('제작 연도', _artDateController, 'artDate'),
+                        SizedBox(height: 30),
+                        TextAndTextField('타입', _artTypeAddressController, 'artType'),
+                        SizedBox(height: 30),
+                      ],
+                    )
+                ),
+                // 추가
+                Container(
+                    margin: EdgeInsets.all(20),
+                    child: submitButton()
+                ),
+              ],
             ),
           ),
         ),

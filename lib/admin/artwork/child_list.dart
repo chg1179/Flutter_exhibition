@@ -93,9 +93,10 @@ class _ChildListState extends State<ChildList> {
                                             children: [
                                               ClipRRect(
                                                 borderRadius: BorderRadius.circular(50),
-                                                child: childData['imageURL'] != null
-                                                    ? Image.network(childData['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
-                                                    : Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover),
+                                                child:
+                                                childData['imageURL'] != null
+                                                    ? Image.network(childData['imageURL'],fit: BoxFit.cover, width: 130, height: 130)
+                                                    : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
                                               ),
                                               SizedBox(width: 18),
                                               Column(

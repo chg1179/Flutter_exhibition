@@ -20,7 +20,7 @@ class CommonAddDeleteButton extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onAddPressed,
                 style: greenButtonStyle(),
-                child: Text("작가 추가", style: TextStyle(fontSize: 16),),
+                child: Text("추가하기", style: TextStyle(fontSize: 16),),
               ),
             ),
             SizedBox(width: 10),
