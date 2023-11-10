@@ -123,10 +123,10 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
     '눈을 확 사로잡는 입체적인 전시가 더 좋다.',
     '이것 저것 체험을 하며 경험하는 것에 흥미를 느낀다.',
     '멈춰있는 작품보단 살아 숨쉬듯 움직이는 작품이 더 좋다.',
-    'c vs d',
+    '영상매체에 관심이 많은 편이다',
     '‘구관이 명관이다.’ 라는 말에 동의한다.',
     '뭉크 고흐 모네 다빈치등의 오래된 작품등에 흥미가 많은 편이다.',
-    'e vs f',
+    '옛사람들의 시대상을 알 수 있는 고전 작품이 좋다',
     '단지 감상만 하기보단, 배움이 있는 전시회가 좋다.',
     '이것저것 체험하고 만지고 경험해볼수있는 활동을 좋아한다.',
     '무엇이든지 신기하면 손으로 만져봐야 직성이 풀리는 편이다.',
@@ -206,7 +206,7 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                     child: QuestionSection(
                       questionIndex: index,
                       question: questions[index],
-                      options: ['', '', '보통', '', ''],
+                      options: ['', '', '', '', ''],
                       selectedAnswerIndex: selectedAnswerIndices[index],
                       onAnswerSelected: onAnswerSelected,
                     ),
@@ -217,8 +217,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
               if (calculateProgress() * 100 == 100)
                 ElevatedButton(
                   onPressed: () async {
-
-                    // 반복문이나 함수로 수정해서 쓰세요
                     for (int i = 0; i < 4; i++) {
                       int start = i * 3;
                       int end = start + 3;
@@ -247,10 +245,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                           break;
                       }
                     }
-
-
-
-
                     await FirebaseFirestore.instance
                         .collection('user')
                         .doc(sessionId)
@@ -265,25 +259,29 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                       'g': group4Score.round(),
                       'h': group4OppositeScore.round(),
                     });
-                    // Print the calculated values
-                    print('a: $group1Score');
-                    print('b: $group1OppositeScore');
-                    print('c: $group2Score');
-                    print('d: $group2OppositeScore');
-                    print('e: $group3Score');
-                    print('f: $group3OppositeScore');
-                    print('g: $group4Score');
-                    print('h: $group4OppositeScore');
-                    // Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text('검사결과가 저장되었습니다!'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                // 확인 버튼을 눌렀을 때 초기화면으로 이동
+                                Navigator.popUntil(
+                                    context, (route) => route.isFirst);
+                              },
+                              child: Text('확인'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   },
                   child: Text('결과 저장하기'),
-                )
-              ,
-              SizedBox(height: 20),
+                ),
+              SizedBox(height: 20)
               // Progress Indicator
-
-
-
             ],
           ),
         ),
@@ -401,7 +399,7 @@ class AnswerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<double> sizes = [50.0, 45.0, 40.0, 45.0, 50.0];
+    List<double> sizes = [50.0, 45.0, 37.0, 45.0, 50.0];
     double size = sizes[answerIndex];
     Color borderColor = _getBorderColor(answerIndex);
 
@@ -415,7 +413,7 @@ class AnswerOption extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
-          border: Border.all(color: borderColor, width: 2),
+          border: Border.all(color: borderColor, width: 3.5),
           borderRadius: BorderRadius.circular(size / 2),
         ),
         child: Center(
@@ -440,11 +438,11 @@ class AnswerOption extends StatelessWidget {
 
   Color _getBorderColor(int index) {
     List<Color> borderColors = [
-      Color(0xFF2D69FF),
-      Color(0xFF1AB1B2),
-      Color(0xFF6F8588),
-      Color(0xFFEC5FA8),
-      Color(0xFFE11167),
+      Color(0xFF33A374),
+      Color(0xFF33A374),
+      Color(0xFF9A9EAA),
+      Color(0xFF87609A),
+      Color(0xFF87609A),
     ];
 
     return borderColors[index];
@@ -452,11 +450,11 @@ class AnswerOption extends StatelessWidget {
 
   Color _getAnswerColor(int index) {
     List<Color> answerColors = [
-      Color(0xFF2D69FF),
-      Color(0xFF1AB1B2),
-      Color(0xFF6F8588),
-      Color(0xFFEC5FA8),
-      Color(0xFFE11167),
+      Color(0xFF33A374),
+      Color(0xFF33A374),
+      Color(0xFF9A9EAA),
+      Color(0xFF87609A),
+      Color(0xFF87609A),
     ];
 
     return answerColors[index];
