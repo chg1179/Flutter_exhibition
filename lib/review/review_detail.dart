@@ -212,7 +212,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                         Row(
                                           children: [
                                             Text(
-                                              _formatTimestamp(data['write_date'] as Timestamp),
+                                              '${data['write_date'] != null ? _formatTimestamp(data['write_date'] as Timestamp) : "날짜없음"}',
                                               style: TextStyle(fontSize: 12, color: Colors.black45),
                                             ),
                                             Text(' · $isPublic',style: TextStyle(fontSize: 12, color: Colors.black45))
