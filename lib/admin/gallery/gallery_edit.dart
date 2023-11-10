@@ -153,17 +153,20 @@ class _GalleryEditState extends State<GalleryEdit> {
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '갤러리 정보 관리',
-            style: TextStyle(
-                color: Color.fromRGBO(70, 77, 64, 1.0),
-                fontWeight: FontWeight.bold),
+        title: Text(
+          '갤러리 정보 관리',
+          style: TextStyle(
+              color: Color.fromRGBO(70, 77, 64, 1.0),
           ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: Container(
-        margin: EdgeInsets.all(10),
         padding: EdgeInsets.all(10),
         child: Center(
           child: Form(
@@ -185,20 +188,21 @@ class _GalleryEditState extends State<GalleryEdit> {
                                 onTap: getImage, // 이미지를 선택하는 함수 호출
                                 child: Column(
                                   children: [
-                                    ClipOval(
-                                      child: _imageFile != null
-                                          ? buildImageWidget(
-                                            // 이미지 빌더 호출
-                                            imageFile: _imageFile,
-                                            imgPath: imgPath,
-                                            selectImgURL: selectImgURL,
-                                            defaultImgURL: 'assets/logo/basic_logo.png',
-                                          )
-                                          : (widget.document != null && selectImgURL != null)
-                                            ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                            : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
+                                    Center(
+                                      child: ClipOval(
+                                        child: _imageFile != null
+                                            ? buildImageWidget(
+                                              // 이미지 빌더 호출
+                                              imageFile: _imageFile,
+                                              imgPath: imgPath,
+                                              selectImgURL: selectImgURL,
+                                              defaultImgURL: 'assets/logo/basic_logo.png',
+                                            )
+                                            : (widget.document != null && selectImgURL != null)
+                                              ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
+                                              : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
+                                      ),
                                     ),
-                                    Text('갤러리 이미지', style: TextStyle(fontSize: 13),)
                                   ],
                                 )
                             ),
