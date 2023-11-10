@@ -7,29 +7,6 @@ import '../../model/user_model.dart';
 
 
 
-// document에서 원하는 값 뽑기
-// Future<void> _loadUserData() async {
-//   final user = Provider.of<UserModel?>(context, listen: false);
-//   if (user != null && user.isSignIn) {
-//     DocumentSnapshot document = await getDocumentById(user.userNo!);
-//     setState(() {
-//       _userDocument = document;
-//       _userNickName = _userDocument.get('nickName'); // 닉네임이 없을 경우 기본값 설정
-//       _userStatus = _userDocument.get('status');
-//       print('닉네임: $_userNickName');
-//       print('권한: $_userStatus');
-//     });
-//   }
-// }
-//
-//
-//
-//
-//
-// Navigator.push(context, MaterialPageRoute(builder: (context) => ExExpactationReview(document: widget.document, ReId: "new")));
-//  document: widget.document,
-
-
 class JtbiResult extends StatefulWidget {
   JtbiResult({super.key});
 
@@ -40,14 +17,14 @@ class JtbiResult extends StatefulWidget {
 class _JtbiResultState extends State<JtbiResult> {
 late DocumentSnapshot _userDocument;
 late String? _userNickName = "";
-late double _a;
-late double _b;
-late double _c;
-late double _d;
-late double _e;
-late double _f;
-late double _g;
-late double _h;
+late double _a = 0.0;
+late double _b = 0.0;
+late double _c = 0.0;
+late double _d = 0.0;
+late double _e = 0.0;
+late double _f = 0.0;
+late double _g = 0.0;
+late double _h = 0.0;
 
 
 @override
@@ -62,10 +39,10 @@ Future<void> _loadUserData(BuildContext context) async {
   final user = Provider.of<UserModel?>(context, listen: false);
   if (user != null && user.isSignIn) {
     // 사용자의 jbti 컬렉션에 접근
-    CollectionReference jbtiCollection = FirebaseFirestore.instance.collection('users').doc(user.userNo!).collection('jbti');
+    CollectionReference jbtiCollection = FirebaseFirestore.instance.collection('user').doc(user.nickName!).collection('jbti');
 
     // 사용자의 jbti 컬렉션 내에서 문서 가져오기
-    DocumentSnapshot jbtiDocument = await jbtiCollection.doc('documentId').get();
+    DocumentSnapshot jbtiDocument = await jbtiCollection.doc('userId').get();
 
     // 필드 값 가져오기
     double a = jbtiDocument.get('a');
