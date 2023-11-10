@@ -358,29 +358,6 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                             ],
                           ),
                           SizedBox(height: 30),
-                          ElevatedButton(
-                            onPressed: () async {
-
-                              DateTime? _dateTime = DateTime.now();
-
-                              initializeTimeZones(); // 타임스탬프를 위한 타임존 데이터
-
-                              var seoul = getLocation('Asia/Seoul');  // 서울의 타임존 데이터
-
-                              // 서울의 타임존을 가지는 TZDateTime으로 변환
-                              var selectedDate = TZDateTime.from(_dateTime, seoul);
-
-                              // DateTime을 Firestore Timestamp로 변환
-                              var firestoreTimestamp = Timestamp.fromDate(selectedDate);
-
-                              print(_dateTime);
-                              // Firestore에 타임스탬프 추가
-                              await  FirebaseFirestore.instance.collection('test').add({
-                                'testTime': firestoreTimestamp,
-                              });
-                            },
-                            child: Text("타임스탬프"),
-                          ),
                         ],
                       )
                   ),
@@ -453,12 +430,12 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
   }
 
   // 입력된 세부 정보 추가
-  Future<void> addDetails(List<List<TextEditingController>> controllers, String parentCollection, String childCollection) async {
+  Future<void> addDetails(List<List<TextEditingController>> controllers, String parentCollection, String documentId, String childCollection) async {
     for (var i = 0; i < controllers.length; i++) {
       String exFee = controllers[i][0].text;
       String exKind = controllers[i][1].text;
       if (exFee.isNotEmpty && exKind.isNotEmpty) {
-        await addExhibitionDetails(parentCollection, widget.document!.id, childCollection, exFee, exKind);
+        await addExhibitionDetails(parentCollection, documentId, childCollection, exFee, exKind);
       }
     }
   }
@@ -476,12 +453,23 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
           formData['phone'] = _phoneController.text;
           formData['exPage'] = _exPageController.text;
           formData['content'] = _contentController.text;
+          String? selectedArtistValue = artistData[selectedArtist]; // 선택된 작가 옵션
+          String? selectedgalleryValue = galleryData[selectedGallery]; // 선택된 갤러리 옵션
+          if(selectedArtistValue != null)
+            formData['artistNo'] = selectedArtistValue!;
+          if(selectedgalleryValue != null)
+            formData['galleryNo'] = selectedgalleryValue!;
 
           // 파이어베이스에 정보 및 이미지 저장
           if (widget.document != null && widget.document != '' && widget.document!.exists) { // 수정
-            await updateExhibition('exhibitions', widget.document!, formData);
+            await updateExhibition('exhibition', widget.document!, formData, _startDate!, _endDate!);
+            
             // 수정하는 경우에 기존에 있던 하위 컬렉션의 정보를 삭제하고 업데이트된 내용을 삽입
             await deleteSubCollection('exhibition', widget.document!.id, 'exhibition_fee');
+            // 입력한 하위 컬렉션 삽입
+            if(feeControllers.isNotEmpty) await addDetails(feeControllers, 'exhibition', widget.document!.id, 'exhibition_fee'); //추가
+            
+            // 이미지 변경
             if (_imageFile != null) {
               await uploadImage('image');
               await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
@@ -491,7 +479,11 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
               await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
             }
           } else { // 추가
-            String documentId = await addExhibition('exhibition', formData);
+            String documentId = await addExhibition('exhibition', formData, _startDate!, _endDate!);
+            // 입력한 하위 컬렉션 삽입
+            if(feeControllers.isNotEmpty) await addDetails(feeControllers, 'exhibition', documentId, 'exhibition_fee'); //추가
+            
+            // 이미지 업로드
             if (_imageFile != null) {
               await uploadImage('image');
               await updateImageURL('exhibition', documentId, imageContentURL!, 'exhibition_images');
@@ -501,8 +493,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
               }
             }
           }
-          // 입력한 하위 컬렉션 삽입
-          if(feeControllers.isNotEmpty) await addDetails(feeControllers, 'exhibition', 'exhibition_fee'); //추가
+
 
           setState(() {
             _saving = false;
