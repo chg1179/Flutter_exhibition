@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 
 Widget textFieldLabel(String text) {
   return SizedBox(
-    width: 90, // 너비 조정
+    width: 80, // 너비 조정
     child: Text(
       text,
       style: TextStyle(
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: FontWeight.bold,
       ),
     ),
@@ -49,7 +49,7 @@ Widget textControllerBtn(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(kindText),
+        Text(kindText, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),),
         Column(
           children: [
             for (var i = 0; i < textControllers.length; i++)
@@ -63,7 +63,7 @@ Widget textControllerBtn(
                     ),
                   ),
                   SizedBox(
-                    width: inkWidth * 5,
+                    width: inkWidth * 5.5,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 5),
                       child: textFieldType(textControllers[i][1], secondText),
@@ -86,7 +86,6 @@ Widget textControllerBtn(
                         onPressed: onAdd,
                       ),
                     ),
-
                 ],
               ),
           ],

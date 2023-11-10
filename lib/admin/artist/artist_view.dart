@@ -31,11 +31,15 @@ class _ArtistViewState extends State<ArtistView> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Center(
-          child: Text(
-            '${artistData['artistName']}',
-            style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold),
-          ),
+        title: Text(
+          '${artistData['artistName']}',
+          style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
+          onPressed: (){
+            Navigator.pop(context);
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -47,45 +51,93 @@ class _ArtistViewState extends State<ArtistView> {
             children: [
               Column(
                 children: [
-                  ClipOval(
-                    child: artistData['imageURL'] != null
-                        ? Image.network(artistData['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
-                        : Image.asset('assets/logo/logo_basic.png', width: 80, height: 80, fit: BoxFit.cover),
+                  Center(
+                    child: ClipOval(
+                      child:
+                      artistData['imageURL'] != null
+                          ? Image.network(artistData['imageURL'], fit: BoxFit.cover, width: 130, height: 130) //파일 터짐 방지
+                          : Image.asset('assets/logo/logo_basic.png', fit: BoxFit.cover, width: 130, height: 130),
+                    ),
                   ),
-                  Text('프로필 이미지', style: TextStyle(fontSize: 13),)
                 ],
               ),
-              Text(artistData['artistName'] != '' ? '작가명 : ${artistData['artistName']}' : '작가명 : 등록된 작가명이 없습니다.'),
+              SizedBox(height: 30,),
+              Text(artistData['artistName'] != '' ? '${artistData['artistName']}' : '등록된 작가명이 없습니다.', style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+              SizedBox(height: 5),
+              Text(artistData['artistEnglishName'] != '' ? '${artistData['artistEnglishName']}' : '등록된 영문명이 없습니다.', style: TextStyle(fontSize: 15),),
+              SizedBox(height: 30),
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    child: Text("국적", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text(artistData['artistNationality'] != '' ? '${artistData['artistNationality']}' : '등록된 국적이 없습니다.'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text(artistData['artistEnglishName'] != '' ? '영어명 : ${artistData['artistEnglishName']}' : '영어명 : 등록된 영어명이 없습니다.'),
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    child: Text("전공", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Text(artistData['expertise'] != '' ? '${artistData['expertise']}' : '등록된 전공이 없습니다.'),
+                ],
+              ),
               SizedBox(height: 10),
-              Text(artistData['artistNationality'] != '' ? '국적 : ${artistData['artistNationality']}' : '국적 : 등록된 국적이 없습니다.'),
-              SizedBox(height: 10),
-              Text(artistData['expertise'] != '' ? '전공 : ${artistData['expertise']}' : '전공 : 등록된 전공이 없습니다.'),
+              Row(
+                children: [
+                  Container(
+                    width: 60,
+                    child: Text("소개", style: TextStyle(fontWeight: FontWeight.bold),),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width - 100,
+                      child: Text(artistData['artistIntroduce'] != '' ? '${artistData['artistIntroduce']}' : '등록된 소개 글이 없습니다.')
+                  ),
+                ],
+              ),
               SizedBox(height: 15),
-              Text(artistData['artistIntroduce'] != '' ? '소개 : ${artistData['artistIntroduce']}' : '소개 : 등록된 소개 글이 없습니다.'),
-              SizedBox(height: 15),
-              Text('학력'),
+              Container(
+                width: 60,
+                child: Text("학력", style: TextStyle(fontWeight: FontWeight.bold),),
+              ),
+              SizedBox(height: 5,),
               listContent(widget.document, 'artist', 'artist_education', 'year', 'content', false),
-              SizedBox(height: 10),
-              Text('활동'),
+              SizedBox(height: 20),
+              Container(
+                width: 60,
+                child: Text("활동", style: TextStyle(fontWeight: FontWeight.bold),),
+              ),
+              SizedBox(height: 5),
               listContent(widget.document, 'artist', 'artist_history', 'year', 'content', false),
-              SizedBox(height: 10),
-              Text('수상이력'),
+              SizedBox(height: 20),
+              Container(
+                width: 60,
+                child: Text("수상이력", style: TextStyle(fontWeight: FontWeight.bold),),
+              ),
+              SizedBox(height: 5),
               listContent(widget.document, 'artist', 'artist_awards', 'year', 'content', false),
+              SizedBox(height: 30,),
               Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ArtistEditPage(document: widget.document)),
-                    );
-                  },
-                  style: greenButtonStyle(),
-                  child: Text("수정하기"),
+                child: Container(
+                  width: MediaQuery.of(context).size.width - 60,
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ArtistEditPage(document: widget.document)),
+                      );
+                    },
+                    style: greenButtonStyle(),
+                    child: Text("수 정 하 기", style: TextStyle(fontSize: 16),),
+                  ),
                 ),
-              )
+              ),
+              SizedBox(height: 30,),
             ],
           ),
         ),

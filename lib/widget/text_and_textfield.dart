@@ -72,7 +72,7 @@ class TextFieldInput extends StatelessWidget {
       enabled: !(isNationality || isTime),
       controller: controller,
       autofocus: true,
-      maxLines: isIntroduce ? 5 : 1,
+      maxLines: isIntroduce ? 8 : 1,
       keyboardType: kind == 'phone' ? TextInputType.phone : TextInputType.text,
       inputFormatters: [
         isIntroduce ? LengthLimitingTextInputFormatter(1000) : LengthLimitingTextInputFormatter(30),
@@ -82,7 +82,7 @@ class TextFieldInput extends StatelessWidget {
             ? '국가를 선택해 주세요.'
             : isTime ? '시간을 선택해 주세요.' : null,
         labelStyle: TextStyle(
-          fontSize: 18,
+          fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
         focusedBorder: isIntroduce
