@@ -57,8 +57,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(30),
-        padding: EdgeInsets.all(15),
+        padding: EdgeInsets.all(30),
         child: Container(
           child: Form(
             child: SingleChildScrollView(

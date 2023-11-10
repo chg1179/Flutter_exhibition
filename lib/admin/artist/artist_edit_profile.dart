@@ -125,8 +125,6 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        margin: EdgeInsets.all(10),
-        padding: EdgeInsets.all(10),
         child: Center(
           child: Form(
             key: _key,
@@ -148,7 +146,8 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                               child: Column(
                                 children: [
                                   ClipOval(
-                                    child: _imageFile != null
+                                    child:
+                                      _imageFile != null
                                         ? buildImageWidget(
                                           // 이미지 빌더 호출
                                           imageFile: _imageFile,
@@ -157,10 +156,9 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                                           defaultImgURL: 'assets/ex/ex1.png',
                                         )
                                         : (widget.document != null && selectImgURL != null)
-                                          ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
-                                          : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
+                                          ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
+                                          : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
                                   ),
-                                  Text('작가 이미지', style: TextStyle(fontSize: 13),)
                                 ],
                               )
                             ),
