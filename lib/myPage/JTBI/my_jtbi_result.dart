@@ -1,87 +1,24 @@
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../model/user_model.dart';
-
-
-
+void main() {
+  runApp(JtbiResult2());
+}
+class JtbiResult2 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: JtbiResult(),
+    );
+  }
+}
 class JtbiResult extends StatefulWidget {
   JtbiResult({super.key});
-
   @override
   State<JtbiResult> createState() => _JtbiResultState();
 }
-
 class _JtbiResultState extends State<JtbiResult> {
-late DocumentSnapshot _userDocument;
-late String? _userNickName;
-late double _a = 0.0;
-late double _b = 0.0;
-late double _c = 0.0;
-late double _d = 0.0;
-late double _e = 0.0;
-late double _f = 0.0;
-late double _g = 0.0;
-late double _h = 0.0;
-
-
-@override
-  void initState() {
-  super.initState();
-  _loadUserData(context);
-}
-
-// 세션으로 document 값 구하기
-Future<DocumentSnapshot> getDocumentById(String documentId) async {
-  DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
-  return document;
-}
-
-Future<void> _loadUserData(BuildContext context) async {
-  final user = Provider.of<UserModel?>(context, listen: false);
-  if (user != null && user.isSignIn) {
-
-    DocumentSnapshot document = await getDocumentById(user.userNo!);
-    setState(() {
-      _userDocument = document;
-      _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
-      print("닉네임 : ${_userNickName}");
-    });
-
-    // 사용자의 jbti 컬렉션에 접근
-    CollectionReference jbtiCollection = FirebaseFirestore.instance.collection('user').doc(user.nickName!).collection('jbti');
-
-    // 사용자의 jbti 컬렉션 내에서 문서 가져오기
-    DocumentSnapshot jbtiDocument = await jbtiCollection.doc('userId').get();
-
-    // 필드 값 가져오기
-    double a = jbtiDocument.get('a');
-    double b = jbtiDocument.get('b');
-    double c = jbtiDocument.get('c');
-    double d = jbtiDocument.get('d');
-    double e = jbtiDocument.get('e');
-    double f = jbtiDocument.get('f');
-    double g = jbtiDocument.get('g');
-    double h = jbtiDocument.get('h');
-
-    // 가져온 필드 값 사용
-    setState(() {
-      _a = a;
-      _b = b;
-      _c = c;
-      _d = d;
-      _e = e;
-      _f = f;
-      _g = g;
-      _h = h;
-    });
-  }
-}
-
-
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -143,14 +80,15 @@ Future<void> _loadUserData(BuildContext context) async {
             ),
             SizedBox(height: 10,),
             KeywordText(keyword: "마음"),
-            TemperatureBar1(leftPercentage: _a, rightPercentage: _b),
+            TemperatureBar1(leftPercentage: 60, rightPercentage: 40),
             KeywordText(keyword: "에너지"),
-            TemperatureBar2(leftPercentage: _c, rightPercentage: _d),
+            TemperatureBar2(leftPercentage: 70, rightPercentage: 30),
             KeywordText(keyword: "본성"),
-            TemperatureBar3(leftPercentage: _e, rightPercentage: _f),
+            TemperatureBar3(leftPercentage: 50, rightPercentage: 50),
             KeywordText(keyword: "전술"),
-            TemperatureBar4(leftPercentage: _g, rightPercentage: _h),
-
+            TemperatureBar4(leftPercentage: 80, rightPercentage: 20),
+            KeywordText(keyword: "자아"),
+            TemperatureBar5(leftPercentage: 90, rightPercentage: 10),
             Divider(
               color: Colors.grey[300], // 수평선의 색상 설정
               thickness: 1, // 수평선의 두께 설정
@@ -210,8 +148,8 @@ Future<void> _loadUserData(BuildContext context) async {
                     Text(
                       '전공',
                       style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey
+                          fontSize: 12,
+                          color: Colors.grey
                       ),
                     ),
                   ],
@@ -256,21 +194,15 @@ Future<void> _loadUserData(BuildContext context) async {
                 ),
               ],
             )
-
-
           ],
         ),
       ),
-
     );
   }
 }
-
 class KeywordText extends StatelessWidget {
   final String keyword;
-
   KeywordText({required this.keyword});
-
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -283,32 +215,17 @@ class KeywordText extends StatelessWidget {
     );
   }
 }
-
-
 class TemperatureBar1 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-
   TemperatureBar1({required this.leftPercentage, required this.rightPercentage});
-
   @override
   Widget build(BuildContext context) {
     Color leftColor = Color(0xFF50A8AD); // #50A8AD 색상을 사용
     Color? rightColor = Colors.grey[300];
 
-    // double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
-    // double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
-
-    double totalPercentage = leftPercentage + rightPercentage;
-    double leftWidth, rightWidth;
-
-    if (totalPercentage == 0) {
-      leftWidth = 0;
-      rightWidth = 0;
-    } else {
-      leftWidth = 260 * (leftPercentage / totalPercentage);
-      rightWidth = 260 * (rightPercentage / totalPercentage);
-    }
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -353,38 +270,25 @@ class TemperatureBar1 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('입체 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('평면 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('외향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('내향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
     );
   }
 }
-
 class TemperatureBar2 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-
   TemperatureBar2({required this.leftPercentage, required this.rightPercentage});
-
   @override
   Widget build(BuildContext context) {
     Color leftColor = Color(0xFFE2A941);
     Color? rightColor = Colors.grey[300];
 
-    // double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
-    // double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
-    double totalPercentage = leftPercentage + rightPercentage;
-    double leftWidth, rightWidth;
-
-    if (totalPercentage == 0) {
-      leftWidth = 0;
-      rightWidth = 0;
-    } else {
-      leftWidth = 260 * (leftPercentage / totalPercentage);
-      rightWidth = 260 * (rightPercentage / totalPercentage);
-    }
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
     return Column(
       children: [
@@ -429,38 +333,26 @@ class TemperatureBar2 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('동적 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('정적 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('직관형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('현실주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
     );
   }
 }
-
 class TemperatureBar3 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-
   TemperatureBar3({required this.leftPercentage, required this.rightPercentage});
-
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFF58AC8B);
     Color? rightColor = Colors.grey[300];
 
-    // double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
-    // double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
-    double totalPercentage = leftPercentage + rightPercentage;
-    double leftWidth, rightWidth;
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
-    if (totalPercentage == 0) {
-      leftWidth = 0;
-      rightWidth = 0;
-    } else {
-      leftWidth = 260 * (leftPercentage / totalPercentage);
-      rightWidth = 260 * (rightPercentage / totalPercentage);
-    }
     return Column(
       children: [
         Row(
@@ -504,38 +396,26 @@ class TemperatureBar3 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('고전 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('현대 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('이성적사고형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('원칙주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
     );
   }
 }
-
 class TemperatureBar4 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-
   TemperatureBar4({required this.leftPercentage, required this.rightPercentage});
-
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFFCDA1B5);
     Color? rightColor = Colors.grey[300];
 
-    // double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
-    // double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
-    double totalPercentage = leftPercentage + rightPercentage;
-    double leftWidth, rightWidth;
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
-    if (totalPercentage == 0) {
-      leftWidth = 0;
-      rightWidth = 0;
-    } else {
-      leftWidth = 260 * (leftPercentage / totalPercentage);
-      rightWidth = 260 * (rightPercentage / totalPercentage);
-    }
     return Column(
       children: [
         Row(
@@ -579,38 +459,26 @@ class TemperatureBar4 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('탐구 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('감상 전시',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('계획형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text('탐색형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
           ],
         )
       ],
     );
   }
 }
-
 class TemperatureBar5 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-
   TemperatureBar5({required this.leftPercentage, required this.rightPercentage});
-
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFF8B719A);
     Color? rightColor = Colors.grey[300];
 
-    // double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
-    // double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
-    double totalPercentage = leftPercentage + rightPercentage;
-    double leftWidth, rightWidth;
+    double leftWidth = 260 * (leftPercentage / (leftPercentage + rightPercentage));
+    double rightWidth = 260 * (rightPercentage / (leftPercentage + rightPercentage));
 
-    if (totalPercentage == 0) {
-      leftWidth = 0;
-      rightWidth = 0;
-    } else {
-      leftWidth = 260 * (leftPercentage / totalPercentage);
-      rightWidth = 260 * (rightPercentage / totalPercentage);
-    }
     return Column(
       children: [
         Row(

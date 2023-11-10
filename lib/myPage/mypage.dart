@@ -218,14 +218,37 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                             Navigator.push(context, MaterialPageRoute(
                                 builder: (context) => IsNotification()));
                           },
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Image.asset(
-                              'assets/icons/alram.png',
-                              width: 20,
-                              height: 20,
-                            ),
-                          ),
+                          child: Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 15.0, right: 10),
+                                child: Icon(
+                                  Icons.notifications_none,
+                                  size: 25,
+                                  color: Color(0xff464D40),
+                                ),
+                              ),
+                              Positioned(
+                                right: 8, // 수정된 부분: 원하는 위치로 조정
+                                top: 8,  // 수정된 부분: 원하는 위치로 조정
+                                child: Container(
+                                  padding: EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    '1', // 알림 개수 또는 원하는 텍스트로 변경
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
                         ),
                         SizedBox(width: 7),
                         InkWell(
@@ -237,10 +260,10 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(right: 20),
-                            child: Image.asset(
-                              'assets/icons/setting.gif',
-                              width: 20,
-                              height: 20,
+                            child: Icon(
+                              Icons.settings, // 변경된 부분
+                              size: 25,
+                              color: Color(0xff464D40),
                             ),
                           ),
                         ),
