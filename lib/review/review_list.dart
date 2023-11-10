@@ -318,7 +318,6 @@ class _ReviewListState extends State<ReviewList> {
                         children: [
                           CircleAvatar(
                             radius: 8,
-                            backgroundImage: NetworkImage(_profileImage!)
                           ),
                           SizedBox(width: 5,),
                           Text(data['userNickName'], style: TextStyle(fontSize: 13, color: Colors.black)),

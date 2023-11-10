@@ -1,5 +1,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:flutter/material.dart';
@@ -28,10 +29,13 @@ class _CommMyPageState extends State<CommMyPage> {
   }
 
   late Future<List<Map<String, dynamic>>> _myPostsFuture;
+  String? _userNickName;
+
 
   @override
   void initState() {
     super.initState();
+    _userNickName = widget.nickName;
     _myPostsFuture = loadMyPosts();
   }
 
@@ -40,7 +44,7 @@ class _CommMyPageState extends State<CommMyPage> {
     try {
       final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('post')
-          .where('userNickName', isEqualTo: widget.nickName)
+          .where('userNickName', isEqualTo: _userNickName)
           .get();
 
       return querySnapshot.docs.map((doc) {
@@ -63,26 +67,36 @@ class _CommMyPageState extends State<CommMyPage> {
       final List<Map<String, dynamic>> commentDataList = [];
 
       for (final postDoc in postDocs) {
-        final QuerySnapshot postComments = await postDoc.reference
-            .collection('comment')
-            .where('userNickName', isEqualTo: widget.nickName)
-            .get();
+        if (postDoc.exists) {
+          final QuerySnapshot postComments = await postDoc.reference
+              .collection('comment')
+              .where('userNickName', isEqualTo: widget.nickName)
+              .get();
 
-        commentDataList.addAll(postComments.docs.map((commentDoc) {
-          final postTitle = postDoc['title'] as String;
-          final commentContent = commentDoc['comment'] as String;
+          commentDataList.addAll(postComments.docs.map((commentDoc) {
+            if (commentDoc.exists) {
+              final postTitle = postDoc['title'] as String? ?? "No Title"; // title 필드가 없는 경우에 대한 기본값 설정
+              final commentContent = commentDoc['comment'] as String;
 
-          return {'id': commentDoc.id, 'data': {'postTitle': postTitle, 'comment': commentContent}};
-        }));
+              return {'id': commentDoc.id, 'data': {'title': postTitle, 'comment': commentContent}};
+            } else {
+              print('댓글 필드가 존재하지 않음');
+              return {'id': commentDoc.id, 'data': {}};
+            }
+          }));
+        } else {
+          print('게시물 필드가 존재하지 않음');
+        }
       }
 
       return commentDataList;
-
     } catch (e) {
       print('내 코멘트 로딩 중 오류 발생: $e');
       return [];
     }
   }
+
+
 
   Widget _buildUserSection(String message, Widget button) {
     return Container(
@@ -154,45 +168,50 @@ class _CommMyPageState extends State<CommMyPage> {
         final content = post['data']['content'] as String;
         final imageURL = post['data']['imageURL'];
 
-        return Container(
-          margin: EdgeInsets.all(10),
-          padding: EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            border: Border.all(width: 0.8, color: Color(0xff464D40)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    widget.nickName,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  if (post['data']['write_date'] != null)
+        return GestureDetector(
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: post['id'])));
+          },
+          child: Container(
+            margin: EdgeInsets.all(10),
+            padding: EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              border: Border.all(width: 0.8, color: Color(0xff464D40)),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
                     Text(
-                      DateFormat('yyyy.MM.dd').format(post['data']['write_date'].toDate()),
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      widget.nickName,
+                      style: TextStyle(fontSize: 15),
                     ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Text(
-                title,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              SizedBox(height: 8),
-              Text(
-                content,
-                style: TextStyle(fontSize: 15),
-              ),
-              if(imageURL != null)
-                Image.network(imageURL, width: 400, height: 150,)
-              else
-                Container(), // 이미지가 null일 때 빈 컨테이너 반환
-            ],
+                    if (post['data']['write_date'] != null)
+                      Text(
+                        DateFormat('yyyy.MM.dd').format(post['data']['write_date'].toDate()),
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  title,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  content,
+                  style: TextStyle(fontSize: 15),
+                ),
+                if(imageURL != null)
+                  Image.network(imageURL, width: 400, height: 150,)
+                else
+                  Container(), // 이미지가 null일 때 빈 컨테이너 반환
+              ],
+            ),
           ),
         );
       },
@@ -216,46 +235,51 @@ class _CommMyPageState extends State<CommMyPage> {
             itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
               final comment = snapshot.data![index];
-              final postTitle = comment['data']['postTitle'] as String;
+              final postTitle = comment['data']['title'] as String;
               final commentContent = comment['data']['comment'] as String;
 
-              return Container(
-                margin: EdgeInsets.all(10),
-                padding: EdgeInsets.all(15),
-                decoration: BoxDecoration(
-                  border: Border.all(width: 1, color: Color(0xff464D40)),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (comment['data']['write_date'] != null)
-                      Text(
-                        DateFormat('yyyy.MM.dd').format(comment['data']['write_date'].toDate()),
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                    SizedBox(height: 5),
-                    Text(
-                      postTitle,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    SizedBox(height: 20),
-                    Container(
-                      height: 1,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Icon(Icons.subdirectory_arrow_right,size: 20),
-                        SizedBox(width: 5),
+              return GestureDetector(
+                onTap: (){
+                  //Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: comment['id'])));
+                },
+                child: Container(
+                  margin: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Color(0xff464D40)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (comment['data']['write_date'] != null)
                         Text(
-                          commentContent,
-                          style: TextStyle(fontSize: 15),
+                          DateFormat('yyyy.MM.dd').format(comment['data']['write_date'].toDate()),
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
-                      ],
-                    ),
-                  ],
+                      SizedBox(height: 5),
+                      Text(
+                        postTitle,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      SizedBox(height: 20),
+                      Container(
+                        height: 1,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Icon(Icons.subdirectory_arrow_right,size: 20),
+                          SizedBox(width: 5),
+                          Text(
+                            commentContent,
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

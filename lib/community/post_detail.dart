@@ -957,7 +957,8 @@ class _CommDetailState extends State<CommDetail> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            _onBackPressed();
+            Navigator.of(context).pop();
+            //_onBackPressed();
           },
           icon: Icon(Icons.arrow_back),
           color: Colors.black,

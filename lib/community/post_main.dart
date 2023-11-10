@@ -74,16 +74,13 @@ class _CommMainState extends State<CommMain> {
     super.initState();
     if (!isDataLoaded) {
       _loadUserData();
+      _updateSelectedTag(0);
     }
   }
 
   Future<void> loadInitialData() async {
     _loadUserData();
-    // final QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection('post').get();
-    // final List<String> postIds = querySnapshot.docs.map((doc) => doc.id).toList();
-    // _likeCheck(selectedPosts);
-    // setState(() {});
-    // await loadCommentCnt(selectedPosts);
+
   }
 
   late String _userNickName;
@@ -541,12 +538,11 @@ class _CommMainState extends State<CommMain> {
                         children: [
                           GestureDetector(
                             onTap: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: _userNickName)));
                             },
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  backgroundImage: NetworkImage(_profileImage!),
                                   radius: 10,
                                 ),
                                 SizedBox(width: 5),
