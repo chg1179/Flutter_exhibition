@@ -1,26 +1,74 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
+import '../model/user_model.dart';
 
 class IsNotification extends StatefulWidget {
-  const IsNotification({super.key});
-
   @override
   State<IsNotification> createState() => _IsNotificationState();
 }
 
 class _IsNotificationState extends State<IsNotification> {
-  final List<Map<String, dynamic>> _notificationList = [
-    {'content': '단팥빵 님이 회원님의 게시글에 댓글을 달았습니다.', 'time': '5분 전'},
-    {'content': '크로와상 님이 회원님의 게시글에 댓글을 달았습니다.', 'time': '1시간 전'},
-    {'content': '촠호췹쿸키 님이 회원님을 팔로우하기 시작했습니다.', 'time': '어제'},
-    {'content': '참깨빵위에순쇠고기패티두장 님이 회원님을 팔로우하기 시작했습니다.', 'time': '어제'},
-    {'content': '"박영하" 작가의 전시가 등록되었습니다.', 'time': '2023.10.28'},
-    {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
-    {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
-    {'content': '[추천 전시] 미야자키 하이요 <<그대들은 어떻게 먹을 것인가>>', 'time': '2023.10.27'},
-  ];
+  final CollectionReference usersCollection = FirebaseFirestore.instance.collection('user');
+  List<Map<String, dynamic>> _notificationList = [];
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserModel>(context);
+
+    Future<void> getAlarms() async {
+      try {
+        String? userId = user.userNo;
+
+        QuerySnapshot alarmsSnapshot = await usersCollection
+            .doc(userId)
+            .collection('alarm')
+            .get();
+
+        _notificationList = alarmsSnapshot.docs.map((doc) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['documentId'] = doc.id; // 알람의 문서 ID를 추가
+          return data;
+        }).toList();
+
+        print('알림 데이터: $_notificationList');
+      } catch (e) {
+        print('알림 데이터를 불러오는 중 오류가 발생했습니다: $e');
+      }
+    }
+
+    Future<void> removeAlarm(int index) async {
+      try {
+        String? userId = user.userNo;
+        String documentId = _notificationList[index]['documentId'];
+
+        await usersCollection.doc(userId).collection('alarm').doc(documentId).delete();
+
+        print('알림이 삭제되었습니다.');
+      } catch (e) {
+        print('알림 삭제 중 오류가 발생했습니다: $e');
+      }
+    }
+
+    Future<void> clearAllAlarms() async {
+      try {
+        String? userId = user.userNo;
+
+        QuerySnapshot querySnapshot =
+        await usersCollection.doc(userId).collection('alarm').get();
+
+        for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+          await doc.reference.delete();
+        }
+
+        print('알림 데이터가 삭제되었습니다.');
+      } catch (e) {
+        print('알림 데이터 삭제 중 오류가 발생했습니다: $e');
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -38,15 +86,19 @@ class _IsNotificationState extends State<IsNotification> {
         actions: [
           SizedBox(
             child: TextButton(
-                onPressed: (){
-                  setState(() {
-                    _notificationList.clear(); // 리스트를 초기화
-                  });
-                },
-                child: Text("전체 삭제", style: TextStyle(color: Colors.black, fontSize: 13),)
+              onPressed: () async {
+                await clearAllAlarms();
+                setState(() {
+                  _notificationList.clear();
+                });
+              },
+              child: Text(
+                "전체 삭제",
+                style: TextStyle(color: Colors.black, fontSize: 13),
+              ),
             ),
           ),
-          SizedBox(width: 10,)
+          SizedBox(width: 10),
         ],
       ),
       body: Padding(
@@ -54,68 +106,98 @@ class _IsNotificationState extends State<IsNotification> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                itemCount: _notificationList.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    padding: EdgeInsets.all(5),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        InkWell(
-                          onTap: () {},
+              child: FutureBuilder(
+                future: getAlarms(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('오류 발생: ${snapshot.error}');
+                  } else {
+                    return ListView.builder(
+                      itemCount: _notificationList.length,
+                      itemBuilder: (context, index) {
+                        return Dismissible(
+                          key: Key(_notificationList[index]['time'].toString()),
+                          onDismissed: (direction) async {
+                            await removeAlarm(index);
+                            setState(() {
+                              _notificationList.removeAt(index);
+                            });
+                          },
+                          background: Container(
+                            color: Colors.red,
+                            alignment: Alignment.centerRight,
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Icon(Icons.delete, color: Colors.white),
+                          ),
                           child: Container(
-                            width: MediaQuery.of(context).size.width - 30,
-                            decoration: BoxDecoration(
-                              color: Color(0xffeaece4),
-                              borderRadius: BorderRadius.all(Radius.circular(15))
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 15, top: 15, bottom: 15),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 15, top: 5),
-                                    child: Icon(Icons.brush, size: 18, color: Color(0xFF556944),),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        width: MediaQuery.of(context).size.width - 140,
-                                        child: Text(
-                                          _notificationList[index]['content'],
-                                          style: TextStyle(fontSize: 14, color: Colors.black),
-                                        ),
-                                      ),
-                                      SizedBox(height: 13),
-                                      Text(_notificationList[index]['time'], style: TextStyle(color: Color(0xff464D40), fontSize: 13)),
-                                    ],
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    margin: EdgeInsets.only(right: 15),
-                                    padding: EdgeInsets.all(1),
+                            padding: EdgeInsets.all(5),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () {},
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width - 30,
                                     decoration: BoxDecoration(
-                                      color: Color(0xffD4D8C8),
-                                      borderRadius: BorderRadius.all(Radius.circular(6))
+                                        color: Color(0xffeaece4),
+                                        borderRadius: BorderRadius.all(Radius.circular(15))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 15, top: 15, bottom: 15),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 15, top: 5),
+                                            child: Icon(
+                                              Icons.brush,
+                                              size: 18,
+                                              color: Color(0xFF556944),
+                                            ),
+                                          ),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: MediaQuery.of(context).size.width - 140,
+                                                child: Text(
+                                                  '${_notificationList[index]['nickName']} ${_notificationList[index]['content']}',
+                                                  style: TextStyle(fontSize: 14, color: Colors.black),
+                                                ),
+                                              ),
+                                              SizedBox(height: 13),
+                                              Text(
+                                                DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                    .format(_notificationList[index]['time'].toDate()),
+                                                style: TextStyle(color: Color(0xff464D40), fontSize: 13),
+                                              ),
+                                            ],
+                                          ),
+                                          Spacer(),
+                                          Container(
+                                            margin: EdgeInsets.only(right: 15),
+                                            padding: EdgeInsets.all(1),
+                                            decoration: BoxDecoration(
+                                                color: Color(0xffD4D8C8),
+                                                borderRadius: BorderRadius.all(Radius.circular(6))),
+                                            child: InkWell(child: Icon(Icons.clear, size: 19)),
+                                          )
+                                        ],
+                                      ),
                                     ),
-                                    child: InkWell(
-                                      child: Icon(Icons.clear, size: 19,)
-                                    ),
-                                  )
-                                ],
-                              ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
+                        );
+                      },
+                    );
+                  }
                 },
               ),
             ),
