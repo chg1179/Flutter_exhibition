@@ -1,9 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/admin/exhibition/exhibition_list.dart';
+import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/firebase_storage/image_upload.dart';
+import 'package:exhibition_project/firestore_connect/exhibition_query.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
+import 'package:exhibition_project/firestore_connect/user_query.dart';
+import 'package:exhibition_project/style/button_styles.dart';
 import 'package:exhibition_project/widget/image_widgets.dart';
 import 'package:exhibition_project/widget/text_and_textfield.dart';
 import 'package:exhibition_project/widget/text_widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:timezone/data/latest_all.dart';
@@ -30,26 +36,36 @@ class ExhibitionEdit extends StatefulWidget {
 
 class _ExhibitionEditState extends State<ExhibitionEdit> {
   final _key = GlobalKey<FormState>(); // Form 위젯과 연결. 동적인 행동 처리
-  Map<String, String> artistData = {}; // 선택할 작가 리스트
-  String? selectedArtist; // 작가 기본 선택 옵션
   Map<String, dynamic>? exhibitionData; // 전시회 상세 정보
-  String? artistName; // 작가의 이름
+  Map<String, String> artistData = {}; // 선택할 작가 리스트
+  Map<String, String> galleryData = {}; // 선택할 갤러리 리스트
+  String? selectedArtist; // 작가 기본 선택 옵션
+  String? selectedGallery; // 갤러리 기본 선택 옵션
+  String? artistName; // 작가명
+  String? galleryName; // 갤러리명
+
   final TextEditingController _exTitleController = TextEditingController(); // 전시회명
   final TextEditingController _phoneController = TextEditingController(); // 전화번호
-  final TextEditingController _webSiteController = TextEditingController();
+  final TextEditingController _exPageController = TextEditingController();
   final TextEditingController _contentController = TextEditingController(); // 전시회설명
   List<List<TextEditingController>> feeControllers = [
     [TextEditingController(), TextEditingController()]
   ];
-
+  DateTime? _startDate; // 전시 시작 날짜
+  DateTime? _endDate; // 전시 종료 날짜
+  
   bool allFieldsFilled = false; // 필수 입력 값을 입력하지 않으면 비활성화
   Map<String, String> formData = {}; // 컨테이너에 값을 넣어 파라미터로 전달
   final ImageSelector selector = ImageSelector();//이미지
   late ImageUploader uploader;
   XFile? _imageFile;
+  XFile? _imageContentFile;
   String? imageURL;
+  String? imageContentURL;
   String? imgPath;
+  String? imgContentPath;
   String? selectImgURL;
+  String? selectContentImgURL;
   bool _saving = false; // 저장 로딩
 
   @override
@@ -67,43 +83,9 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
     });
   }
 
-  // 작가 리스트 옵션 세팅
-  void settingArtistOption() async {
-    artistData = await getArtistData(); // Firestore에서 작가 이름과 문서 ID를 가져와 맵에 저장
-    if(artistData.isNotEmpty) {
-      setState(() {
-        if (artistData.isNotEmpty && widget.document == null) {
-          selectedArtist = '해당없음'; // 첫 번째 작가를 선택한 작가로 설정
-        } else if (widget.document != null) {
-          if (widget.document!['artistNo'] != null && widget.document!['artistNo'] != '') {
-            selectedArtist = artistName;
-            print('작가명: $selectedArtist');
-          }
-        }
-      });
-    }
-  }
-
-  // 작가 리스트 가져오기
-  Future<Map<String, String>> getArtistData() async {
-    try {
-      QuerySnapshot artistSnapshot = await FirebaseFirestore.instance.collection('artist').orderBy('artistName', descending: false).get();
-
-      if (artistSnapshot.docs.isNotEmpty) {
-        for (var doc in artistSnapshot.docs) {
-          artistData[doc['artistName']] = doc.id;
-        }
-      }
-    } catch (e) {
-      print('Error fetching artist data: $e'); // 오류 발생 시 처리
-    }
-    artistData['해당없음'] = ''; // 선택할 작가가 없는 경우를 나타내는 옵션
-    return artistData;
-  }
-
   // 수정하는 경우에 저장된 값을 필드에 출력
   Future<void> settingText() async {
-    settingArtistOption(); // 작가 리스트 설정
+    settingCollectionOption(); // 작가, 갤러리 리스트 설정
     setExhibitionData();
 
     if (widget.document != null) {
@@ -111,14 +93,21 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
       if (widget.document!.exists) {
         _exTitleController.text = data['exTitle'] != null ? data['exTitle'] : '';
         _phoneController.text = data['phone'] != null ? data['phone'] : '';
-        _webSiteController.text = data['webSite'] != null ? data['webSite'] : '';
+        _exPageController.text = data['exPage'] != null ? data['exPage'] : '';
         _contentController.text = data['content'] != null ? data['content'] : '';
         await settingTextList('exhibition', 'exhibition_fee', feeControllers, widget.document!.id, 'update', 'exFee', 'exKind');
+
+        // 운영 날짜 받아오기
+        Timestamp startDateTimestamp = exhibitionData!['startDate']; // Firestore에서 가져온 Timestamp
+        Timestamp endDateTimestamp = exhibitionData!['endDate'];
+        _startDate = startDateTimestamp.toDate(); // Timestamp를 Dart의 DateTime으로 변환
+        _endDate = endDateTimestamp.toDate();
+
         selectImgURL = await data['imageURL'];
+        selectContentImgURL = await data['cotentURL'];
         setState(() {
           allFieldsFilled = true; // 이미 정보를 입력한 사용자를 불러옴
         });
-        print(selectImgURL);
         print('기존 정보를 수정합니다.');
       } else {
         print('새로운 정보를 추가합니다.');
@@ -126,37 +115,103 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
     }
   }
 
-  // 전시회, 작가 정보 가져오기
+  // 작가 리스트 옵션 세팅
+  void settingCollectionOption() async {
+    artistData = await getCollectionData('artist', 'artistName'); // Firestore에서 작가 이름과 문서 ID를 가져와 맵에 저장
+    galleryData = await getCollectionData('gallery', 'galleryName');
+    if (artistData.isNotEmpty) {
+      setState(() {
+        if (widget.document == null) {
+          // 데이터를 추가할 때, 해당 없음으로 설정
+          selectedArtist = '해당없음';
+        } else if (widget.document != null) {
+          // 데이터를 수정
+          if (widget.document!['artistNo'] != null && widget.document!['artistNo'] != '') {
+            selectedArtist = artistName; // 일치하는 작가를 찾아 설정
+          } else {
+            selectedArtist = '해당없음'; // 선택된 작가가 없다면 해당 없음으로 설정
+          }
+        }
+      });
+    }
+    if (galleryData.isNotEmpty) {
+      setState(() {
+        if (widget.document == null) {
+          // 데이터를 추가할 때, 해당 없음으로 설정
+          selectedGallery = galleryData.keys.first; // 기본으로 첫 번째 갤러리를 선택
+        } else if (widget.document != null) {
+          selectedGallery = galleryName;
+        }
+      });
+    }
+  }
+
+  // 작가 리스트 가져오기
+  Future<Map<String, String>> getCollectionData(String collectionName, String fieldName) async {
+    try {
+      QuerySnapshot snap = await FirebaseFirestore.instance.collection(collectionName).orderBy(fieldName, descending: false).get();
+
+      if (snap.docs.isNotEmpty) {
+        for (var doc in snap.docs) {
+          if(collectionName == 'artist')
+            artistData[doc[fieldName]] = doc.id;
+          else if(collectionName == 'gallery')
+            galleryData[doc[fieldName]] = doc.id;
+        }
+      }
+    } catch (e) {
+      print('Error fetching artist data: $e'); // 오류 발생 시 처리
+    }
+    artistData['해당없음'] = ''; // 선택할 작가가 없는 경우를 나타내는 옵션을 push
+    if(collectionName == 'artist')
+      return artistData;
+    else
+      return galleryData;
+  }
+
+  // 전시회의 작가와 갤러리 정보 가져오기
   void setExhibitionData() async {
     if(widget.document != null) {
       exhibitionData = getMapData(widget.document!);
+      print(exhibitionData!['galleryNo']);
       if (exhibitionData != null && exhibitionData!['artistNo'] != null && exhibitionData!['artistNo'] != '') {
-        getArtistName(exhibitionData!['artistNo']);
+        getFieldName(exhibitionData!['artistNo'], 'artist', 'artistName');
+      }
+      if (exhibitionData != null && exhibitionData!['galleryNo'] != null && exhibitionData!['galleryNo'] != '') {
+        getFieldName(exhibitionData!['galleryNo'], 'gallery', 'galleryName');
       }
     }
   }
 
-  // 전시회 컬렉션 안에 있는 작가의 문서 id를 이용하여 작가 이름 가져오기
-  void getArtistName(String documentId) async {
-    DocumentSnapshot artistDocument = await FirebaseFirestore.instance.collection('artist').doc(documentId).get();
-    if (artistDocument.exists) {
-      artistName = artistDocument.get('artistName');
-      setState(() {
-        print('Artist Name: $artistName');
-      });
-    } else { // 작가 컬렉션에서 문서 id가 일치하는 작가가 없을 경우
-      artistName = '해당없음';
+  // 전시회 컬렉션 안에 있는 문서 id를 이용하여 이름 가져오기
+  void getFieldName(String documentId, String collectionName, String fieldName) async {
+    DocumentSnapshot nameDocument = await FirebaseFirestore.instance.collection(collectionName).doc(documentId).get();
+    if (nameDocument.exists) {
+      if(collectionName == 'artist')
+        artistName = nameDocument.get(fieldName);
+      else if(collectionName == 'gallery')
+        galleryName = nameDocument.get(fieldName);
+    } else { // 다른 컬렉션에서 문서 id가 일치하는 정보가 없을 경우
+      if(collectionName == 'artist')
+        artistName = '해당없음';
+      else if(collectionName == 'gallery')
+        galleryName = galleryData.keys.first;
       print('Document not found');
     }
   }
 
   // 이미지 가져오기
-  Future<void> getImage() async {
+  Future<void> getImage(String kind) async {
     XFile? pickedFile = await selector.selectImage();
     if (pickedFile != null) {
       setState(() {
-        _imageFile = pickedFile;
-        imgPath = pickedFile.path;
+        if(kind == 'image') {
+          _imageFile = pickedFile;
+          imgPath = pickedFile.path;
+        } else if(kind == 'contentImage'){
+          _imageContentFile = pickedFile;
+          imgContentPath = pickedFile.path;
+        }
       });
     } else {
       print('No image selected.');
@@ -164,12 +219,21 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
   }
 
   // 이미지 추가
-  Future<void> uploadImage() async {
-    if (_imageFile != null) {
-      imageURL = await uploader.uploadImage(_imageFile!);
-      print('Uploaded to Firebase Storage: $imageURL');
-    } else {
-      print('No image selected.');
+  Future<void> uploadImage(String kind) async {
+    if(kind == 'image') {
+      if (_imageFile != null) {
+        imageURL = await uploader.uploadImage(_imageFile!);
+        print('Uploaded to Firebase Storage: $imageURL');
+      } else {
+        print('No image selected.');
+      }
+    } else if(kind == 'contentImage'){
+      if (_imageContentFile != null) {
+        imageContentURL = await uploader.uploadImage(_imageContentFile!);
+        print('Uploaded content to Firebase Storage: $imageContentURL');
+      } else {
+        print('No image selected.');
+      }
     }
   }
 
@@ -204,7 +268,9 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                           SizedBox(height: 10),
                           Center(
                             child: InkWell(
-                                onTap: getImage, // 이미지를 선택하는 함수 호출
+                                onTap: (){
+                                  getImage('image');
+                                }, // 이미지를 선택하는 함수 호출
                                 child: Column(
                                   children: [
                                     ClipOval(
@@ -217,7 +283,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                             defaultImgURL: 'assets/logo/basic_logo.png',
                                           )
                                           : (widget.document != null && selectImgURL != null)
-                                          ? Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
+                                          ? Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover)//Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
                                           : Image.asset('assets/logo/basic_logo.png', width: 50, height: 50, fit: BoxFit.cover),
                                     ),
                                     Text('전시회 이미지', style: TextStyle(fontSize: 13),),
@@ -226,36 +292,40 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                             ),
                           ),
                           SizedBox(height: 30),
-                          SizedBox(height: 30),
                           TextAndTextField('전시회명', _exTitleController, 'exTitle'),
                           SizedBox(height: 30),
-                          TextAndTextField('전화번호', _phoneController, 'phone'),
+                          if(selectedGallery != null)
+                            buildDropdownRow('갤러리', selectedGallery!, galleryData, (String newValue) {
+                              selectedGallery = newValue;
+                            }),
                           SizedBox(height: 30),
-                          TextAndTextField('전시페이지', _webSiteController, 'webSite'),
-                          SizedBox(height: 30),
-                          TextAndTextField('전시회설명', _contentController, 'introduce'),
+                          if(selectedArtist != null)
+                            buildDropdownRow('작가', selectedArtist!, artistData, (String newValue) {
+                              selectedArtist = newValue;
+                            }),
                           SizedBox(height: 30),
                           Row(
                             children: [
-                              textFieldLabel('작가'),
-                              DropdownButton<String>(
-                                value: selectedArtist,
-                                items: artistData.keys.map((String value) {
-                                  return DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(value),
-                                  );
-                                }).toList(),
-                                onChanged: (String? newValue) {
-                                  setState(() {
-                                    selectedArtist = newValue!;
-                                  });
+                              textFieldLabel('전시일정'),
+                              ElevatedButton(
+                                onPressed: () {
+                                  _selectDateRange(context);
                                 },
+                                child: Text(
+                                  _startDate != null && _endDate != null
+                                      ? '${_startDate.toString().split(" ")[0]} ~ ${_endDate.toString().split(" ")[0]}'
+                                      : '날짜 선택',
+                                ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 20),
-                          Text('선택된 옵션: $selectedArtist'),
+                          SizedBox(height: 30),
+                          TextAndTextField('전화번호', _phoneController, 'phone'),
+                          SizedBox(height: 30),
+                          TextAndTextField('전시페이지', _exPageController, 'exPage'),
+                          SizedBox(height: 30),
+                          TextAndTextField('전시회설명', _contentController, 'introduce'),
+                          SizedBox(height: 30),
                           textControllerBtn(context, '입장료', '금액', '대상', feeControllers, () {
                             setState(() {
                               feeControllers.add([TextEditingController(), TextEditingController()]);
@@ -264,8 +334,30 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                             setState(() {
                               feeControllers.removeAt(i);
                             });
-                          },
+                          }),
+                          SizedBox(height: 30),
+                          Row(
+                            children: [
+                              textFieldLabel('상세이미지'),
+                              ElevatedButton(
+                                onPressed: (){
+                                  getImage('contentImage');
+                                },
+                                child:  _imageContentFile != null
+                                    ? buildImageWidget(
+                                      // 이미지 빌더 호출
+                                      imageFile: _imageContentFile,
+                                      imgPath: imgContentPath,
+                                      selectImgURL: selectContentImgURL,
+                                      defaultImgURL: 'assets/logo/green_logo.png',
+                                    )
+                                    : (widget.document != null && selectContentImgURL != null)
+                                      ? Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover)//Image.network(selectContentImgURL!, width: double.infinity, height: 50, fit: BoxFit.cover)
+                                      : Text('이미지 선택'),
+                              ),
+                            ],
                           ),
+                          SizedBox(height: 30),
                           ElevatedButton(
                             onPressed: () async {
 
@@ -295,7 +387,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                   // 추가
                   Container(
                     margin: EdgeInsets.all(20),
-                    //child: submitButton()
+                    child: submitButton()
                   ),
                 ],
               ),
@@ -306,10 +398,127 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
     );
   }
 
+  // 옵션 선택
+  Row buildDropdownRow(String label, String value, Map<String, dynamic> data, void Function(String) onChanged) {
+    return Row(
+      children: [
+        textFieldLabel(label),
+        DropdownButton<String>(
+          value: value,
+          items: data.keys.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              onChanged(newValue!);
+            });
+          },
+        ),
+      ],
+    );
+  }
+  
+  // 운영 시작 날짜와 종료 날짜를 선택
+  void _selectDateRange(BuildContext context) async {
+    final initialDateRange = DateTimeRange(
+      start: _startDate?? DateTime.now(),
+      end: _endDate ?? DateTime.now(),
+    );
+
+    final newDateRange = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      initialDateRange: initialDateRange,
+    );
+
+    if (newDateRange == null) return; // 사용자가 선택하지 않은 경우
+
+    setState(() {
+      _startDate = newDateRange.start;
+      _endDate = newDateRange.end;
+      updateButtonState();
+    });
+  }
+
   void updateButtonState() async {
     setState(() {
       allFieldsFilled = _exTitleController.text.isNotEmpty &&
-          _contentController.text.isNotEmpty;
+          _startDate != null &&
+          _endDate != null;
     });
+  }
+
+  // 입력된 세부 정보 추가
+  Future<void> addDetails(List<List<TextEditingController>> controllers, String parentCollection, String childCollection) async {
+    for (var i = 0; i < controllers.length; i++) {
+      String exFee = controllers[i][0].text;
+      String exKind = controllers[i][1].text;
+      if (exFee.isNotEmpty && exKind.isNotEmpty) {
+        await addExhibitionDetails(parentCollection, widget.document!.id, childCollection, exFee, exKind);
+      }
+    }
+  }
+
+  Widget submitButton() {
+    // 모든 값을 입력하지 않으면 비활성화
+    return ElevatedButton(
+      onPressed: allFieldsFilled ? () async {
+        try {
+          // 입력한 정보 저장
+          setState(() {
+            _saving = true; // 저장 중
+          });
+          formData['exTitle'] = _exTitleController.text;
+          formData['phone'] = _phoneController.text;
+          formData['exPage'] = _exPageController.text;
+          formData['content'] = _contentController.text;
+
+          // 파이어베이스에 정보 및 이미지 저장
+          if (widget.document != null && widget.document != '' && widget.document!.exists) { // 수정
+            await updateExhibition('exhibitions', widget.document!, formData);
+            // 수정하는 경우에 기존에 있던 하위 컬렉션의 정보를 삭제하고 업데이트된 내용을 삽입
+            await deleteSubCollection('exhibition', widget.document!.id, 'exhibition_fee');
+            if (_imageFile != null) {
+              await uploadImage('image');
+              await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
+            }
+            if (_imageContentFile != null) {
+              await uploadImage('contentImage');
+              await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
+            }
+          } else { // 추가
+            String documentId = await addExhibition('exhibition', formData);
+            if (_imageFile != null) {
+              await uploadImage('image');
+              await updateImageURL('exhibition', documentId, imageContentURL!, 'exhibition_images');
+              if (_imageContentFile != null) {
+                await uploadImage('contentImage');
+                await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
+              }
+            }
+          }
+          // 입력한 하위 컬렉션 삽입
+          if(feeControllers.isNotEmpty) await addDetails(feeControllers, 'exhibition', 'exhibition_fee'); //추가
+
+          setState(() {
+            _saving = false;
+          });
+
+          // 저장 완료 메세지
+          Navigator.of(context).pop();
+          await showMoveDialog(context, '성공적으로 저장되었습니다.', () => ExhibitionList());
+        } on FirebaseAuthException catch (e) {
+          firebaseException(e);
+        } catch (e) {
+          print(e.toString());
+        }
+      } : null, // 버튼이 비활성 상태인 경우 onPressed를 null로 설정
+      style: allFieldsFilled ? fullGreenButtonStyle() : fullGreyButtonStyle(), // 모든 값을 입력했다면 그린 색상으로 활성화,
+      child: boldGreyButtonContainer('정보 저장'),
+    );
   }
 }

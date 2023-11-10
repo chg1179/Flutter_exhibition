@@ -88,7 +88,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                 children: [
                   ClipOval(
                     child: exhibitionData!['imageURL'] != null
-                        ? Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
+                        ? Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover)//Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
                         : Image.asset('assets/logo/basic_logo.png', width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Text('전시회 이미지', style: TextStyle(fontSize: 13),)
@@ -118,7 +118,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('상세 이미지 : '),
-                          Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
+                          //Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
                         ],
                       )
                       : Text('상세 이미지 : 상세 이미지가 없습니다.'),
