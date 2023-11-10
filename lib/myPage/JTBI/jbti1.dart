@@ -249,6 +249,19 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                         .collection('user')
                         .doc(sessionId)
                         .collection('jbti')
+                        .get()
+                        .then((QuerySnapshot querySnapshot) {
+                      if (querySnapshot.size > 0) {
+                        querySnapshot.docs.forEach((doc) {
+                          doc.reference.delete();
+                        });
+                      }
+                    });
+
+                    await FirebaseFirestore.instance
+                        .collection('user')
+                        .doc(sessionId)
+                        .collection('jbti')
                         .add({
                       'a': group1Score.round(),
                       'b': group1OppositeScore.round(),
@@ -420,14 +433,14 @@ class AnswerOption extends StatelessWidget {
           child: Text(
             isSelected
                 ? (answerIndex == 0
-                ? '5점'
+                ? '5'
                 : (answerIndex == 1
-                ? '4점'
+                ? '4'
                 : (answerIndex == 2
-                ? '2.5점'
+                ? '2.5'
                 : (answerIndex == 3
-                ? '4점'
-                : (answerIndex == 4 ? '5점' : '')))))
+                ? '4'
+                : (answerIndex == 4 ? '5' : '')))))
                 : text,
             style: TextStyle(color: isSelected ? Colors.white : borderColor),
           ),
