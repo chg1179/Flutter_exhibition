@@ -19,6 +19,7 @@ class _CommProfileState extends State<CommProfile> {
   List<Map<String, dynamic>>? _followInfo;
   Map<String, dynamic>? _userInfo;
   List<Map<String, String>> _imgList = [];
+  String? _userProfileImage;
 
   ButtonStyle getFollowButtonStyle() {
     return isFollowed
@@ -117,10 +118,15 @@ class _CommProfileState extends State<CommProfile> {
         final followingCount = await getFollowingCount(userId);
         final followerCount = await getFollowerCount(userId);
 
+        // 유저 프로필 이미지 가져오기
+        final userProfileSnapshot = await _firestore.collection('user').doc(userId).get();
+        final userProfileImage = userProfileSnapshot['profileImage'];
+
         // 팔로잉 및 팔로워 수를 상태에 저장
         setState(() {
           _followingCount = followingCount;
           _followerCount = followerCount;
+          _userProfileImage = userProfileImage;
         });
       }
     } catch (e) {
@@ -197,6 +203,7 @@ class _CommProfileState extends State<CommProfile> {
             'image': imageURL,
           };
         }).toList();
+        _userProfileImage = _imgList.isNotEmpty ? _imgList[0]['image'] : null;
       });
     }
   }
@@ -318,7 +325,9 @@ class _CommProfileState extends State<CommProfile> {
                         alignment: Alignment.centerRight,
                         child: CircleAvatar(
                           radius: 30,
-                          backgroundImage: AssetImage('assets/comm_profile/5su.jpg'),
+                          backgroundImage: _userProfileImage != null
+                              ? NetworkImage(_userProfileImage!)
+                              : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
                         ),
                       ),
                     ),
