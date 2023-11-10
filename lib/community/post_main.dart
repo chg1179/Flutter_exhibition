@@ -57,7 +57,7 @@ class _CommMainState extends State<CommMain> {
     final difference = currentTime.difference(commentTime);
 
     if (difference.inDays > 0) {
-      return DateFormat('yyyy-MM-dd').format(commentTime);
+      return DateFormat('yyyy년 MM월 dd일').format(commentTime);
     } else if (difference.inHours > 0) {
       return '${difference.inHours}시간 전';
     } else if (difference.inMinutes > 0) {
@@ -326,6 +326,7 @@ class _CommMainState extends State<CommMain> {
     return ButtonStyle(
       minimumSize: MaterialStateProperty.all(Size(0, 30)),
       backgroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all<double>(0),
       textStyle: MaterialStateProperty.all(
         TextStyle(
           fontSize: 13,
@@ -373,15 +374,25 @@ class _CommMainState extends State<CommMain> {
 
   Widget _recommendhashTag() {
     return Container(
-      padding: EdgeInsets.only(top: 10, right: 50, bottom: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey,  // 테두리 색상
+            width: 0.3,           // 테두리 두께
+          ),
+        ),
+      ),
+      padding: EdgeInsets.only(top: 10, bottom: 10, right: 20, left: 20),
+      width: MediaQuery.of(context).size.width,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            child: Text('추천 태그✨', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            child: Text('추천 태그', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
           Wrap(
             spacing: 5,
+            runSpacing: -10,
             children: _tagList.asMap().entries.map((entry) {
               final index = entry.key;
               final tag = entry.value;
@@ -407,7 +418,7 @@ class _CommMainState extends State<CommMain> {
       child: TabBar(
         indicatorColor: Color(0xff464D40),
         labelColor: Colors.black,
-        labelStyle: TextStyle(fontWeight: FontWeight.bold),
+        labelStyle: TextStyle(fontSize: 15),
         unselectedLabelColor: Colors.black45,
         tabs: [
           Tab(text: '최신순'),
@@ -421,18 +432,16 @@ class _CommMainState extends State<CommMain> {
 
   Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+      padding: const EdgeInsets.only(top: 20, bottom: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, viewCount.toString()),
+              buildIconsItem(Icons.visibility_outlined, viewCount.toString()),
               SizedBox(width: 5),
               buildIconsItem(
-                Icons.chat_bubble_rounded,  (commentCounts[docId] ?? 0).toString()),
-              SizedBox(width: 5),
-
+                Icons.chat_bubble_outline_rounded,  (commentCounts[docId] ?? 0).toString()),
             ],
           ),
           Row(
@@ -447,16 +456,12 @@ class _CommMainState extends State<CommMain> {
 
   Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) {
     return Container(
-      padding: EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Color(0xff464D40),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      padding: EdgeInsets.only(left: 5, right: 5,),
       child: Row(
         children: [
-          Icon(icon, size: 13, color: iconColor ?? Colors.white),
-          SizedBox(width: 2),
-          Text(text, style: TextStyle(color: Colors.white)),
+          Icon(icon, size: 24, color: iconColor ?? Colors.grey[600]),
+          SizedBox(width: 5),
+          Text(text, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         ],
       ),
     );
@@ -499,7 +504,7 @@ class _CommMainState extends State<CommMain> {
         return ListView.separated(
           itemCount: filteredDocs.length,
           separatorBuilder: (context, index) {
-            return Divider(color: Colors.grey, thickness: 0.8);
+            return Divider(color: Colors.grey, thickness: 0.5);
           },
           itemBuilder: (context, index) {
             final doc = filteredDocs[index];
@@ -548,48 +553,59 @@ class _CommMainState extends State<CommMain> {
                             child: Row(
                               children: [
                                 CircleAvatar(
-                                  radius: 10,
+                                  radius: 20,
                                 ),
-                                SizedBox(width: 5),
-                                Text(nickName, style: TextStyle(fontSize: 13)),
+                                SizedBox(width: 10),
+                                Text(nickName, style: TextStyle(fontSize: 15)),
                               ],
                             ),
                           ),
                           Text(
                             _formatTimestamp(doc['write_date'] as Timestamp),
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                           )
                         ],
                       ),
                     ),
+                    SizedBox(height: 10,),
                     Padding(
-                      padding: const EdgeInsets.all(4.0),
+                      padding: const EdgeInsets.all(5),
                       child: Text(
                         title,
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                     ),
+                    SizedBox(height: 5,),
                     Padding(
-                      padding: const EdgeInsets.all(4.0),
+                      padding: const EdgeInsets.all(5),
                       child: Text(
                         content,
-                        style: TextStyle(fontSize: 14),
+                        style: TextStyle(fontSize: 15),
                       ),
                     ),
+                    SizedBox(height: 10,),
                     if (imageURL != null && imageURL.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.all(4.0),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
+                          child:
+                          Image.network(
                             imageURL,
                             width: 400,
                             height: 200,
                             fit: BoxFit.cover,
                           ),
+                          // Image.asset( //스토리지 터짐용
+                          //   "assets/ex/ex1.png",
+                          //   width: 400,
+                          //   height: 200,
+                          //   fit: BoxFit.cover,
+                          // ),
                         ),
                       ),
                     buildIcons(docId, viewCount, likeCount),
+                    SizedBox(height: 5,),
                     FutureBuilder<QuerySnapshot>(
                         future: FirebaseFirestore.instance
                                 .collection('post')
@@ -605,11 +621,12 @@ class _CommMainState extends State<CommMain> {
                           }
                           return Wrap(
                             spacing: 5,
+                            runSpacing: -12,
                             children: hashtagSnap.data!.docs.map((doc) {
                               final keyword = doc['tag_name'] as String;
 
                               return ElevatedButton(
-                                child: Text('# $keyword'),
+                                child: Text('#$keyword'),
                                 onPressed: () {
                                 },
                                 style: _unPushBtnStyle(),
@@ -636,39 +653,26 @@ class _CommMainState extends State<CommMain> {
       child: Scaffold(
         appBar: AppBar(
           leading: null,
-          elevation: 0,
+          elevation: 1,
           automaticallyImplyLeading: false,
-          title: Text('커뮤니티️', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
+          title: Text('COMMUNITY', style: TextStyle(color: Colors.black)),
           actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PostSearch()));
-              },
-              icon: Icon(Icons.search),
-              color: Colors.black,
-            ),
-
-            TextButton(
-              onPressed: () {
-                if (_userNickName != null && _userNickName!.isNotEmpty) {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (context) =>
-                          CommMyPage(nickName: _userNickName)));
-                } else {
-                  _showDialog();
-                }
-              },
-              child: Container(
-                alignment: Alignment.center,
-                width: 60,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Color(0xffD4D8C8),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text('내활동', style: TextStyle(color: Color(0xff464D40))),
+            Container(
+              padding: EdgeInsets.only(top: 2),
+              width: 35,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => PostSearch()));
+                },
+                icon: Icon(Icons.search, color: Color(0xff464D40),),
               ),
             ),
+            IconButton(
+              icon: Icon(Icons.view_list_sharp, color: Color(0xff464D40),),
+              onPressed: (){
+                Navigator.push(context, MaterialPageRoute(builder: (context) =>CommMyPage(nickName: _userNickName)));
+              },
+            )
           ],
           backgroundColor: Colors.white,
         ),
@@ -690,7 +694,7 @@ class _CommMainState extends State<CommMain> {
           onPressed: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => CommEdit()));
           },
-          child: Icon(Icons.edit),
+          child: Icon(Icons.brush),
           backgroundColor: Color(0xff464D40),
           mini: true,
         ),

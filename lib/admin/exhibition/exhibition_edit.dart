@@ -243,7 +243,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
-        title: Text('전시회 정보 관리', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0), fontWeight: FontWeight.bold)),
+        title: Text('전시회 정보 관리', style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0))),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Color(0xff464D40),),
           onPressed: (){
@@ -367,7 +367,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                     )
                                     : (widget.document != null && selectContentImgURL != null)
                                       ? Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover)//Image.network(selectContentImgURL!, width: double.infinity, height: 50, fit: BoxFit.cover)
-                                      : Text('이미지 선택'),
+                                      : Text('이미지 선택', style: TextStyle(fontWeight: FontWeight.w400),),
                               ),
                             ],
                           ),
