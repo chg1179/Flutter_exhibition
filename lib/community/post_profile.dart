@@ -14,7 +14,6 @@ class CommProfile extends StatefulWidget {
 
 class _CommProfileState extends State<CommProfile> {
   final _firestore = FirebaseFirestore.instance;
-  bool isLiked = false; // 좋아요
   bool isFollowed = false;
   bool _loading = true;
   List<Map<String, dynamic>>? _followInfo;
@@ -93,36 +92,45 @@ class _CommProfileState extends State<CommProfile> {
   }
 
   Future<void> _getFollowData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
     try {
       final userQuerySnapshot = await _firestore.collection('user').where('nickName', isEqualTo: widget.nickName).get();
       if (userQuerySnapshot.docs.isNotEmpty) {
         final userId = userQuerySnapshot.docs.first.id;
-        final documentSnapshot = await _firestore.collection('user').doc(userId).collection('follower').get();
-
-        setState(() {
-          _followInfo = documentSnapshot.docs.map((doc) => doc.data()! as Map<String, dynamic>).toList() as List<Map<String, dynamic>>?;
-        });
+        final userSnapshot = await _firestore.collection('user').doc(user?.userNo).get();
+        final userDoc = userSnapshot.data() as Map<String, dynamic>;
+        final sessionUserNickName = userDoc['nickName'];
+        final followerQuerySnapshot = await _firestore.collection('user').doc(userId).collection('follower').where('nickName', isEqualTo: sessionUserNickName).get();
 
         // 데이터를 가져온 후 팔로우 여부 확인
-        bool isCurrentlyFollowed = await checkIfFollowed(userId);
+        bool isCurrentlyFollowed = followerQuerySnapshot.docs.isNotEmpty;
 
         // isCurrentlyFollowed 값에 따라 UI 등 필요한 작업 수행
-        if (isCurrentlyFollowed) {
-          // 팔로우 상태 처리
+        // 최초 접근 시 팔로우 여부에 따라 UI 설정
+        if (_loading) {
           setState(() {
-            isFollowed = true;
-          });
-        } else {
-          // 언팔로우 상태 처리
-          setState(() {
-            isFollowed = false;
+            isFollowed = isCurrentlyFollowed;
+            _loading = false;
           });
         }
+        // 팔로잉 및 팔로워 수 가져오기
+        final followingCount = await getFollowingCount(userId);
+        final followerCount = await getFollowerCount(userId);
+
+        // 팔로잉 및 팔로워 수를 상태에 저장
+        setState(() {
+          _followingCount = followingCount;
+          _followerCount = followerCount;
+        });
       }
     } catch (e) {
       print('팔로우 데이터 가져오기 에러: $e');
     }
   }
+
+  int _followingCount = 0;
+  int _followerCount = 0;
+
 
 
   Future<bool> checkIfFollowed(String userId) async {
@@ -212,7 +220,6 @@ class _CommProfileState extends State<CommProfile> {
     return 0; // 유저를 찾지 못한 경우 0을 반환합니다.
   }
 
-  // 팔로워 수 구하기
   Future<int> getFollowerCount(String desiredNickName) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('user')
@@ -227,6 +234,7 @@ class _CommProfileState extends State<CommProfile> {
 
     return 0; // 유저를 찾지 못한 경우 0을 반환합니다.
   }
+  // 팔로워 수 구하기
 
   @override
   Widget build(BuildContext context) {
@@ -300,18 +308,6 @@ class _CommProfileState extends State<CommProfile> {
                                 fontSize: 20,
                               ),
                             ),
-                            Text(
-                              '유저아이디',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              ' ',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -356,7 +352,7 @@ class _CommProfileState extends State<CommProfile> {
                         Column(
                           children: [
                             Text(
-                              '팔로워수나타냄',
+                              _followerCount.toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -375,7 +371,7 @@ class _CommProfileState extends State<CommProfile> {
                         Column(
                           children: [
                             Text(
-                              "0",
+                              _followingCount.toString(),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
@@ -383,7 +379,7 @@ class _CommProfileState extends State<CommProfile> {
                               ),
                             ),
                             Text(
-                              "팔로우",
+                              "팔로잉",
                               style: TextStyle(
                                 fontSize: 15,
                               ),
