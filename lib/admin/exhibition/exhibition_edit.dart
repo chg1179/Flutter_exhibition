@@ -423,6 +423,16 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
       firstDate: DateTime(1900),
       lastDate: DateTime(2100),
       initialDateRange: initialDateRange,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            primaryColor: Color.fromRGBO(70, 77, 64, 1.0), // 달력의 기본 색상
+            colorScheme: ColorScheme.light(primary: Color.fromRGBO(70, 77, 64, 1.0)), // 일주일의 헤더 색상
+            buttonTheme: ButtonThemeData(textTheme: ButtonTextTheme.primary),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (newDateRange == null) return; // 사용자가 선택하지 않은 경우
