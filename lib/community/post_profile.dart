@@ -327,7 +327,7 @@ class _CommProfileState extends State<CommProfile> {
                             radius: 50,
                             backgroundImage: _userProfileImage != null
                                 ? NetworkImage(_userProfileImage!)
-                                : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
+                                : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                           ),
                         ),
                       ),

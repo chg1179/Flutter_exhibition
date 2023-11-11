@@ -36,11 +36,11 @@ class ImageUploader {
     try {
       await uploadTask;
       String fullPath = storageReference.fullPath;
-      String downloadUrl = await storage.ref(fullPath).getDownloadURL(); // 변경된 부분: 스토리지 경로로부터 다운로드 URL을 얻습니다.
+      String downloadUrl = await storage.ref(fullPath).getDownloadURL(); // 스토리지 경로로부터 다운로드 URL을 받아옴
       return downloadUrl;
     } catch (e) {
       print('Error: $e');
-      return ''; // 또는 에러 처리를 적절히 해줄 수 있습니다
+      return ''; // 에러 처리
     }
   }
 }

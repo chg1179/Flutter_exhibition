@@ -73,14 +73,17 @@ class _CommMainState extends State<CommMain> {
   void initState() {
     super.initState();
     if (!isDataLoaded) {
-      _loadUserData();
-      _updateSelectedTag(0);
+      loadInitialData(); // 데이터 로딩 트리거
+      isDataLoaded = true; // 데이터가 이미 로딩되었음을 표시
     }
   }
 
   Future<void> loadInitialData() async {
-    _loadUserData();
-
+    await _loadUserData(); // 사용자 데이터 로딩
+    await _updateSelectedTag(0); // 초기 데이터 필터링 및 로딩
+    setState(() {
+      isDataLoaded = true;
+    });
   }
 
   String? _userNickName;
@@ -221,7 +224,7 @@ class _CommMainState extends State<CommMain> {
     await _likeCheck(selectedPosts);
     await loadCommentCnt(selectedPosts);
     setState(() {
-      _commList(selectedPosts);
+      _commList(selectedPosts, 'write_date');
     });
   }
 
@@ -474,7 +477,17 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  Widget _commList(List<Map<String, dynamic>> filteredDocs) {
+  Widget _commList(List<Map<String, dynamic>> filteredDocs, String kind) {
+    // likeCount가 높은 순으로 정렬
+    if(kind == 'likeCount') {
+      filteredDocs.sort((a, b) => (b['data']['likeCount'] as int).compareTo(a['data']['likeCount'] as int));
+    } else{ // write_date
+      filteredDocs.sort((a, b) {
+        final aTimestamp = (a['data']['write_date'] as Timestamp).toDate();
+        final bTimestamp = (b['data']['write_date'] as Timestamp).toDate();
+        return bTimestamp.compareTo(aTimestamp);
+      });
+    }
     return ListView.separated(
       itemCount: filteredDocs.length,
       separatorBuilder: (context, index) {
@@ -654,8 +667,12 @@ class _CommMainState extends State<CommMain> {
             Expanded(
               child: TabBarView(
                 children: [
-                  Center(child: _commList(_tagSelectList)),
-                  Center(child: _commList(_tagSelectList)),
+                  Builder(
+                    builder: (context) => Center(child: _commList(_tagSelectList, 'write_date')),
+                  ),
+                  Builder(
+                    builder: (context) => Center(child: _commList(_tagSelectList, 'likeCount')),
+                  ),
                 ],
               ),
             ),
