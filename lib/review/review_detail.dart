@@ -296,7 +296,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                               ),
                             ).toList(),
                           )
-                              : Container(), // 해시태그가 없을 경우 빈 컨테이너 반환
+                              : Container(), // 해시태그가 없을 경우 빈 컨테이너 반환한다.
                         ),
                         SizedBox(height: 30),
                         Container(

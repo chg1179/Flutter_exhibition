@@ -91,7 +91,7 @@ class _PostSearchState extends State<PostSearch> {
                 return tag_name.isNotEmpty && tag_name.contains(searchText);
               }).map((hashtagDoc) => hashtagDoc.reference.parent.parent!.id).toList();
 
-              // 게시글 ID로 해당 게시글 정보를 가져옴
+              // 게시글 ID로 해당 게시글 정보를 가져온다.
               for (String postId in matchingHashtags) {
                 DocumentSnapshot postSnapshot = await _firestore.collection('post').doc(postId).get();
                 Map<String, dynamic>? postInfo = postSnapshot.data() as Map<String, dynamic>?;

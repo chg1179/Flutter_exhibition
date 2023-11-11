@@ -213,7 +213,7 @@ class _ReviewListState extends State<ReviewList> {
       final isLiked = await isLikedByUser(reviewId, userNo);
 
       if (!isLiked) {
-        // 사용자가 이 게시물을 좋아요하지 않았다면 Firestore에 저장
+        // 사용자가 이 게시물을 좋아요하지 않았다면 Firestore에 저장히히
         final reviewDoc = FirebaseFirestore.instance.collection('review').doc(reviewId);
         final reviewRef = reviewDoc.collection('likes');
         await reviewRef.add({'userId': userNo});
