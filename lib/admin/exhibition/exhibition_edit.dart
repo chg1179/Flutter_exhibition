@@ -284,6 +284,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                             imgPath: imgPath,
                                             selectImgURL: selectImgURL,
                                             defaultImgURL: 'assets/logo/basic_logo.png',
+                                        radiusValue : 65.0,
                                           )
                                           : (widget.document != null && selectImgURL != null)
                                           ? Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover)//Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
@@ -364,6 +365,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                       imgPath: imgContentPath,
                                       selectImgURL: selectContentImgURL,
                                       defaultImgURL: 'assets/logo/green_logo.png',
+                                      radiusValue : 130.0,
                                     )
                                     : (widget.document != null && selectContentImgURL != null)
                                       ? Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover)//Image.network(selectContentImgURL!, width: double.infinity, height: 50, fit: BoxFit.cover)

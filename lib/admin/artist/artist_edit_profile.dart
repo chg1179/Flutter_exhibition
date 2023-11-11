@@ -153,7 +153,8 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
                                           imageFile: _imageFile,
                                           imgPath: imgPath,
                                           selectImgURL: selectImgURL,
-                                          defaultImgURL: 'assets/ex/ex1.png',
+                                          defaultImgURL: 'assets/logo/basic_logo.png',
+                                          radiusValue : 65.0,
                                         )
                                         : (widget.document != null && selectImgURL != null)
                                           ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)

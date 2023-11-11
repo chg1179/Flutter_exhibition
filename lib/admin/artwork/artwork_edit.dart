@@ -187,15 +187,16 @@ class _ArtworkEditState extends State<ArtworkEdit> {
                                     child:
                                       _imageFile != null
                                         ? buildImageWidget(
-                                      // 이미지 빌더 호출
-                                      imageFile: _imageFile,
-                                      imgPath: imgPath,
-                                      selectImgURL: selectImgURL,
-                                      defaultImgURL: 'assets/logo/basic_logo.png',
-                                    )
+                                          // 이미지 빌더 호출
+                                          imageFile: _imageFile,
+                                          imgPath: imgPath,
+                                          selectImgURL: selectImgURL,
+                                          defaultImgURL: 'assets/logo/basic_logo.png',
+                                          radiusValue : 65.0,
+                                        )
                                         : (widget.childData != null && selectImgURL != null)
-                                        ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
-                                        : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
+                                          ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
+                                          : Image.asset('assets/logo/basic_logo.png', fit: BoxFit.cover, width: 130, height: 130),
                                   ),
                                 ],
                               )

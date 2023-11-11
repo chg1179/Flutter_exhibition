@@ -9,13 +9,14 @@ Widget buildImageWidget({
   required String? imgPath,
   required String? selectImgURL,
   required String? defaultImgURL,
+  required double? radiusValue,
 }) {
   if (imgPath != null) {
     if (kIsWeb) {
       // 웹 플랫폼에서는 Image.network 사용
       return Center(
         child: CircleAvatar(
-          radius: 25,
+          radius: radiusValue,
           backgroundImage: NetworkImage(imgPath!),
         ),
       );
@@ -23,7 +24,7 @@ Widget buildImageWidget({
       // 앱에서는 Image.file 사용
       return Center(
         child: CircleAvatar(
-          radius: 25,
+          radius: radiusValue,
           backgroundImage: FileImage(File(imgPath!)),
         ),
       );
