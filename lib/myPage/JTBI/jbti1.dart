@@ -263,14 +263,14 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                         .doc(sessionId)
                         .collection('jbti')
                         .add({
-                      'dimension': group1Score.round(),
-                      'flat': group1OppositeScore.round(),
-                      'Dynamic': group2Score.round(),
-                      'astatic': group2OppositeScore.round(),
-                      'classic': group3Score.round(),
-                      'new': group3OppositeScore.round(),
-                      'appreciation': group4Score.round(),
-                      'exploratory': group4OppositeScore.round(),
+                      'dimensionValue': group1Score.round(),
+                      'flatValue': group1OppositeScore.round(),
+                      'dynamicValue': group2Score.round(),
+                      'astaticValue': group2OppositeScore.round(),
+                      'classicValue': group3Score.round(),
+                      'newValue': group3OppositeScore.round(),
+                      'appreciationValue': group4Score.round(),
+                      'exploratoryValue': group4OppositeScore.round(),
                     });
                     showDialog(
                       context: context,

@@ -997,6 +997,8 @@ class TemperatureBar extends StatelessWidget {
           } else {
             userHeat = 36.5; // userData가 null이거나 'heat' 키가 없는 경우에도 기본값 설정
           }
+          // userHeat를 소수점 한 자리까지 표시하는 포맷 적용
+          String formattedUserHeat = userHeat.toStringAsFixed(1);
           return Column(
             children: [
               Container(
@@ -1012,7 +1014,7 @@ class TemperatureBar extends StatelessWidget {
                           borderRadius: BorderRadius.all(Radius.circular(5)),
                           color: Color(0xffb6b6ac)
                         ),
-                        child: Text('현재 밝기 ${userHeat}%', style: TextStyle(fontSize: 12, color: Colors.white),)
+                        child: Text('현재 밝기 ${formattedUserHeat}%', style: TextStyle(fontSize: 12, color: Colors.white),)
                     ),
                   ],
                 ),

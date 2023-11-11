@@ -324,51 +324,71 @@ class _MyCalendarState extends State<MyCalendar> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('캘린더 기록하기'),
-              contentPadding: EdgeInsets.all(20.0), // 이 부분을 조절해서 패딩을 늘려봐
+              contentPadding: EdgeInsets.all(20.0),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (imageUrl != null) // 이미지 URL이 있을 때만 미리보기 표시
-                    Image.network(
-                      imageUrl!,
-                      fit: BoxFit.contain,
-                      width: 100, // 이미지의 너비 조정 (원하는 크기로 변경)
-                      height: 100, // 이미지의 높이 조정 (원하는 크기로 변경)
+                  if (imageUrl != null)
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 10),
+                      child: Image.network(
+                        imageUrl!,
+                        fit: BoxFit.contain,
+                        width: 100,
+                        height: 100,
+                      ),
                     ),
                   TextField(
                     controller: _eventController,
-                    decoration: InputDecoration(labelText: '제목'),
+                    decoration: InputDecoration(
+                      labelText: '제목',
+                      border: OutlineInputBorder(),
+                    ),
                     onChanged: (text) {
-                      evtTitle = text;
+                      setState(() {
+                        evtTitle = text;
+                      });
                     },
                   ),
+                  SizedBox(height: 10),
                   TextField(
                     controller: _memoController,
-                    decoration: InputDecoration(labelText: '내용'),
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: '내용',
+                      border: OutlineInputBorder(),
+                    ),
                     onChanged: (text) {
-                      evtContent = text;
+                      setState(() {
+                        evtContent = text;
+                      });
                     },
                   ),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
                       imageUrl = await _showImageScrollDialog(context);
-                      setState(() {}); // 화면을 다시 그리도록 강제 업데이트
+                      setState(() {});
                     },
-                    child: Text('다녀온전시 사진 업로드'),
+                    child: Text('다녀온 전시 사진 업로드'),
                   ),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
                       friendNickName = await _shareHistory(context);
-                      setState(() {
-                        // 이제 friendNickName은 shareHistory에서 받아온 값으로 업데이트됨
-                      });
+                      setState(() {});
                     },
                     child: Text('기록 공유'),
                   ),
                   if (friendNickName != null)
-                    Text(friendNickName != null && friendNickName != '' ?
-                      '$friendNickName와 함께했어요!' : 'Solo',
-                      style: TextStyle(fontSize: 16.0),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        friendNickName != null && friendNickName != ''
+                            ? '$friendNickName와 함께했어요!'
+                            : 'Solo',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
                     ),
                 ],
               ),
@@ -381,10 +401,10 @@ class _MyCalendarState extends State<MyCalendar> {
                   },
                   child: Text('취소'),
                 ),
-                TextButton(
+                ElevatedButton(
                   onPressed: () {
                     if (evtTitle.isNotEmpty) {
-                      _addEventToFirestore(evtTitle, evtContent, _selectedDay,imageUrl,friendNickName);
+                      _addEventToFirestore(evtTitle, evtContent, _selectedDay, imageUrl, friendNickName);
                       Navigator.of(context).pop();
                     }
                   },
@@ -396,6 +416,7 @@ class _MyCalendarState extends State<MyCalendar> {
         );
       },
     );
+
   }
 
   Future<String?> _showImageScrollDialog(BuildContext context) async {
@@ -703,52 +724,90 @@ class _MyCalendarState extends State<MyCalendar> {
       });
     }
   }
+
   void _showEventDetailsDialog(Event event) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(event.evtTitle),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '기록: ${event.evtContent}',
-                style: TextStyle(fontSize: 16.0),
-              ),
-              Text(
-                event.friendNickName != null && event.friendNickName != ''
-                    ? '${event.friendNickName}와 함께했어요.'
-                    : '나홀로 전시회',
-                style: TextStyle(fontSize: 16.0),
-              ),
-              Text(
-                '일정 날짜: ${DateFormat('yyyy-MM-dd').format(event.evtDate)}',
-                style: TextStyle(fontSize: 16.0),
-              ),
-            ],
+          title: Text(
+            event.evtTitle,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          content: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.all(Radius.circular(10.0)),
+            ),
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (event.evtContent != null && event.evtContent.isNotEmpty)
+                  Column(
+                    children: [
+                      Text(
+                        '기록: ${event.evtContent}',
+                        style: TextStyle(fontSize: 16.0),
+                      ),
+                      Divider(), // 기록과 다음 항목 사이에 선 추가
+                    ],
+                  ),
+                Text(
+                  event.friendNickName != null && event.friendNickName.isNotEmpty
+                      ? '${event.friendNickName}와 함께했어요.'
+                      : '나홀로 전시회',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+                Divider(), // 함께한 사람과 다음 항목 사이에 선 추가
+                Text(
+                  '일정 날짜: ${DateFormat('yyyy-MM-dd').format(event.evtDate)}',
+                  style: TextStyle(fontSize: 16.0),
+                ),
+              ],
+            ),
           ),
           actions: [
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 양쪽에 정렬
               children: [
-                TextButton(
-                  onPressed: () {
+                GestureDetector(
+                  onTap: () {
                     _removeEventFromFirestore(event);
                     Navigator.of(context).pop();
                   },
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      Text('삭제', style: TextStyle(color: Colors.red)),
-                    ],
+                  child: Container(
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Colors.red[400],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.white),
+                        Text('', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
                   ),
                 ),
-                Spacer(), // 삭제 버튼과 닫기 버튼을 분리하기 위해 Spacer 추가
-                TextButton(
-                  onPressed: () {
+                GestureDetector(
+                  onTap: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('닫기'),
+                  child: Container(
+                    padding: EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      color: Color(0xff464D40),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.close, color: Colors.white),
+                        Text('', style: TextStyle(color: Colors.white)),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -757,6 +816,11 @@ class _MyCalendarState extends State<MyCalendar> {
       },
     );
   }
+
+
+
+
+
   void _noticeDialog(String message) {
     showDialog(
       context: context,
