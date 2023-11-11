@@ -184,10 +184,14 @@ class _IsNotificationState extends State<IsNotification> {
                                                 ),
                                               ),
                                               SizedBox(height: 13),
+                                              // Text(
+                                              //   DateFormat('yyyy-MM-dd HH:mm')
+                                              //       .format(_notificationList[index]['time'].toDate()),
+                                              //   style: TextStyle(color: Color(0xff464D40), fontSize: 13),
+                                              // ),
                                               Text(
-                                                DateFormat('yyyy-MM-dd HH:mm')
-                                                    .format(_notificationList[index]['time'].toDate()),
-                                                style: TextStyle(color: Color(0xff464D40), fontSize: 13),
+                                                formatNotificationTime(_notificationList[index]['time'].toDate()),
+                                                style: TextStyle(color: Color(0xff464D40), fontSize: 12),
                                               ),
                                             ],
                                           ),
@@ -206,13 +210,16 @@ class _IsNotificationState extends State<IsNotification> {
                                                   _notificationList.removeAt(index);
                                                 });
                                               },
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(4.0),
-                                                child: Text(
-                                                  formatNotificationTime(_notificationList[index]['time'].toDate()),
-                                                  style: TextStyle(color: Color(0xff464D40), fontSize: 12),
-                                                ),
-                                              ),
+                                              child: InkWell(
+                                                child: Icon(Icons.clear, size: 17,),
+                                              )
+                                              // Padding(
+                                              //   padding: const EdgeInsets.all(4.0),
+                                              //   child: Text(
+                                              //     formatNotificationTime(_notificationList[index]['time'].toDate()),
+                                              //     style: TextStyle(color: Color(0xff464D40), fontSize: 12),
+                                              //   ),
+                                              // ),
                                             ),
                                           )
                                         ],
