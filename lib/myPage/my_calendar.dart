@@ -10,15 +10,6 @@ import '../firebase_options.dart';
 import '../model/user_model.dart';
 import 'addAlarm.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  runApp(MaterialApp(
-    home: MyCalendar(),
-  ));
-}
-
 class Event {
   final String evtTitle;
   final DateTime evtDate;

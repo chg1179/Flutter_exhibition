@@ -11,6 +11,7 @@ import 'package:exhibition_project/user/sign.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'main/first.dart';
@@ -37,6 +38,14 @@ class MyApp extends StatelessWidget {
             cursorColor: Color.fromRGBO(70, 77, 64, 1.0), // 커서 색상 설정
           ),
         ),
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [
+          const Locale('ko', 'KR'), // 한국어
+        ],
         home: Home(), // 홈 화면 설정
       ),
     );

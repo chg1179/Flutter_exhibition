@@ -1,40 +1,37 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(IndividualTerms());
-
 class IndividualTerms extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "개인정보취급약관",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          backgroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.black),
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              // 여기에 뒤로 가기 동작 추가
-              Navigator.pop(context);
-            },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "개인정보취급약관",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(20.0),
-          child: Container(
-            padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-            ),
-            child: Text(''' 개인정보 처리 방침
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 여기에 뒤로 가기 동작 추가
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.0),
+        child: Container(
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.all(Radius.circular(10.0))
+          ),
+          child: Text(''' 개인정보 처리 방침
 
 아트맵 개인정보 처리방침
 
@@ -272,8 +269,7 @@ KT 클라우드	서비스 이용 기록 또는 수집된 개인 정보	데이터
 
 
   ''',
-              style: TextStyle(fontSize: 16.0),
-            ),
+            style: TextStyle(fontSize: 16.0),
           ),
         ),
       ),

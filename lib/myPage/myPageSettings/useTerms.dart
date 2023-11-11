@@ -5,36 +5,35 @@ void main() => runApp(UseTerms());
 class UseTerms extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "이용약관 안내",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          backgroundColor: Colors.white,
-          iconTheme: IconThemeData(color: Colors.black),
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              // 여기에 뒤로 가기 동작 추가
-              Navigator.pop(context);
-            },
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "이용약관 안내",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(20.0),
-          child: Container(
-            padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
+        backgroundColor: Colors.white,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            // 여기에 뒤로 가기 동작 추가
+            Navigator.pop(context);
+          },
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.0),
+        child: Container(
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
               color: Colors.grey[200],
-                borderRadius: BorderRadius.all(Radius.circular(10.0))
-            ),
-            child: Text(
+              borderRadius: BorderRadius.all(Radius.circular(10.0))
+          ),
+          child: Text(
               '''
  제1조 (목적)
 
@@ -277,7 +276,6 @@ exhibition-in-my-palm.co.kr 외 회사에서 공지하고 서비스를 제공하
 개정약관은 2022년 1월 27일부터 시행됩니다.
               
                '''
-            ),
           ),
         ),
       ),

@@ -6,11 +6,9 @@ import 'package:exhibition_project/myPage/myPageSettings/individualTerms.dart';
 import 'package:exhibition_project/myPage/myPageSettings/profile_change.dart';
 import 'package:exhibition_project/myPage/myPageSettings/security.dart';
 import 'package:exhibition_project/myPage/myPageSettings/useTerms.dart';
-import 'package:exhibition_project/myPage/myPageSettings/qna.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../myPage/myPageSettings/notice.dart';
-import 'alert.dart';
 
 
 class MySetting extends StatelessWidget {
@@ -107,32 +105,21 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           ),
           Divider(),
           SizedBox(height: 20,),
-            ListTile(
+          ListTile(
             title: Text(
               "더보기",
               style: TextStyle(
-              fontWeight: FontWeight.bold,
-                ),
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ListTile(
-            title: Text("알림설정"),
-            leading: Icon(Icons.add_alert_outlined),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Alert()),
-                );
-              },
           ),
-          Divider(),
           ListTile(
             title: Text("공지사항"),
             leading: Icon(Icons.density_medium_outlined),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Notice()),
+                  MaterialPageRoute(builder: (context) => Notice(kind: 'notice')),
                 );
               },
           ),
@@ -143,7 +130,7 @@ class _MyPageSettingsState extends State<MyPageSettings> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => QnaScreen()),
+                MaterialPageRoute(builder: (context) => Notice(kind: 'qna')),
               );
             },
           ),
