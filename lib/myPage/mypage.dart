@@ -13,6 +13,7 @@ import 'package:exhibition_project/myPage/mypage_add_view.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:exhibition_project/user/sign.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 
 import '../community/post_profile.dart';
@@ -194,7 +195,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
             }
             // 나머지 UI 빌드
           } else {
-            return CircularProgressIndicator(); // 데이터 불러오는 중 로딩 표시
+            return Center(child: SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 20.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            )); // 데이터 불러오는 중 로딩 표시
           }
           return DefaultTabController(
               length: 3,
@@ -310,7 +315,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                               .get(),
                                           builder: (context, reviewsSnapshot) {
                                             if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
-                                              return CircularProgressIndicator();
+                                              return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                                color: Color(0xff464D40), // 색상 설정
+                                                size: 20.0, // 크기 설정
+                                                duration: Duration(seconds: 3), //속도 설정
+                                              ));
                                             } else if (reviewsSnapshot.hasError) {
                                               return Text('오류: ${reviewsSnapshot.error}');
                                             } else {
@@ -340,7 +349,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           builder: (context, snapshot) {
                                             if (snapshot.connectionState == ConnectionState.waiting) {
                                               // 데이터 로딩 중
-                                              return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                              return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                                color: Color(0xff464D40), // 색상 설정
+                                                size: 20.0, // 크기 설정
+                                                duration: Duration(seconds: 3), //속도 설정
+                                              )); // 원하는 로딩 UI 표시
                                             } else if (snapshot.hasError) {
                                               // 오류 발생
                                               return Text('오류: ${snapshot.error}');
@@ -375,7 +388,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                           builder: (context, snapshot) {
                                             if (snapshot.connectionState == ConnectionState.waiting) {
                                               // 데이터 로딩 중
-                                              return CircularProgressIndicator(); // 원하는 로딩 UI 표시
+                                              return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                                color: Color(0xff464D40), // 색상 설정
+                                                size: 20.0, // 크기 설정
+                                                duration: Duration(seconds: 3), //속도 설정
+                                              )); // 원하는 로딩 UI 표시
                                             } else if (snapshot.hasError) {
                                               // 오류 발생
                                               return Text('오류: ${snapshot.error}');
@@ -521,7 +538,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
+                                            builder: (context) => MyPageAddView2(), // 더보기 페이지로 이동
                                           ),
                                         );
                                       },
@@ -534,7 +551,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
                               builder: (context, userSnapshot) {
                                 if (userSnapshot.connectionState == ConnectionState.waiting) {
-                                  return CircularProgressIndicator();
+                                  return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                    color: Color(0xff464D40), // 색상 설정
+                                    size: 20.0, // 크기 설정
+                                    duration: Duration(seconds: 3), //속도 설정
+                                  ));
                                 } else if (userSnapshot.hasError) {
                                   return Text('오류: ${userSnapshot.error}');
                                 } else if (userSnapshot.hasData) {
@@ -548,19 +569,23 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                         .get(),
                                     builder: (context, reviewsSnapshot) {
                                       if (reviewsSnapshot.connectionState == ConnectionState.waiting) {
-                                        return CircularProgressIndicator();
+                                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                          color: Color(0xff464D40), // 색상 설정
+                                          size: 20.0, // 크기 설정
+                                          duration: Duration(seconds: 3), //속도 설정
+                                        ));
                                       } else if (reviewsSnapshot.hasError) {
                                         return Text('오류: ${reviewsSnapshot.error}');
                                       } else {
                                         final reviews = reviewsSnapshot.data?.docs;
                                         if (reviews == null || reviews.isEmpty) {
                                           return Container(
+                                            height: 100,
                                             child: Center(
                                                 child: Text("작성한 후기글이 없습니다.")
                                             ),
-                                          ); // 데이터가 없는 경우 빈 상태를 반환
+                                          );
                                         }
-
                                         List<Widget> reviewItems = reviews.map((review) {
                                           final reviewData = review.data() as Map<String, dynamic>;
                                           final reviewImageURL = reviewData['imageURL'] ?? '';
@@ -584,7 +609,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                             if (index == 8 && reviewItems.length > 8) {
                                               return GestureDetector(
                                                 onTap: () {
-                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageAddView()), //더보기 페이지
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageAddView2()), //더보기 페이지
                                                   );
                                                 },
                                                 child: Container(
@@ -934,7 +959,11 @@ class TemperatureBar extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // 데이터가 로드 중인 경우
-          return CircularProgressIndicator();
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         } else if (snapshot.hasError) {
           // 에러가 있는 경우
           return Text('오류: ${snapshot.error}');
