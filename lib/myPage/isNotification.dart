@@ -25,6 +25,7 @@ class _IsNotificationState extends State<IsNotification> {
         QuerySnapshot alarmsSnapshot = await usersCollection
             .doc(userId)
             .collection('alarm')
+            .orderBy('time', descending: true) // Add this line for sorting
             .get();
 
         _notificationList = alarmsSnapshot.docs.map((doc) {

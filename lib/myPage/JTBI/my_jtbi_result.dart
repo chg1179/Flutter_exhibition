@@ -1,25 +1,64 @@
-import 'package:exhibition_project/myPage/JTBI/jbti1.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
-void main() {
-  runApp(JtbiResult2());
-}
-class JtbiResult2 extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: JtbiResult(),
-    );
-  }
-}
+import 'package:provider/provider.dart';
+
+import '../../model/user_model.dart';
+
 class JtbiResult extends StatefulWidget {
-  JtbiResult({super.key});
   @override
   State<JtbiResult> createState() => _JtbiResultState();
 }
 class _JtbiResultState extends State<JtbiResult> {
+  final _firestore = FirebaseFirestore.instance;
+  Map<String, dynamic>? _jbtiData;
+  double _dimension = 0.0;
+  double _flat = 0.0;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _getJbtiData();
+  }
+
+  void _getJbtiData() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('user')
+          // .doc(user?.userNo)
+          // .collection('jbti')
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final documentSnapshot = querySnapshot.docs[0];
+
+        if (documentSnapshot.exists) {
+          setState(() {
+            _jbtiData = documentSnapshot.data() as Map<String, dynamic>?;
+
+            if (_jbtiData != null) {
+              _flat = _jbtiData?['flat']?.toDouble() ?? 0.0;
+              _dimension = _jbtiData?['dimension']?.toDouble() ?? 0.0;
+
+              print('_flat: ============>>>>>>>>>=====>>>>> $_flat');
+              print('_dimension:  ============>>>>>>>>>=====>>>>> $_dimension');
+            }
+          });
+        } else {
+          print('JBTI 문서가 존재하지 않습니다.');
+        }
+      } else {
+        print('JBTI 컬렉션이 비어 있습니다.');
+      }
+    } catch (e) {
+      print('데이터를 가져오는 중 오류 발생: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserModel>(context); // 세션. UserModel
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -34,7 +73,7 @@ class _JtbiResultState extends State<JtbiResult> {
         backgroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -79,16 +118,57 @@ class _JtbiResultState extends State<JtbiResult> {
               ],
             ),
             SizedBox(height: 10,),
-            KeywordText(keyword: "마음"),
-            TemperatureBar1(leftPercentage: 60, rightPercentage: 40),
-            KeywordText(keyword: "에너지"),
-            TemperatureBar2(leftPercentage: 70, rightPercentage: 30),
-            KeywordText(keyword: "본성"),
-            TemperatureBar3(leftPercentage: 50, rightPercentage: 50),
-            KeywordText(keyword: "전술"),
-            TemperatureBar4(leftPercentage: 80, rightPercentage: 20),
-            KeywordText(keyword: "자아"),
-            TemperatureBar5(leftPercentage: 90, rightPercentage: 10),
+            KeywordText(keyword: "차원"),
+            TemperatureBar1(
+                leftPercentage: 60,
+                rightPercentage: 40
+            ),
+            // TemperatureBar1(
+            //   leftPercentage: _dimension ?? 0.0,
+            //   rightPercentage: _flat ?? 0.0
+            // ),
+            KeywordText(keyword: "움직임"),
+            // TemperatureBar2(
+            //   leftPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
+            //       ? (_jbtiData?['dynamic'] ?? 0)
+            //       : (_jbtiData?['astatic'] ?? 0),
+            //   rightPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
+            //       ? (_jbtiData?['astatic'] ?? 0)
+            //       : (_jbtiData?['dynamic'] ?? 0),
+            // ),
+            // KeywordText(keyword: "변화"),
+            // TemperatureBar3(
+            //   leftPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
+            //       ? (_jbtiData?['classic'] ?? 0)
+            //       : (_jbtiData?['new'] ?? 0),
+            //   rightPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
+            //       ? (_jbtiData?['new'] ?? 0)
+            //       : (_jbtiData?['classic'] ?? 0),
+            // ),
+            // KeywordText(keyword: "경험"),
+            // TemperatureBar4(
+            //   leftPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
+            //       ? (_jbtiData?['appreciation'] ?? 0)
+            //       : (_jbtiData?['exploratory'] ?? 0),
+            //   rightPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
+            //       ? (_jbtiData?['exploratory'] ?? 0)
+            //       : (_jbtiData?['appreciation'] ?? 0),
+            // ),
+            // KeywordText(keyword: "자아"),
+            // TemperatureBar5(
+            //   leftPercentage: (
+            //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['dimension'] ?? 0) : (_jbtiData?['flat'] ?? 0)) +
+            //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['dynamic'] ?? 0) : (_jbtiData?['astatic'] ?? 0)) +
+            //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['classic'] ?? 0) : (_jbtiData?['new'] ?? 0)) +
+            //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['appreciation'] ?? 0) : (_jbtiData?['exploratory'] ?? 0))
+            //   ) / 4.0,
+            //   rightPercentage: 100.0 - (
+            //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['flat'] ?? 0) : (_jbtiData?['dimension'] ?? 0)) +
+            //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['astatic'] ?? 0) : (_jbtiData?['dynamic'] ?? 0)) +
+            //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['new'] ?? 0) : (_jbtiData?['classic'] ?? 0)) +
+            //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['exploratory'] ?? 0) : (_jbtiData?['appreciation'] ?? 0))
+            //   ) / 4.0,
+            // ),
             Divider(
               color: Colors.grey[300], // 수평선의 색상 설정
               thickness: 1, // 수평선의 두께 설정

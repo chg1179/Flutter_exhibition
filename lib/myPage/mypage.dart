@@ -172,6 +172,19 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     return followerList;
   }
 
+  Future<int> getAlarmCount() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+
+    QuerySnapshot alarmQuerySnapshot = await FirebaseFirestore.instance
+        .collection('user')
+        .doc(user?.userNo)
+        .collection('alarm')
+        .get();
+
+    int alarmCount = alarmQuerySnapshot.size;
+
+    return alarmCount;
+  }
 
 
   Widget build(BuildContext context) {
@@ -236,20 +249,29 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                               Positioned(
                                 right: 8,
                                 top: 8,
-                                child: Container(
-                                  padding: EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Text(
-                                    '1',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                child: FutureBuilder<int>(
+                                    future: getAlarmCount(),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.done) {
+                                      return Container(
+                                        padding: EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          snapshot.data.toString(),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      return CircularProgressIndicator(); // or any loading indicator
+                                    }
+                                  }
                                 ),
                               ),
                             ],

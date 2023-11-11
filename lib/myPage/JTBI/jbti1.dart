@@ -263,33 +263,57 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
                         .doc(sessionId)
                         .collection('jbti')
                         .add({
-                      'a': group1Score.round(),
-                      'b': group1OppositeScore.round(),
-                      'c': group2Score.round(),
-                      'd': group2OppositeScore.round(),
-                      'e': group3Score.round(),
-                      'f': group3OppositeScore.round(),
-                      'g': group4Score.round(),
-                      'h': group4OppositeScore.round(),
+                      'dimension': group1Score.round(),
+                      'flat': group1OppositeScore.round(),
+                      'Dynamic': group2Score.round(),
+                      'astatic': group2OppositeScore.round(),
+                      'classic': group3Score.round(),
+                      'new': group3OppositeScore.round(),
+                      'appreciation': group4Score.round(),
+                      'exploratory': group4OppositeScore.round(),
                     });
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: Text('검사결과가 저장되었습니다!'),
+                          title: Center(
+                            child: Text(
+                              '알림',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                          content: Container(
+                            height: 60, // Container의 높이를 조절
+                            alignment: Alignment.center,
+                            child: Text(
+                              '전시 취향 분석이 완료되었습니다.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
                           actions: [
-                            TextButton(
+                            ElevatedButton(
                               onPressed: () {
                                 // 확인 버튼을 눌렀을 때 초기화면으로 이동
-                                Navigator.popUntil(
-                                    context, (route) => route.isFirst);
+                                Navigator.popUntil(context, (route) => route.isFirst);
                               },
-                              child: Text('확인'),
+                              style: ElevatedButton.styleFrom(
+                                primary: Color(0xff464D40), // 배경색 설정
+                                onPrimary: Colors.white, // 텍스트 색상 설정
+                                elevation: 0, // 그림자 제거
+                                minimumSize: Size(double.infinity, 48), // 가로 길이 꽉 채우기
+                              ),
+                              child: Text(
+                                '닫기',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
                             ),
                           ],
                         );
                       },
                     );
+
+
+
                   },
                   child: Text('결과 저장하기'),
                 ),
