@@ -59,7 +59,7 @@ class ImageTextItem extends StatelessWidget {
 // 컬렉션의 하위 컬렉션 출력
 Widget listContent(DocumentSnapshot document, String parentCollection, String childCollection, String condition, String values, bool orderBool) {
   return StreamBuilder(
-    stream: getChildStreamData(document, parentCollection, childCollection, condition, orderBool),
+    stream: getChildStreamData(document!.id, parentCollection, childCollection, condition, orderBool),
     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
       // 로딩 중일 때, 화면 중앙에 동그란 로딩 표시
       if (!snap.hasData) {

@@ -14,10 +14,10 @@ Stream<QuerySnapshot> getStreamData(String collectionName, String condition, boo
       .snapshots();
 }
 
-Stream<QuerySnapshot> getChildStreamData(DocumentSnapshot document, String parentCollection, String childCollection, String condition, bool orderBool) {
+Stream<QuerySnapshot> getChildStreamData(String documentId, String parentCollection, String childCollection, String condition, bool orderBool) {
   return FirebaseFirestore.instance
       .collection(parentCollection)
-      .doc(document.id)
+      .doc(documentId)
       .collection(childCollection)
       .orderBy(condition, descending: orderBool)
       .snapshots();
@@ -49,7 +49,7 @@ Stream<List<QuerySnapshot>> getSubCollectionStreamData(String parentCollection, 
 
 // 상위 컬렉션에 대한 하위 컬렉션 값 출력
 Future<List<Map<String, dynamic>>> listMapData(DocumentSnapshot document, String parentCollection, String childCollection, String condition, bool orderBool) async {
-  QuerySnapshot? snapshot = await getChildStreamData(document, parentCollection, childCollection, condition, orderBool).first;
+  QuerySnapshot? snapshot = await getChildStreamData(document.id, parentCollection, childCollection, condition, orderBool).first;
 
   if (snapshot != null && snapshot.docs.isNotEmpty) {
     List<Map<String, dynamic>> dataList = [];

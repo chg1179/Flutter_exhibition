@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../model/user_model.dart';
 
 class JtbiResult extends StatefulWidget {
@@ -10,10 +10,10 @@ class JtbiResult extends StatefulWidget {
   State<JtbiResult> createState() => _JtbiResultState();
 }
 class _JtbiResultState extends State<JtbiResult> {
-  final _firestore = FirebaseFirestore.instance;
+  late UserModel user;
   Map<String, dynamic>? _jbtiData;
-  double _dimension = 0.0;
-  double _flat = 0.0;
+  double dynamicValue = 0.0;
+  double astaticValue = 0.0;
 
 
   @override
@@ -24,32 +24,16 @@ class _JtbiResultState extends State<JtbiResult> {
 
   void _getJbtiData() async {
     try {
-      final querySnapshot = await _firestore
-          .collection('user')
-          // .doc(user?.userNo)
-          // .collection('jbti')
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        final documentSnapshot = querySnapshot.docs[0];
-
-        if (documentSnapshot.exists) {
-          setState(() {
-            _jbtiData = documentSnapshot.data() as Map<String, dynamic>?;
-
-            if (_jbtiData != null) {
-              _flat = _jbtiData?['flat']?.toDouble() ?? 0.0;
-              _dimension = _jbtiData?['dimension']?.toDouble() ?? 0.0;
-
-              print('_flat: ============>>>>>>>>>=====>>>>> $_flat');
-              print('_dimension:  ============>>>>>>>>>=====>>>>> $_dimension');
-            }
-          });
-        } else {
-          print('JBTI 문서가 존재하지 않습니다.');
-        }
+      user = Provider.of<UserModel>(context, listen: false);
+      QuerySnapshot? snapshot = await getChildStreamData((user.userNo).toString(), 'user', 'jbti', 'dynamicValue', false).first;
+      if (snapshot.docs.isNotEmpty) {
+        // 첫 번째 문서의 데이터에 접근.
+        _jbtiData = snapshot.docs.first.data() as Map<String, dynamic>;
+        dynamicValue = (_jbtiData!['dynamicValue'] as num).toDouble();
+        astaticValue = (_jbtiData!['astaticValue'] as num).toDouble();
+        setState(() {}); // Rebuild를 유도하기 위해 setState 호출
       } else {
-        print('JBTI 컬렉션이 비어 있습니다.');
+        print('취향 분석 결과가 없습니다.');
       }
     } catch (e) {
       print('데이터를 가져오는 중 오류 발생: $e');
@@ -58,226 +42,226 @@ class _JtbiResultState extends State<JtbiResult> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<UserModel>(context); // 세션. UserModel
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '나의 취향분석',
-          style: TextStyle(
-            color: Colors.black, // 텍스트 색상 검은색
-            fontSize: 18, // 글씨 크기 조정
+   return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            '나의 취향분석',
+            style: TextStyle(
+              color: Colors.black, // 텍스트 색상 검은색
+              fontSize: 18, // 글씨 크기 조정
+            ),
+          ),
+          centerTitle: true,
+          // 가운데 정렬
+          iconTheme: IconThemeData(color: Colors.black),
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 텍스트 사이의 간격을 조절
+                children: [
+                  Text(
+                    '선호 키워드',
+                    style: TextStyle(
+                      color: Colors.black, // 검은색
+                      fontSize: 16, // 글씨 크기
+                      fontWeight: FontWeight.bold, // 굵게
+                    ),
+                  ),
+                  Text(
+                    '서정적',
+                    style: TextStyle(
+                      color: Colors.purple, // 보라색
+                      fontSize: 16, // 글씨 크기
+                      fontWeight: FontWeight.bold, // 굵게
+                    ),
+                  ),
+                ],
+              ),
+              Divider(
+                color: Colors.grey[300], // 수평선의 색상 설정
+                thickness: 1, // 수평선의 두께 설정
+                height: 20, // 수평선의 높이 설정
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
+                children: [
+                  Text(
+                    '나의 취향분석결과',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // 다른 위젯들을 추가할 수 있습니다.
+                ],
+              ),
+              SizedBox(height: 10,),
+              KeywordText(keyword: "차원"),
+              if (dynamicValue != 0.0 && astaticValue != 0.0)
+                TemperatureBar1(
+                  leftPercentage: astaticValue,
+                  rightPercentage: dynamicValue
+                ),
+              KeywordText(keyword: "움직임"),
+              // TemperatureBar2(
+              //   leftPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
+              //       ? (_jbtiData?['dynamic'] ?? 0)
+              //       : (_jbtiData?['astatic'] ?? 0),
+              //   rightPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
+              //       ? (_jbtiData?['astatic'] ?? 0)
+              //       : (_jbtiData?['dynamic'] ?? 0),
+              // ),
+              // KeywordText(keyword: "변화"),
+              // TemperatureBar3(
+              //   leftPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
+              //       ? (_jbtiData?['classic'] ?? 0)
+              //       : (_jbtiData?['new'] ?? 0),
+              //   rightPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
+              //       ? (_jbtiData?['new'] ?? 0)
+              //       : (_jbtiData?['classic'] ?? 0),
+              // ),
+              // KeywordText(keyword: "경험"),
+              // TemperatureBar4(
+              //   leftPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
+              //       ? (_jbtiData?['appreciation'] ?? 0)
+              //       : (_jbtiData?['exploratory'] ?? 0),
+              //   rightPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
+              //       ? (_jbtiData?['exploratory'] ?? 0)
+              //       : (_jbtiData?['appreciation'] ?? 0),
+              // ),
+              // KeywordText(keyword: "자아"),
+              // TemperatureBar5(
+              //   leftPercentage: (
+              //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['dimension'] ?? 0) : (_jbtiData?['flat'] ?? 0)) +
+              //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['dynamic'] ?? 0) : (_jbtiData?['astatic'] ?? 0)) +
+              //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['classic'] ?? 0) : (_jbtiData?['new'] ?? 0)) +
+              //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['appreciation'] ?? 0) : (_jbtiData?['exploratory'] ?? 0))
+              //   ) / 4.0,
+              //   rightPercentage: 100.0 - (
+              //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['flat'] ?? 0) : (_jbtiData?['dimension'] ?? 0)) +
+              //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['astatic'] ?? 0) : (_jbtiData?['dynamic'] ?? 0)) +
+              //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['new'] ?? 0) : (_jbtiData?['classic'] ?? 0)) +
+              //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['exploratory'] ?? 0) : (_jbtiData?['appreciation'] ?? 0))
+              //   ) / 4.0,
+              // ),
+              Divider(
+                color: Colors.grey[300], // 수평선의 색상 설정
+                thickness: 1, // 수평선의 두께 설정
+                height: 20, // 수평선의 높이 설정
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 가운데 정렬
+                children: [
+                  Text(
+                    '선호 작가',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => MyCollection()));
+                    },
+                    child: Text('더보기',
+                      style: TextStyle(
+                        color: Colors.grey, // 원하는 색상으로 변경하세요.
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12,),
+              Row(
+                children: [
+                  Container(
+                    width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
+                    height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
+                    color: Colors.blue, // 배경 색상 설정
+                    child: Center(
+                      child: Icon(
+                        Icons.person, // 원하는 아이콘을 설정하세요
+                        size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
+                        color: Colors.white, // 아이콘 색상 설정
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '작가 이름',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '전공',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              Row(
+                children: [
+                  Container(
+                    width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
+                    height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
+                    color: Colors.blue, // 배경 색상 설정
+                    child: Center(
+                      child: Icon(
+                        Icons.person, // 원하는 아이콘을 설정하세요
+                        size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
+                        color: Colors.white, // 아이콘 색상 설정
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '작가 이름',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '전공',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            ],
           ),
         ),
-        centerTitle: true, // 가운데 정렬
-        iconTheme: IconThemeData(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트 사이의 간격을 조절
-              children: [
-                Text(
-                  '선호 키워드',
-                  style: TextStyle(
-                    color: Colors.black, // 검은색
-                    fontSize: 16, // 글씨 크기
-                    fontWeight: FontWeight.bold, // 굵게
-                  ),
-                ),
-                Text(
-                  '서정적',
-                  style: TextStyle(
-                    color: Colors.purple, // 보라색
-                    fontSize: 16, // 글씨 크기
-                    fontWeight: FontWeight.bold, // 굵게
-                  ),
-                ),
-              ],
-            ),
-            Divider(
-              color: Colors.grey[300], // 수평선의 색상 설정
-              thickness: 1, // 수평선의 두께 설정
-              height: 20, // 수평선의 높이 설정
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
-              children: [
-                Text(
-                  '나의 취향분석결과',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                // 다른 위젯들을 추가할 수 있습니다.
-              ],
-            ),
-            SizedBox(height: 10,),
-            KeywordText(keyword: "차원"),
-            TemperatureBar1(
-                leftPercentage: 60,
-                rightPercentage: 40
-            ),
-            // TemperatureBar1(
-            //   leftPercentage: _dimension ?? 0.0,
-            //   rightPercentage: _flat ?? 0.0
-            // ),
-            KeywordText(keyword: "움직임"),
-            // TemperatureBar2(
-            //   leftPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
-            //       ? (_jbtiData?['dynamic'] ?? 0)
-            //       : (_jbtiData?['astatic'] ?? 0),
-            //   rightPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
-            //       ? (_jbtiData?['astatic'] ?? 0)
-            //       : (_jbtiData?['dynamic'] ?? 0),
-            // ),
-            // KeywordText(keyword: "변화"),
-            // TemperatureBar3(
-            //   leftPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
-            //       ? (_jbtiData?['classic'] ?? 0)
-            //       : (_jbtiData?['new'] ?? 0),
-            //   rightPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
-            //       ? (_jbtiData?['new'] ?? 0)
-            //       : (_jbtiData?['classic'] ?? 0),
-            // ),
-            // KeywordText(keyword: "경험"),
-            // TemperatureBar4(
-            //   leftPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
-            //       ? (_jbtiData?['appreciation'] ?? 0)
-            //       : (_jbtiData?['exploratory'] ?? 0),
-            //   rightPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
-            //       ? (_jbtiData?['exploratory'] ?? 0)
-            //       : (_jbtiData?['appreciation'] ?? 0),
-            // ),
-            // KeywordText(keyword: "자아"),
-            // TemperatureBar5(
-            //   leftPercentage: (
-            //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['dimension'] ?? 0) : (_jbtiData?['flat'] ?? 0)) +
-            //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['dynamic'] ?? 0) : (_jbtiData?['astatic'] ?? 0)) +
-            //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['classic'] ?? 0) : (_jbtiData?['new'] ?? 0)) +
-            //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['appreciation'] ?? 0) : (_jbtiData?['exploratory'] ?? 0))
-            //   ) / 4.0,
-            //   rightPercentage: 100.0 - (
-            //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['flat'] ?? 0) : (_jbtiData?['dimension'] ?? 0)) +
-            //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['astatic'] ?? 0) : (_jbtiData?['dynamic'] ?? 0)) +
-            //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['new'] ?? 0) : (_jbtiData?['classic'] ?? 0)) +
-            //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['exploratory'] ?? 0) : (_jbtiData?['appreciation'] ?? 0))
-            //   ) / 4.0,
-            // ),
-            Divider(
-              color: Colors.grey[300], // 수평선의 색상 설정
-              thickness: 1, // 수평선의 두께 설정
-              height: 20, // 수평선의 높이 설정
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 가운데 정렬
-              children: [
-                Text(
-                  '선호 작가',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton(
-                  onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => MyCollection()));
-                  },
-                  child: Text('더보기',
-                    style: TextStyle(
-                      color: Colors.grey, // 원하는 색상으로 변경하세요.
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),),
-                ),
-              ],
-            ),
-            SizedBox(height: 12,),
-            Row(
-              children: [
-                Container(
-                  width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
-                  height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
-                  color: Colors.blue, // 배경 색상 설정
-                  child: Center(
-                    child: Icon(
-                      Icons.person, // 원하는 아이콘을 설정하세요
-                      size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
-                      color: Colors.white, // 아이콘 색상 설정
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '작가 이름',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '전공',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              children: [
-                Container(
-                  width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
-                  height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
-                  color: Colors.blue, // 배경 색상 설정
-                  child: Center(
-                    child: Icon(
-                      Icons.person, // 원하는 아이콘을 설정하세요
-                      size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
-                      color: Colors.white, // 아이콘 색상 설정
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '작가 이름',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      '전공',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
+      );
+
   }
 }
 class KeywordText extends StatelessWidget {
