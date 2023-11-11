@@ -238,14 +238,14 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
             String documentId = widget.document!.id;
             if (_imageFile != null) {
               await uploadImage();
-              await updateImageURL('artist', widget.document!.id, imageURL!, 'artist_images');
+              await updateImageURL('artist', widget.document!.id, imageURL!, 'artist_images', 'imageURL');
             }
             widget.moveToNextTab(documentId, 'update'); // 다음 탭으로 이동
           } else { // 추가
             String documentId = await addArtist('artist', formData);
             if (_imageFile != null) {
               await uploadImage();
-              await updateImageURL('artist', documentId!, imageURL!, 'artist_images');
+              await updateImageURL('artist', documentId!, imageURL!, 'artist_images', 'imageURL');
             }
             widget.moveToNextTab(documentId, 'add'); // 다음 탭으로 이동
           }

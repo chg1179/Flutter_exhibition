@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/admin/exhibition/exhibition_list.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
@@ -104,7 +106,7 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
         _endDate = endDateTimestamp.toDate();
 
         selectImgURL = await data['imageURL'];
-        selectContentImgURL = await data['cotentURL'];
+        selectContentImgURL = await data['contentURL'];
         setState(() {
           allFieldsFilled = true; // 이미 정보를 입력한 사용자를 불러옴
         });
@@ -284,10 +286,10 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                             imgPath: imgPath,
                                             selectImgURL: selectImgURL,
                                             defaultImgURL: 'assets/logo/basic_logo.png',
-                                        radiusValue : 65.0,
+                                            radiusValue : 65.0,
                                           )
                                           : (widget.document != null && selectImgURL != null)
-                                          ? Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover)//Image.network(selectImgURL!, width: 50, height: 50, fit: BoxFit.cover)
+                                          ? Image.network(selectImgURL!, width: 130, height: 130, fit: BoxFit.cover)
                                           : Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover),
                                     ),
                                   ],
@@ -358,20 +360,22 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                                   side: MaterialStateProperty.all<BorderSide>(BorderSide(width: 1, color: Color(0xff464D40))), // 테두리 속성 추가
                                   elevation: MaterialStateProperty.all<double>(0),
                                 ),
-                                child:  _imageContentFile != null
-                                    ? buildImageWidget(
-                                      // 이미지 빌더 호출
-                                      imageFile: _imageContentFile,
-                                      imgPath: imgContentPath,
-                                      selectImgURL: selectContentImgURL,
-                                      defaultImgURL: 'assets/logo/green_logo.png',
-                                      radiusValue : 130.0,
-                                    )
-                                    : (widget.document != null && selectContentImgURL != null)
-                                      ? Image.asset('assets/logo/basic_logo.png', width: double.infinity, fit: BoxFit.cover)//Image.network(selectContentImgURL!, width: double.infinity, height: 50, fit: BoxFit.cover)
-                                      : Text('이미지 선택', style: TextStyle(fontWeight: FontWeight.w400),),
+                                child: Text('이미지 선택', style: TextStyle(fontWeight: FontWeight.w400),),
                               ),
                             ],
+                          ),
+                          SizedBox(height: 10),
+                          // 선택된 이미지 미리보기
+                          Container(
+                            child: _imageContentFile != null && imgContentPath != null
+                              ? Image.file(
+                                File(_imageContentFile!.path),
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                              : (widget.document != null && selectContentImgURL != null)
+                                ? Image.network(selectContentImgURL!, width: double.infinity, fit: BoxFit.cover)
+                                : Container(), // 이미지를 선택하지 않았을 때
                           ),
                         ],
                       )
@@ -497,11 +501,11 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
             // 이미지 변경
             if (_imageFile != null) {
               await uploadImage('image');
-              await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
+              await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images', 'imageURL');
             }
             if (_imageContentFile != null) {
               await uploadImage('contentImage');
-              await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
+              await updateImageURL('exhibition', widget.document!.id, imageContentURL!, 'exhibition_content_images', 'contentURL');
             }
           } else { // 추가
             String documentId = await addExhibition('exhibition', formData, _startDate!, _endDate!);
@@ -511,14 +515,13 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
             // 이미지 업로드
             if (_imageFile != null) {
               await uploadImage('image');
-              await updateImageURL('exhibition', documentId, imageContentURL!, 'exhibition_images');
-              if (_imageContentFile != null) {
-                await uploadImage('contentImage');
-                await updateImageURL('exhibition', widget.document!.id, imageURL!, 'exhibition_images');
-              }
+              await updateImageURL('exhibition', documentId, imageURL!, 'exhibition_images', 'imageURL');
+            }
+            if (_imageContentFile != null) {
+              await uploadImage('contentImage');
+              await updateImageURL('exhibition', documentId, imageContentURL!, 'exhibition_content_images', 'contentURL');
             }
           }
-
 
           setState(() {
             _saving = false;

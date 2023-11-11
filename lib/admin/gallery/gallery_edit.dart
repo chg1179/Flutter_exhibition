@@ -283,13 +283,13 @@ class _GalleryEditState extends State<GalleryEdit> {
             await updateGallery('gallery', widget.document!, formData);
             if (_imageFile != null) {
               await uploadImage();
-              await updateImageURL('gallery', widget.document!.id, imageURL!, 'gallery_images');
+              await updateImageURL('gallery', widget.document!.id, imageURL!, 'gallery_images', 'imageURL');
             }
           } else { // 추가
             String documentId = await addGallery('gallery', formData);
             if (_imageFile != null) {
               await uploadImage();
-              await updateImageURL('gallery', documentId!, imageURL!, 'gallery_images');
+              await updateImageURL('gallery', documentId!, imageURL!, 'gallery_images', 'imageURL');
             }
           }
 

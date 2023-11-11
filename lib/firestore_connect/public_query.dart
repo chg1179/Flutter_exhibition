@@ -189,12 +189,12 @@ Future<int> getTotalCount(String collectionStr) async {
 }
 
 // 이미지 필드 추가 및 수정
-Future<void> updateImageURL(String parentCollection, String parentDocumentId, String imageURL, String folderName) async {
+Future<void> updateImageURL(String parentCollection, String parentDocumentId, String imageURL, String folderName, String fieldName) async {
   await FirebaseFirestore.instance
       .collection(parentCollection)
       .doc(parentDocumentId)
       .update({
-        'imageURL' : imageURL,
+        fieldName : imageURL,
         'folderName' : folderName,
       });
 }
