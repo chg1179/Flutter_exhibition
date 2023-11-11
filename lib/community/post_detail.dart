@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comment_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_main.dart';
+import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/myPage/addAlarm.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -336,15 +337,20 @@ class _CommDetailState extends State<CommDetail> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: AssetImage('assets/ex/ex1.png'),
-              ),
-              SizedBox(width: 10),
-              Text(userNickName, style: TextStyle(fontSize: 15)),
-            ],
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: userNickName)));
+            },
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: AssetImage('assets/logo/green_logo.png'),
+                ),
+                SizedBox(width: 10),
+                Text(userNickName!, style: TextStyle(fontSize: 15)),
+              ],
+            ),
           ),
           Text(
             writeDate, style: TextStyle(fontSize: 13, color: Colors.black45),
@@ -628,16 +634,20 @@ class _CommDetailState extends State<CommDetail> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundImage: AssetImage("assets/ex/ex1.png"),
-                        ),
-                        SizedBox(width: 10,),
-                        Text(userNickName, style: TextStyle(fontSize: 14)),
-                      ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: userNickName)));
+                      },
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundImage: AssetImage('assets/logo/green_logo.png'),
+                          ),
+                          SizedBox(width: 10),
+                          Text(userNickName!, style: TextStyle(fontSize: 14)),
+                        ],
+                      ),
                     ),
                     Row(
                       children: [
@@ -1107,12 +1117,21 @@ class _CommDetailState extends State<CommDetail> {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundImage: AssetImage('assets/ex/ex1.png'),
-                        ),
-                        SizedBox(width: 10),
-                        Text(userNickName!, style: TextStyle(fontSize: 14)),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: userNickName)));
+                          },
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 12,
+                                backgroundImage: AssetImage('assets/logo/green_logo.png'),
+                              ),
+                              SizedBox(width: 10),
+                              Text(userNickName!, style: TextStyle(fontSize: 14)),
+                            ],
+                          ),
+                        )
                       ],
                     ),
                     Row(

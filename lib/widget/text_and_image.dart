@@ -66,7 +66,7 @@ Widget setImgTextList(
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
                                   child: data['imageURL'] != null
-                                      ? Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover)//Image.network(data['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
+                                      ? Image.network(data['imageURL'], width: 55, height: 55, fit: BoxFit.cover)
                                       : Image.asset('assets/logo/basic_logo.png', width: 55, height: 55, fit: BoxFit.cover),
                                 ),
                                 SizedBox(width: 18),

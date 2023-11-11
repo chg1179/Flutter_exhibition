@@ -78,7 +78,7 @@ class _CommMyPageState extends State<CommMyPage> {
               final postTitle = postDoc['title'] as String? ?? "No Title"; // title 필드가 없는 경우에 대한 기본값 설정
               final commentContent = commentDoc['comment'] as String;
 
-              return {'id': commentDoc.id, 'data': {'title': postTitle, 'comment': commentContent}};
+              return {'postId': postDoc.id,'id': commentDoc.id, 'data': {'title': postTitle, 'comment': commentContent}};
             } else {
               print('댓글 필드가 존재하지 않음');
               return {'id': commentDoc.id, 'data': {}};
@@ -238,7 +238,7 @@ class _CommMyPageState extends State<CommMyPage> {
 
               return GestureDetector(
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: comment['id'])));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: comment['postId'])));
                 },
                 child: Container(
                   margin: EdgeInsets.all(10),
