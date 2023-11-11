@@ -220,7 +220,9 @@ class _CommMainState extends State<CommMain> {
     print(_tagSelectList);
     await _likeCheck(selectedPosts);
     await loadCommentCnt(selectedPosts);
-    setState(() {});
+    setState(() {
+      _commList(selectedPosts);
+    });
   }
 
   // 좋아요 체크
@@ -472,187 +474,147 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-  Widget _commList(bool isPopular) {
-    final orderByField = isPopular ? 'viewCount' : 'write_date';
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('post')
-          .orderBy(orderByField, descending: true)
-          .snapshots(),
-      builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.hasError) {
-          return Center(child: Text('에러 발생: ${snap.error}'));
+  Widget _commList(List<Map<String, dynamic>> filteredDocs) {
+    return ListView.separated(
+      itemCount: filteredDocs.length,
+      separatorBuilder: (context, index) {
+        return Divider(color: Colors.grey, thickness: 0.5);
+      },
+      itemBuilder: (context, index) {
+        final doc = filteredDocs[index];
+        String docId = (doc['id'] as String) ?? '';
+        final data = doc['data'] as Map<String, dynamic>;
+
+        final title = (data['title'] as String?) ?? '';
+        final content = (data['content'] as String?) ?? '';
+        final nickName = (data['userNickName'] as String?) ?? '';
+        int viewCount = (data['viewCount'] as int?) ?? 0;
+        int likeCount = (data['likeCount'] as int?) ?? 0;
+        String? imageURL = (data['imageURL'] as String?);
+        if (data.containsKey('imageURL')) {
+          imageURL = data['imageURL'];
+        } else {
+          imageURL = '';
         }
-        if (!snap.hasData) {
-          return Center(child: Text(''));
-        }
+        return GestureDetector(
+          onTap: () {
+            // 조회수 증가
+            FirebaseFirestore.instance.collection('post').doc(docId).update({
+              'viewCount': (viewCount + 1),
+            });
 
-        final filteredDocs = snap.data!.docs.where((doc) {
-          final title = doc['title'] as String;
-          final content = doc['content'] as String;
-
-
-          // 선택한 해시태그가 '전체'일 경우 모든 게시물 표시
-          if (selectedTag == '전체') {
-            return true;
-          }
-
-          // 게시물 제목 또는 내용에 선택한 해시태그가 포함되어 있는 경우 표시
-          if (title.contains(selectedTag) || content.contains(selectedTag)) {
-            return true;
-          }
-
-          return false;
-        }).toList();
-
-
-        return ListView.separated(
-          itemCount: filteredDocs.length,
-          separatorBuilder: (context, index) {
-            return Divider(color: Colors.grey, thickness: 0.5);
-          },
-          itemBuilder: (context, index) {
-            final doc = filteredDocs[index];
-            final title = doc['title'] as String;
-            final content = doc['content'] as String;
-            final nickName = doc['userNickName'] as String;
-            String docId = doc.id;
-            int viewCount = doc['viewCount'] as int? ?? 0;
-            int likeCount = doc['likeCount'] as int? ?? 0;
-            String? imageURL;
-            final data = doc.data() as Map<String, dynamic>;
-            if (data.containsKey('imageURL')) {
-              imageURL = data['imageURL'];
-            } else {
-              imageURL = '';
-            }
-            return GestureDetector(
-              onTap: () {
-                // 조회수 증가
-                FirebaseFirestore.instance.collection('post').doc(docId).update({
-                  'viewCount': (viewCount + 1),
-                });
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CommDetail(document: doc.id),
-                  ),
-                );
-              },
-              child: Container(
-                margin: EdgeInsets.all(5),
-                padding: EdgeInsets.all(5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: (){
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
-                            },
-                            child:
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundImage: _profileImage != null
-                                      ? NetworkImage(_profileImage!)
-                                      : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
-                                ),
-                                SizedBox(width: 10),
-                                Text(nickName, style: TextStyle(fontSize: 15)),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            _formatTimestamp(doc['write_date'] as Timestamp),
-                            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                          )
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 10,),
-                    Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: Text(
-                        title,
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    SizedBox(height: 5,),
-                    Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: Text(
-                        content,
-                        style: TextStyle(fontSize: 15),
-                      ),
-                    ),
-                    SizedBox(height: 10,),
-                    if (imageURL != null && imageURL.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child:
-                          Image.network(
-                            imageURL,
-                            width: 400,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          ),
-                          // Image.asset( //스토리지 터짐용
-                          //   "assets/ex/ex1.png",
-                          //   width: 400,
-                          //   height: 200,
-                          //   fit: BoxFit.cover,
-                          // ),
-                        ),
-                      ),
-                    buildIcons(docId, viewCount, likeCount),
-                    SizedBox(height: 5,),
-                    FutureBuilder<QuerySnapshot>(
-                        future: FirebaseFirestore.instance
-                                .collection('post')
-                                .doc(docId)
-                                .collection('hashtag')
-                                .get(),
-                        builder: (context, AsyncSnapshot<QuerySnapshot> hashtagSnap){
-                          if (hashtagSnap.hasError) {
-                            return Center(child: Text('에러 발생: ${hashtagSnap.error}'));
-                          }
-                          if (!hashtagSnap.hasData) {
-                            return Center(child: Text(''));
-                          }
-                          return Wrap(
-                            spacing: 5,
-                            runSpacing: -12,
-                            children: hashtagSnap.data!.docs.map((doc) {
-                              final keyword = doc['tag_name'] as String;
-
-                              return ElevatedButton(
-                                child: Text('#$keyword'),
-                                onPressed: () {
-                                },
-                                style: _unPushBtnStyle(),
-                              );
-                            }).toList(),
-                          );
-                        }
-                    )
-                  ],
-                ),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CommDetail(document: docId),
               ),
             );
           },
+          child: Container(
+            margin: EdgeInsets.all(5),
+            padding: EdgeInsets.all(5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: (){
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
+                        },
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: _profileImage != null
+                                  ? NetworkImage(_profileImage!)
+                                  : AssetImage('assets/logo/green_logo.png') as ImageProvider,
+                            ),
+                            SizedBox(width: 10),
+                            Text(nickName, style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        _formatTimestamp(data['write_date'] as Timestamp), // Adjusted to use 'write_date' from 'data'
+                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(height: 10,),
+                Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Text(
+                    title,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                SizedBox(height: 5,),
+                Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Text(
+                    content,
+                    style: TextStyle(fontSize: 15),
+                  ),
+                ),
+                SizedBox(height: 10,),
+                if (imageURL != null && imageURL.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imageURL,
+                        width: 400,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                buildIcons(docId, viewCount, likeCount),
+                SizedBox(height: 5,),
+                FutureBuilder<QuerySnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('post')
+                      .doc(docId)
+                      .collection('hashtag')
+                      .get(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> hashtagSnap){
+                    if (hashtagSnap.hasError) {
+                      return Center(child: Text('에러 발생: ${hashtagSnap.error}'));
+                    }
+                    if (!hashtagSnap.hasData) {
+                      return Center(child: Text(''));
+                    }
+                    return Wrap(
+                      spacing: 5,
+                      runSpacing: -12,
+                      children: hashtagSnap.data!.docs.map((doc) {
+                        final keyword = doc['tag_name'] as String;
+
+                        return ElevatedButton(
+                          child: Text('#$keyword'),
+                          onPressed: () {
+                            // Handle hashtag button press
+                          },
+                          style: _unPushBtnStyle(),
+                        );
+                      }).toList(),
+                    );
+                  },
+                )
+              ],
+            ),
+          ),
         );
       },
     );
   }
+
 
 
   @override
@@ -692,8 +654,8 @@ class _CommMainState extends State<CommMain> {
             Expanded(
               child: TabBarView(
                 children: [
-                  Center(child: _commList(false)),
-                  Center(child: _commList(true)),
+                  Center(child: _commList(_tagSelectList)),
+                  Center(child: _commList(_tagSelectList)),
                 ],
               ),
             ),
