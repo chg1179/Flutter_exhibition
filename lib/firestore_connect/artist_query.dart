@@ -12,7 +12,6 @@ Future<String> addArtist(String collectionStr, Map<String, String> formData) asy
     'expertise': formData['expertise'],
     'artistIntroduce': formData['introduce'],
     'like': 0,
-    'profileImage' : 'https://firebasestorage.googleapis.com/v0/b/exhibitionproject-fdba1.appspot.com/o/artist_images%2Fgreen_logo.png?alt=media&token=504ba42a-5385-484e-9a00-fa1ca7006363'
   });
 
   // artist 변수를 사용하여 문서의 ID를 가져옴

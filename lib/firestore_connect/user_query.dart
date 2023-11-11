@@ -15,6 +15,7 @@ Future<void> addUserFirestore(String collectionStr, String email, String hashedP
     'joinDate': FieldValue.serverTimestamp(),
     'heat': 36.5,
     'status': 'U',
+    'profileImage' : 'https://firebasestorage.googleapis.com/v0/b/exhibitionproject-fdba1.appspot.com/o/artist_images%2Fgreen_logo.png?alt=media&token=504ba42a-5385-484e-9a00-fa1ca7006363'
   });
 }
 
