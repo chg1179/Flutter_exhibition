@@ -76,6 +76,8 @@ class _LikeExState extends State<LikeEx> {
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel?>(context, listen: false);
     int _currentIndex = 0;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double inkWidth = screenWidth / 2;
 
     void _onTabTapped(int index) {
       setState(() {
@@ -171,10 +173,10 @@ class _LikeExState extends State<LikeEx> {
                   padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 10),
                   child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 330, // 각 열의 최대 너비
-                        crossAxisSpacing: 15.0, // 열 간의 간격
-                        mainAxisSpacing: 20.0, // 행 간의 간격
-                        childAspectRatio: 2/5.1
+                        maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
+                        crossAxisSpacing: 10.0, // 열 간의 간격
+                        mainAxisSpacing: 10.0, // 행 간의 간격
+                        childAspectRatio: 2/5
                     ),
                     //itemCount: _exList.length,
                     itemCount: snapshot.data!.docs.length,
