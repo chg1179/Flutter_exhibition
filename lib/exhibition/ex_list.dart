@@ -193,7 +193,11 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: Image.network(imageURL, fit: BoxFit.cover, width: MediaQuery.of(context).size.width,),
+                                    child: Image.network(
+                                      imageURL,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,  // 화면 너비에 맞게 설정
+                                    ),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
@@ -346,21 +350,7 @@ class _Ex_listState extends State<Ex_list> {
         backgroundColor: Colors.white,
         elevation: 1.0,
         automaticallyImplyLeading: false, // 이전 화면으로 가는 버튼을 없애기 위해 사용
-        title: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 7),
-              child: Expanded(
-                child: Text(
-                  "EXHIBITION",
-                  style: TextStyle(color: Colors.black),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
-            ),
-          ],
-        ),
+        title: Text("EXHIBITION",style: TextStyle(color: Colors.black)),
         actions: [
           IconButton(
             icon: Icon(Icons.search, color: Color(0xff464D40)),
