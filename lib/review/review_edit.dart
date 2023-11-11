@@ -206,8 +206,7 @@ class _ReviewEditState extends State<ReviewEdit> {
             if(downloadURL != null) 'imageURL' : downloadURL
           });
 
-          // // 업데이트된 선택 해시태그를 저장
-          // await updateHashtags(_selectTag, widget.documentId!);
+           await updateHashtags(_selectTag, widget.documentId!);
 
         } else {
           await _loadUserData();
@@ -257,9 +256,6 @@ class _ReviewEditState extends State<ReviewEdit> {
         _showDialog('내용을 입력해주세요');
       } else if(_imageFile == null && (downloadURL == null || downloadURL!.isEmpty)){
         _showDialog('이미지를 등록해주세요');
-      } else {
-        final message = widget.documentId != null ? '후기가 수정되었습니다!' : '후기가 등록되었습니다!';
-        _showEditDialog(message);
       }
     }
   }

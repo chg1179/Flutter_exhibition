@@ -241,13 +241,18 @@ class _ReviewListState extends State<ReviewList> {
 
   // 게시글 좋아요 버튼을 표시하는 부분
   Widget buildLikeButton(String docId, int likeCount) {
+    final user = Provider.of<UserModel?>(context, listen: false);
     final currentIsLiked = isLikedMap[docId] ?? false; // 현재 상태 가져오기
     return GestureDetector(
       onTap: () {
-        setState(() {
-          currentIsLiked ? isLikedMap[docId] = false : isLikedMap[docId] = true;
-        });
-        toggleLike(docId);
+        if (user != null && user.isSignIn) {
+          setState(() {
+            currentIsLiked ? isLikedMap[docId] = false : isLikedMap[docId] = true;
+          });
+          toggleLike(docId);
+        } else {
+          _showDialog();
+        }
       },
       child: Icon(
           currentIsLiked ? Icons.favorite : Icons.favorite_border,
