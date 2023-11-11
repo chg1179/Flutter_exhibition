@@ -197,6 +197,7 @@ class _GalleryEditState extends State<GalleryEdit> {
                                               imgPath: imgPath,
                                               selectImgURL: selectImgURL,
                                               defaultImgURL: 'assets/logo/basic_logo.png',
+                                              radiusValue : 65.0,
                                             )
                                             : (widget.document != null && selectImgURL != null)
                                               ? Image.network(selectImgURL!, fit: BoxFit.cover, width: 130, height: 130)
