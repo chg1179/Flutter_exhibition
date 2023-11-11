@@ -11,22 +11,6 @@ class PostSearch extends StatefulWidget {
 }
 
 class _PostSearchState extends State<PostSearch> {
-  final List<String> images = [
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-  ];
   final _searchCtr = TextEditingController();
   List<String> _tagList = ['전시', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'];
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -212,7 +196,7 @@ class _PostSearchState extends State<PostSearch> {
         children: [
           Padding(
             padding: const EdgeInsets.only(left: 20, top: 20),
-            child: Text('추천 태그', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            child: Text('추천 키워드', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 20, top: 10),
@@ -276,7 +260,7 @@ class _PostSearchState extends State<PostSearch> {
             },
             controller: _searchCtr,
             decoration: InputDecoration(
-              hintText: '게시글과 태그를 검색해보세요!',
+              hintText: '게시글 키워드를 검색해보세요!',
               contentPadding: EdgeInsets.all(10),
               border: InputBorder.none,
             ),

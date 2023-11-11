@@ -11,7 +11,8 @@ import '../model/user_model.dart';
 
 class ReviewDetail extends StatefulWidget {
   final String? document;
-  ReviewDetail({required this.document});
+  final String? userNickName;
+  ReviewDetail({required this.document , this.userNickName});
 
   @override
   State<ReviewDetail> createState() => _ReviewDetailState();
@@ -20,7 +21,7 @@ class ReviewDetail extends StatefulWidget {
 class _ReviewDetailState extends State<ReviewDetail> {
 
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<Map<String, dynamic>> _hashtags = [];
+  List<String> _hashtags = [];
 
   String _formatTimestamp(Timestamp timestamp) {
     final currentTime = DateTime.now();
@@ -40,18 +41,19 @@ class _ReviewDetailState extends State<ReviewDetail> {
 
   String? _userProfileImage;
 
-  // document에서 원하는 값 뽑기
-  Future<void> _loadUserData() async {
-    final user = Provider.of<UserModel?>(context, listen: false);
-    if (user != null && user.isSignIn) {
-      DocumentSnapshot document = await getDocumentById(user.userNo!);
-      DocumentSnapshot _userDocument;
+  Future<void> _getProfileImg() async {
+    try {
+      final userQuerySnapshot = await FirebaseFirestore.instance.collection('user').where('nickName', isEqualTo: widget.userNickName).get();
+      final userId = userQuerySnapshot.docs.first.id;
+      final userProfileSnapshot = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+      final userProfileImage = userProfileSnapshot['profileImage'];
 
       setState(() {
-        _userDocument = document;
-        _userProfileImage = _userDocument.get('profileImage');
-        print('임이지: $_userProfileImage');
+        _userProfileImage = userProfileImage;
       });
+      print('해당유저프로필인가요: $_userProfileImage');
+    } catch (error) {
+      print('유저데이터 불러오는데 오류 발생: $error');
     }
   }
 
@@ -70,23 +72,23 @@ class _ReviewDetailState extends State<ReviewDetail> {
           .get();
       final hashtags = querySnapshot.docs.map((doc) {
         final data = doc.data();
-        return {
-          'tag_name': data['tag_name'] as String,
-        };
+        return data['tag_name'] as String;
       }).toList();
       print(hashtags);
       setState(() {
         _hashtags = hashtags;
       });
     } catch (e) {
-      print('댓글을 불러오는 중 오류가 발생했습니다: $e');
+      print('해시태그를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _getHashtags();
+    _getProfileImg();
   }
   // 메뉴 아이콘 클릭
   void _showMenu() {
@@ -204,14 +206,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
           final imageURL = data['imageURL'] as String?;
           final nickName = data['userNickName'] as String;
 
-          List<String> hashtags = [];
-
-          if (data.containsKey('hashtag')) {
-            var hashtagDocs = data['hashtag'] as List<dynamic>;
-            hashtags = List<String>.from(hashtagDocs);
-          }
-
-
           return SingleChildScrollView(
               child : Column(
                 children: [
@@ -228,11 +222,17 @@ class _ReviewDetailState extends State<ReviewDetail> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
+                              GestureDetector(
+                                onTap: (){
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName:nickName)));
+                                },
                                 child: Row(
                                   children: [
                                     CircleAvatar(
-                                      radius: 20,
+                                    radius: 20,
+                                    backgroundImage: _userProfileImage != null
+                                        ? NetworkImage(_userProfileImage!)
+                                        : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                                     ),
                                     SizedBox(width: 10),
                                     Column(
@@ -283,22 +283,20 @@ class _ReviewDetailState extends State<ReviewDetail> {
                         SizedBox(height: 30),
                         Padding(
                           padding: const EdgeInsets.only(left: 20, right: 20),
-                          child: InkWell(
-                            child: Container(
-                              padding: EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: Color(0xff464D40),
-                                borderRadius: BorderRadius.circular(15),
+                          child: _hashtags.isNotEmpty
+                              ? Wrap(
+                            spacing: 5,
+                            runSpacing: -10,
+                            children: _hashtags
+                                .map(
+                                  (hashtag) => ElevatedButton(
+                                onPressed: () {},
+                                child: Text('# $hashtag'),
+                                style: _btnStyle(),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.tag, color: Color(0xffD4D8C8), size: 15),
-                                  SizedBox(width: 5),
-                                ],
-                              ),
-                            ),
-                          ),
+                            ).toList(),
+                          )
+                              : Container(), // 해시태그가 없을 경우 빈 컨테이너 반환
                         ),
                         SizedBox(height: 30),
                         Container(
@@ -319,8 +317,10 @@ class _ReviewDetailState extends State<ReviewDetail> {
                       child: Column(
                         children: [
                           CircleAvatar(
-                            radius: 20,
-                            backgroundImage: AssetImage('assets/ex/ex1.png'),
+                            radius: 30,
+                            backgroundImage: _userProfileImage != null
+                                ? NetworkImage(_userProfileImage!)
+                                : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                           ),
                           SizedBox(height: 10),
                           Text(nickName, style: TextStyle(fontSize: 15)),
@@ -344,6 +344,31 @@ class _ReviewDetailState extends State<ReviewDetail> {
   Future<bool> _onBackPressed() {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ReviewList()));
     return Future.value(false);
+  }
+
+  ButtonStyle _btnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(5, 30)),
+      backgroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all<double>(0),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          fontSize: 12,
+        ),
+      ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.black;
+      }),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
   }
 
   @override

@@ -48,25 +48,6 @@ class _ReviewListState extends State<ReviewList> {
   bool isDataLoaded = false;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-
-  final List<String> images = [
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-    'assets/ex/ex1.png',
-  ];
-
-
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -161,7 +142,6 @@ class _ReviewListState extends State<ReviewList> {
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
         _profileImage = _userDocument.get('profileImage');
         print('닉네임: $_userNickName');
-        print('임이지: $_profileImage');
       });
     }
   }
@@ -304,7 +284,7 @@ class _ReviewListState extends State<ReviewList> {
   // StreamBuilder를 사용하는 대신에 직접 _reviewList를 이용하여 ListView.builder를 작성
   Widget buildReviewList() {
     if (_reviewList.isEmpty) {
-      return Center(child: Text('데이터 없음'));
+      return Center(child: Text('검색 결과가 없습니다😥'));
     }
 
     return ListView.builder(
@@ -319,14 +299,14 @@ class _ReviewListState extends State<ReviewList> {
               FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
                 'viewCount': FieldValue.increment(1),
               });
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'])));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'], userNickName : reviewData['userNickName'])));
             },
             child: Column(
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(5.0),
-                  child: Image.asset(
-                    images[index],
+                  child: Image.network(
+                    reviewData['imageURL'],
                     width: screenWidth,
                     height: 200,
                     fit: BoxFit.cover,
@@ -368,6 +348,9 @@ class _ReviewListState extends State<ReviewList> {
                               children: [
                                 CircleAvatar(
                                   radius: 8,
+                                  backgroundImage: _profileImage != null
+                                      ? NetworkImage(_profileImage!)
+                                      : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                                 ),
                                 SizedBox(width: 5),
                                 Text(
