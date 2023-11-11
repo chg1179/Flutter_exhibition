@@ -298,12 +298,6 @@ class _CommentDetailState extends State<CommentDetail> {
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Icon(
-                    Icons.more_vert,
-                    size: 15,
-                  ),
-                ),
               ],
             ),
           );
@@ -368,11 +362,6 @@ class _CommentDetailState extends State<CommentDetail> {
                                   ? _formatTimestamp(commentData['write_date'] as Timestamp)
                                   : '날짜 없음', // 또는 다른 대체 텍스트
                               style: TextStyle(fontSize: 10),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                              },
-                              child: Icon(Icons.more_vert, size: 15),
                             ),
                           ],
                         ),

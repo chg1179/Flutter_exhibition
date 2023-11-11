@@ -85,6 +85,7 @@ class _CommMainState extends State<CommMain> {
 
   String? _userNickName;
   String? _profileImage;
+
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -92,10 +93,12 @@ class _CommMainState extends State<CommMain> {
       DocumentSnapshot document = await getDocumentById(user.userNo!);
       DocumentSnapshot _userDocument;
 
+      final userProfileSnapshot = await FirebaseFirestore.instance.collection('user').doc(user.userNo).get();
+      final userProfileImage = userProfileSnapshot['profileImage'];
+
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
-        _profileImage = _userDocument.get('_profileImage') ?? 'assets/logo/green_logo.png';
         print('닉네임: $_userNickName');
       });
     }
@@ -281,6 +284,8 @@ class _CommMainState extends State<CommMain> {
       _showDialog();
     }
   }
+
+
 
   void _showDialog(){
     showDialog(
@@ -550,10 +555,14 @@ class _CommMainState extends State<CommMain> {
                             onTap: (){
                               Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: nickName)));
                             },
-                            child: Row(
+                            child:
+                            Row(
                               children: [
                                 CircleAvatar(
                                   radius: 20,
+                                  backgroundImage: _profileImage != null
+                                      ? NetworkImage(_profileImage!)
+                                      : AssetImage('assets/comm_profile/5su.jpg') as ImageProvider,
                                 ),
                                 SizedBox(width: 10),
                                 Text(nickName, style: TextStyle(fontSize: 15)),

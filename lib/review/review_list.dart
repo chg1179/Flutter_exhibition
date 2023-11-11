@@ -44,7 +44,7 @@ class _ReviewListState extends State<ReviewList> {
     {'title': '최신순', 'value': 'latest'},
     {'title': '인기순', 'value': 'popular'},
   ];
-  String? _selectedList = '최신순';
+  String? _selectedList = '';
   bool isDataLoaded = false;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -78,7 +78,7 @@ class _ReviewListState extends State<ReviewList> {
     super.initState();
     _selectedList = _filterList[0]['title'] as String?;
     if (!isDataLoaded) {
-      _loadReviewData('');
+      _loadReviewData('', _selectedList!);
     }
   }
 
@@ -97,11 +97,18 @@ class _ReviewListState extends State<ReviewList> {
     }
   }
 
-  Future<void> _loadReviewData(String searchText) async {
+  Future<void> _loadReviewData(String searchText, String sortBy) async {
     final user = Provider.of<UserModel?>(context, listen: false);
 
     // Firestore에서 'review' 컬렉션의 데이터를 가져오기 위한 쿼리를 생성
-    QuerySnapshot querySnapshot = await _firestore.collection('review').get();
+    QuerySnapshot querySnapshot;
+
+    if (sortBy == '최신순') {
+      querySnapshot = await _firestore.collection('review').orderBy('write_date', descending: true).get();
+    } else {
+      querySnapshot = await _firestore.collection('review').orderBy('viewCount', descending: true).get();
+    }
+
 
     List<Map<String, dynamic>> tempReviewList = [];
 
@@ -178,7 +185,7 @@ class _ReviewListState extends State<ReviewList> {
             child: TextField(
               controller: _searchCtr,
               onChanged: (value){
-                _loadReviewData(value);
+                _loadReviewData(value,_selectedList!);
               },
               decoration: InputDecoration(
                 hintText: '검색어를 입력해주세요',
@@ -194,7 +201,7 @@ class _ReviewListState extends State<ReviewList> {
   // 셀렉트바
   Widget buildSelectBar() {
     return TextButton(
-      onPressed: _selectBar,
+      onPressed: _showFilterSheet,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -294,110 +301,96 @@ class _ReviewListState extends State<ReviewList> {
   }
 
   // 후기 리스트
+  // StreamBuilder를 사용하는 대신에 직접 _reviewList를 이용하여 ListView.builder를 작성
   Widget buildReviewList() {
-    return StreamBuilder(
-      stream: FirebaseFirestore.instance
-          .collection("review")
-          .orderBy('write_date', descending: true)
-          .snapshots(),
-      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator()); // 로딩 중일 때 로딩 스피너 표시
-        }
+    if (_reviewList.isEmpty) {
+      return Center(child: Text('데이터 없음'));
+    }
 
-        if (snap.hasError) {
-          return Center(child: Text('에러 발생: ${snap.error}')); // 에러가 발생했을 때 에러 메시지 표시
-        }
-
-        if (!snap.hasData) {
-          return Center(child: Text('데이터 없음')); // 데이터가 없을 때 메시지 표시
-        }
-
-        return ListView.builder(
-          itemCount: _reviewList.length,
-          itemBuilder: (context, index) {
-            final reviewData = _reviewList[index];
-            final screenWidth = MediaQuery.of(context).size.width;
-            return Container(
-              padding: const EdgeInsets.all(10.0),
-              child: GestureDetector(
-                onTap: (){
-                  FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
-                    'viewCount': FieldValue.increment(1),
-                  });
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'])));
-                },
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(5.0),
-                      child: Image.asset(
-                        images[index],
-                        width: screenWidth,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      )
-                    ),
-                    ListTile(
-                      title: Row(
+    return ListView.builder(
+      itemCount: _reviewList.length,
+      itemBuilder: (context, index) {
+        final reviewData = _reviewList[index];
+        final screenWidth = MediaQuery.of(context).size.width;
+        return Container(
+          padding: const EdgeInsets.all(10.0),
+          child: GestureDetector(
+            onTap: () {
+              FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
+                'viewCount': FieldValue.increment(1),
+              });
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'])));
+            },
+            child: Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5.0),
+                  child: Image.asset(
+                    images[index],
+                    width: screenWidth,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                ListTile(
+                  title: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      if (reviewData['title'] != null) Text(reviewData['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      if (reviewData['id'] != null && reviewData['likeCount'] != null)
+                        buildLikeButton(reviewData['id'], reviewData['likeCount'])
+                    ],
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '${reviewData['write_date'] != null ? DateFormat('yyyy.MM.dd').format(reviewData['write_date'].toDate()) : "날짜 없음"}  | ',
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          SizedBox(width: 2),
+                          Icon(Icons.visibility, size: 13),
+                          SizedBox(width: 2),
+                          Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                      SizedBox(height: 5),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if(reviewData['title'] != null)
-                            Text(reviewData['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),),
-                          if(reviewData['id'] != null && reviewData['likeCount'] != null)
-                          buildLikeButton(reviewData['id'], reviewData['likeCount'])
-                        ],
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                '${reviewData['write_date'] != null ? DateFormat('yyyy.MM.dd').format(reviewData['write_date'].toDate()) : "날짜 없음"}  | ',
-                                style: TextStyle(fontSize: 13),
-                              ),
-                              SizedBox(width: 2),
-                              Icon(Icons.visibility, size: 13),
-                              SizedBox(width: 2),
-                              Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 13)),
-                            ],
-                          ),
-                          //Text(data['content'], style: TextStyle(fontSize: 13),),
-                          SizedBox(height: 5),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: (){
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'],)));
-                                },
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 8,
-                                    ),
-                                    SizedBox(width: 5,),
-                                    Text(
-                                      '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}', style: TextStyle(fontSize: 13, color: Colors.black)),
-                                  ],
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
+                            },
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 8,
                                 ),
-                              ),
-                              SizedBox(width: 10,),
-                            ],
-                          )
+                                SizedBox(width: 5),
+                                Text(
+                                  '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',
+                                  style: TextStyle(fontSize: 13, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(width: 10),
                         ],
-                      ),
-                    ),
-                  ],
+                      )
+                    ],
+                  ),
                 ),
-              )
-            );
-          },
+              ],
+            ),
+          ),
         );
       },
     );
   }
+
 
   // 후기 작성 버튼
   Widget buildAddReviewButton() {
@@ -423,7 +416,7 @@ class _ReviewListState extends State<ReviewList> {
   }
 
   // 하단시트
-  _selectBar() {
+  _showFilterSheet() {
     showModalBottomSheet(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -435,19 +428,20 @@ class _ReviewListState extends State<ReviewList> {
           height: 100,
           child: ListView.builder(
             itemCount: _filterList.length,
-            itemBuilder: (context, index){
+            itemBuilder: (context, index) {
+              final selectedList = _filterList[index]['title'] as String;
               return Column(
                 children: [
                   TextButton(
                     onPressed: () {
-                      setState(() {
-                        _selectedList = _filterList[index]['title'] as String?;
-                      });
+                      // 선택한 후기 정렬 방식을 저장하고 화면을 갱신
+                      _selectBar(selectedList);
+                      Navigator.pop(context);
                     },
                     child: Text(
                       _filterList[index]['title'] as String,
                       style: TextStyle(
-                        color: Colors.black,
+                        color: selectedList == _selectedList ? Colors.blue : Colors.black,
                         fontSize: 15,
                       ),
                     ),
@@ -459,6 +453,13 @@ class _ReviewListState extends State<ReviewList> {
         );
       },
     );
+  }
+
+  void _selectBar(String selectedList) {
+    setState(() {
+      _selectedList = selectedList;
+      _loadReviewData(_searchCtr.text, _selectedList!);
+    });
   }
 
   @override

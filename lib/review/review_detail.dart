@@ -5,6 +5,9 @@ import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 class ReviewDetail extends StatefulWidget {
   final String? document;
@@ -35,6 +38,29 @@ class _ReviewDetailState extends State<ReviewDetail> {
     }
   }
 
+  String? _userProfileImage;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userProfileImage = _userDocument.get('profileImage');
+        print('임이지: $_userProfileImage');
+      });
+    }
+  }
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
+
   Future<void> _getHashtags() async {
     try {
       final querySnapshot = await _firestore
@@ -56,7 +82,12 @@ class _ReviewDetailState extends State<ReviewDetail> {
       print('댓글을 불러오는 중 오류가 발생했습니다: $e');
     }
   }
-
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _getHashtags();
+  }
   // 메뉴 아이콘 클릭
   void _showMenu() {
     final document = widget.document;
@@ -172,7 +203,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
           final content = data['content'] as String;
           final imageURL = data['imageURL'] as String?;
           final nickName = data['userNickName'] as String;
-          final isPublic = data['isPublic'] == 'Y' ? '공개' : '비공개';
 
           List<String> hashtags = [];
 
@@ -215,7 +245,6 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                               '${data['write_date'] != null ? _formatTimestamp(data['write_date'] as Timestamp) : "날짜없음"}',
                                               style: TextStyle(fontSize: 12, color: Colors.black45),
                                             ),
-                                            Text(' · $isPublic',style: TextStyle(fontSize: 12, color: Colors.black45))
                                           ],
                                         )
                                       ],
@@ -261,8 +290,12 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                 color: Color(0xff464D40),
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              child: Text('#tag_name',
-                                style: TextStyle(color: Color(0xffD4D8C8), fontSize: 11),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.tag, color: Color(0xffD4D8C8), size: 15),
+                                  SizedBox(width: 5),
+                                ],
                               ),
                             ),
                           ),

@@ -169,10 +169,10 @@ class _CommDetailState extends State<CommDetail> {
     commentCnt = commentSnapshot.docs.length;
   }
 
-  Future<bool> _onBackPressed() {
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CommMain()));
-    return Future.value(false);
-  }
+  // Future<bool> _onBackPressed() {
+  //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CommMain()));
+  //   return Future.value(false);
+  // }
 
   void _addComment() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -686,16 +686,12 @@ class _CommDetailState extends State<CommDetail> {
                       .orderBy('write_date', descending: false)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    // _postData = documentSnapshot.data() as Map<String, dynamic>;
-                    // final timestamp = _postData?['write_date'] as Timestamp;
-                    // final formattedDate = _formatTimestamp(timestamp);
-                    // _postData?['write_date'] = formattedDate;
                     if (snapshot.hasError) {
                       return Text('답글을 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
                     }
 
                     if (snapshot.hasData) {
-                      return _repliesList(snapshot.data!);
+                      return _repliesList(snapshot.data!, documentId);
                     } else {
                       return Container(); // 또는 다른 로딩 표시 방식을 사용할 수 있습니다.
                     }
@@ -882,21 +878,171 @@ class _CommDetailState extends State<CommDetail> {
   int _visibleReplyCount = 1;
   bool _showAllReplies = false; // 모든 답글을 표시할지 여부
 
-  Widget _repliesList(QuerySnapshot<Object?> data) {
+  void _showReplyMenu(Map<String, dynamic> replyData, String commentId, String replyText, String replyId) {
+    showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.only(top: 10),
+          height: 200,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.maximize_rounded, color: Colors.black, size: 30),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.edit),
+                title: Text('답글 수정'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditReplyDialog(widget.document, commentId, replyId, replyText);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('답글 삭제'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteReply(widget.document, commentId, replyId);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditReplyDialog(String documentId, String commentId, String replyId, String initialText) {
+    final TextEditingController editReplyController = TextEditingController(text: initialText);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('답글 수정'),
+          content: TextField(
+            controller: editReplyController,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                String updatedReply = editReplyController.text;
+                _editReply(commentId, replyId, updatedReply);
+                Navigator.pop(context);
+              },
+              child: Text('저장'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _editReply(String commentId, String replyId, String updatedReply) async {
+    try {
+      await _firestore.collection('post').doc(widget.document).collection('comment').doc(commentId).collection('reply').doc(replyId).update({
+        'reply': updatedReply,
+      });
+
+      // 화면 업데이트
+      _loadComments();
+      _showSnackBar('답글이 수정되었습니다!');
+    } catch (e) {
+      print('답글 수정 오류: $e');
+    }
+  }
+
+  void _confirmDeleteReply(String documentId, String commentId, String replyId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('답글 삭제'),
+          content: Text('답글을 삭제하시겠습니까?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _deleteReply(documentId, commentId, replyId);
+              },
+              child: Text('삭제'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteReply(String documentId, String commentId, String replyId) async {
+    try {
+      await _firestore.collection('post').doc(documentId).collection('comment').doc(commentId).collection('reply').doc(replyId).delete();
+
+      // UI 업데이트
+      _loadComments();
+
+      // 사용자에게 답글이 삭제되었음을 알리는 다이얼로그 표시
+      _showDeleteReplyDialog();
+    } catch (e) {
+      print('답글 삭제 오류: $e');
+    }
+  }
+
+  void _showDeleteReplyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text('답글이 삭제되었습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('확인'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _repliesList(QuerySnapshot<Object?> data, String commentId) {
     if (data.docs.isNotEmpty) {
       final replies = data.docs.map((doc) {
         final replyData = doc.data() as Map<String, dynamic>;
         final replyText = replyData['reply'] as String;
         final userNickName = replyData['userNickName'] as String;
         final replyDate = replyData['write_date'];
-
         return {
           'replyText': replyText,
           'userNickName' : userNickName,
           'write_date' : replyDate,
+          'id' : doc.id
         };
       }).toList();
-
       if (!_showAllReplies) {
         replies.removeRange(_visibleReplyCount, replies.length);
       }
@@ -904,9 +1050,8 @@ class _CommDetailState extends State<CommDetail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // 댓글 1개 이상이면 접기
-            for (int i = 0; i < replies.length; i++) _buildReplyRow(replies[i]),
+            for (int i = 0; i < replies.length; i++) _buildReplyRow(replies[i], commentId),
             if (data.docs.length > _visibleReplyCount)
               Padding(
                 padding: const EdgeInsets.only(left: 53),
@@ -927,9 +1072,10 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
-  Widget _buildReplyRow(Map<String, dynamic> replyData) {
+  Widget _buildReplyRow(Map<String, dynamic> replyData, String commentId) {
     final replyText = replyData['replyText'] as String;
     final userNickName = replyData['userNickName'] as String?;
+    final replyId = replyData['id'] as String; // 답글 ID 추가
 
     return Container(
       width: MediaQuery.of(context).size.width,
@@ -965,7 +1111,7 @@ class _CommDetailState extends State<CommDetail> {
                         if (_userNickName == userNickName)
                           GestureDetector(
                             onTap: () {
-                              // 수정 삭제 로직 추가
+                              _showReplyMenu(replyData, commentId, replyText, replyId);
                             },
                             child: Icon(Icons.more_vert, size: 15),
                           ),

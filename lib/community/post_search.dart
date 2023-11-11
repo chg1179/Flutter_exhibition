@@ -11,6 +11,22 @@ class PostSearch extends StatefulWidget {
 }
 
 class _PostSearchState extends State<PostSearch> {
+  final List<String> images = [
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+    'assets/ex/ex1.png',
+  ];
   final _searchCtr = TextEditingController();
   List<String> _tagList = ['전시', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'];
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -141,9 +157,7 @@ class _PostSearchState extends State<PostSearch> {
               Map<String, dynamic> postData = postDataList[index];
               final title = postData['title'] ?? '';
               final content = postData['content'] ?? '';
-              final imageURL = postData['imageURL'] ?? '';
               final List<String> hashtagList = (postData['hashtagList'] as List<String>?) ?? [];
-
 
               print('해당 게시글의 hashtagList $index: $hashtagList');
 
@@ -155,47 +169,31 @@ class _PostSearchState extends State<PostSearch> {
                   width: MediaQuery.of(context).size.width,
                   margin: EdgeInsets.only(bottom: 20),
                   padding: EdgeInsets.all(20),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title!,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          ),
-                          Text(
-                            content,
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          Wrap(
-                              children: (hashtagList ?? []).map((hashtag){
-                                return Padding(
-                                  padding:const EdgeInsets.symmetric(horizontal: 4),
-                                  child: Chip(label: Text('#$hashtag'))
-                                );
-                              }).toList(),
-                          ),
-                          if(postData['write_date'] != null)
-                            Text(
-                              '작성일: ${DateFormat('yyyy.MM.dd').format(postData['write_date'].toDate())}',
-                              style: TextStyle(fontSize: 12, color: Colors.black54),
-                            ),
-                        ],
+                      Text(
+                        title!,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
-                      SizedBox(width: 20),
-                      imageURL.isNotEmpty
-                          ? ClipRRect(
-                            borderRadius: BorderRadius.circular(5),
-                            child: Image.network(
-                              imageURL,
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                              : Container(),
+                      Text(
+                        content,
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      if(postData['write_date'] != null)
+                        Text(
+                          '작성일: ${DateFormat('yyyy.MM.dd').format(postData['write_date'].toDate())}',
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        children: hashtagList.map((hashtag) {
+                          return Chip(
+                            label: Text(hashtag),
+                          );
+                        }).toList(),
+                      ),
                     ],
                   ),
                 ),
