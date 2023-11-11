@@ -229,8 +229,8 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 ),
                               ),
                               Positioned(
-                                right: 8, // 수정된 부분: 원하는 위치로 조정
-                                top: 8,  // 수정된 부분: 원하는 위치로 조정
+                                right: 8,
+                                top: 8,
                                 child: Container(
                                   padding: EdgeInsets.all(4),
                                   decoration: BoxDecoration(
@@ -238,7 +238,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     shape: BoxShape.circle,
                                   ),
                                   child: Text(
-                                    '1', // 알림 개수 또는 원하는 텍스트로 변경
+                                    '1',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -273,6 +273,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                       children: <Widget>[
                         Column(
                           children: [
+                            SizedBox(height: 20,),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: <Widget>[
@@ -493,8 +494,42 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 ],
                               ),
                             ),
-
-                            SizedBox(height: 10),
+                            SizedBox(height: 30),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                  top: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                ),
+                              ),
+                              padding: EdgeInsets.only(left: 15, right: 5, top: 10, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceBetween,
+                                children: [
+                                  Text('나의 후기글', style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 17),),
+                                  IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(Icons.arrow_forward_ios)
+                                  ),
+                                ],
+                              ),
+                            ),
                             FutureBuilder<DocumentSnapshot>(
                               future: FirebaseFirestore.instance.collection('user').doc(user.userNo).get(),
                               builder: (context, userSnapshot) {
@@ -519,7 +554,11 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                       } else {
                                         final reviews = reviewsSnapshot.data?.docs;
                                         if (reviews == null || reviews.isEmpty) {
-                                          return SizedBox(); // 데이터가 없는 경우 빈 상태를 반환
+                                          return Container(
+                                            child: Center(
+                                                child: Text("작성한 후기글이 없습니다.")
+                                            ),
+                                          ); // 데이터가 없는 경우 빈 상태를 반환
                                         }
 
                                         List<Widget> reviewItems = reviews.map((review) {
@@ -545,18 +584,13 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                             if (index == 8 && reviewItems.length > 8) {
                                               return GestureDetector(
                                                 onTap: () {
-                                                  // 더보기 버튼 클릭 시 더보기 페이지로 이동
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => MyPageAddView(), // 더보기 페이지로 이동
-                                                    ),
+                                                  Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageAddView()), //더보기 페이지
                                                   );
                                                 },
                                                 child: Container(
-                                                  color: Colors.grey.withOpacity(0.3), // 회색 반투명 배경
+                                                  color: Colors.grey.withOpacity(0.09), // 회색 반투명 배경
                                                   child: Center(
-                                                    child: Text('더보기', style: TextStyle(color: Colors.black)),
+                                                    child: Text('더보기', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
                                                   ),
                                                 ),
                                               );
@@ -573,18 +607,29 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 }
                               },
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15, right: 5, top: 10, bottom: 10),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                  top: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                ),
+                              ),
+                              padding: EdgeInsets.only(left: 15, right: 5, top: 10, bottom: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment
                                     .spaceBetween,
                                 children: [
                                   Text('나의 취향분석', style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16),),
+                                      fontSize: 17),),
                                   IconButton(
                                       onPressed: () {
-                                        //취향분석 상세페이지로 이동
                                         Navigator.push(context,
                                             MaterialPageRoute(
                                                 builder: (context) =>
@@ -595,6 +640,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 ],
                               ),
                             ),
+                            SizedBox(height: 30,),
                             Center(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -608,9 +654,21 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 ],
                               ),
                             ),
-                            SizedBox(height: 20,),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 15, right: 5, bottom: 20),
+                            SizedBox(height: 30,),
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                  top: BorderSide(
+                                    color: Colors.grey, // 테두리 색상
+                                    width: 0.3,          // 테두리 두께
+                                  ),
+                                ),
+                              ),
+                              padding: EdgeInsets.only(left: 15, right: 5, top: 10, bottom: 20),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -620,7 +678,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     children: [
                                       Text('나의 컬렉션', style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16),),
+                                          fontSize: 17),),
                                       IconButton(
                                           onPressed: () {
                                             Navigator.push(context,
@@ -633,33 +691,10 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                       ),
                                     ],
                                   ),
-                                  Text("좋아하는 작품, 작가, 전시관 보러가기", style: TextStyle(fontSize: 13, color: Colors.grey[600]),)
+                                  Text("좋아하는 작품, 작가, 전시관 보러가기", style: TextStyle(fontSize: 13, color: Colors.grey[600])),
                                 ],
                               ),
                             ),
-                            // GestureDetector(
-                            //   onTap: () {
-                            //     Navigator.push(context, MaterialPageRoute(
-                            //         builder: (context) => MyCollection()));
-                            //   },
-                            //   child: Container(
-                            //     child: TabBar(
-                            //       controller: _tabController,
-                            //       tabs: [
-                            //         Tab(text: '작품'),
-                            //         Tab(text: '작가'),
-                            //         Tab(text: '전시관')
-                            //       ],
-                            //       indicator: BoxDecoration(
-                            //           border: Border(bottom: BorderSide(
-                            //               color: Colors.black, width: 2.0),)
-                            //       ),
-                            //       labelColor: Colors.black,
-                            //       labelStyle: TextStyle(
-                            //           fontWeight: FontWeight.bold),
-                            //     ),
-                            //   ),
-                            // )
                           ],
                         ),
                       ],
@@ -889,8 +924,6 @@ class TemperatureBar extends StatelessWidget {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final temperatureGradient = getTemperatureGradient(temperature);
@@ -915,14 +948,14 @@ class TemperatureBar extends StatelessWidget {
           }
           return Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  ExhibitionTemperature(),
-                  Spacer(),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: Container(
+              Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ExhibitionTemperature(),
+                    Spacer(),
+                    Container(
                         padding: EdgeInsets.only(left: 6, right: 6, top: 2, bottom: 3),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -930,13 +963,13 @@ class TemperatureBar extends StatelessWidget {
                         ),
                         child: Text('현재 밝기 ${userHeat}%', style: TextStyle(fontSize: 12, color: Colors.white),)
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               SizedBox(height: 15),
               Container(
                 height: 12, // 온도바의 높이 조정
-                width: 350, // 온도바의 너비 조정
+                width: MediaQuery.of(context).size.width * 0.8, // 온도바의 너비 조정
                 decoration: BoxDecoration(
                   color: Colors.grey[100], // 온도바의 배경 색상 설정
                   borderRadius: BorderRadius.circular(10.0), // 둥근 모서리 설정
@@ -970,48 +1003,45 @@ class ExhibitionTemperature extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel>(context); // 세션. UserModel
-    return Padding(
-      padding: const EdgeInsets.only(left: 13),
-      child: GestureDetector(
-        onTap: () {
-          final RenderBox overlay = Overlay.of(context)!.context
-              .findRenderObject() as RenderBox;
-          final RenderBox renderBox = context.findRenderObject() as RenderBox;
-          final Offset offset = renderBox.localToGlobal(
-              Offset.zero, ancestor: overlay);
-          final double top = offset.dy + renderBox.size.height + 5.0; // 조정 가능
+    return GestureDetector(
+      onTap: () {
+        final RenderBox overlay = Overlay.of(context)!.context
+            .findRenderObject() as RenderBox;
+        final RenderBox renderBox = context.findRenderObject() as RenderBox;
+        final Offset offset = renderBox.localToGlobal(
+            Offset.zero, ancestor: overlay);
+        final double top = offset.dy + renderBox.size.height + 5.0; // 조정 가능
 
-          showTooltip(
-            context,
-            message: '손전등 게이지는 내 손안의 전시회 사용자로부터 받은 좋아요, 후기, 커뮤니티 활동량 등을 종합해서 만든 활동 지표예요.',
-            top: top, // 툴팁 위치 조정
-          );
-        },
-        child: Row(
-          children: [
-            Icon(Icons.highlight, size: 16),
-            SizedBox(width: 1,),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    width: 0.8,
-                  ),
-                ),
-              ),
-              child: Text(
-                '손전등 게이지',
-                style: TextStyle(
-                  fontSize: 12,
+        showTooltip(
+          context,
+          message: '손전등 게이지는 내 손안의 전시회 사용자로부터 받은 좋아요, 후기, 커뮤니티 활동량 등을 종합해서 만든 활동 지표예요.',
+          top: top, // 툴팁 위치 조정
+        );
+      },
+      child: Row(
+        children: [
+          Icon(Icons.highlight, size: 16),
+          SizedBox(width: 1,),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  width: 0.8,
                 ),
               ),
             ),
-            SizedBox(width: 1,),
-            Icon(Icons.info_outline, size: 12),
-          ],
-        )
+            child: Text(
+              '손전등 게이지',
+              style: TextStyle(
+                fontSize: 12,
+              ),
+            ),
+          ),
+          SizedBox(width: 1,),
+          Icon(Icons.info_outline, size: 12),
+        ],
+      )
 
-      ),
     );
   }
   

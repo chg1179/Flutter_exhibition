@@ -1,17 +1,9 @@
-import 'package:exhibition_project/community/post_main.dart';
-import 'package:exhibition_project/exhibition/ex_list.dart';
-import 'package:exhibition_project/main.dart';
-import 'package:exhibition_project/myPage/JTBI/my_jtbi_result.dart';
-import 'package:exhibition_project/myPage/be_back_ex.dart';
-import 'package:exhibition_project/myPage/isNotification.dart';
-import 'package:exhibition_project/myPage/myPageSettings/calendar.dart';
-import 'package:exhibition_project/myPage/like_ex.dart';
-import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
-import 'package:exhibition_project/myPage/my_calendar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
-import 'package:exhibition_project/myPage/mypage.dart';
-import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../model/user_model.dart';
 
 
 void main() {
@@ -36,47 +28,43 @@ class MyPageAddView2 extends StatefulWidget {
 
 class _MyPageAddView2State extends State<MyPageAddView2> with SingleTickerProviderStateMixin {
   double temperature = 36.5;
-  int _currentIndex = 0;
   late TabController _tabController;
-  int _currentPageIndex = 0;
   final PageController _pageController = PageController();
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  late DocumentSnapshot _userDocument;
+  late String? _userNickName;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+      });
+    }
   }
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _loadUserData();
+  }
 
-    // 탭을 클릭할 때 페이지 전환
-    _tabController.addListener(() {
-      // _tabController.index로 현재 선택된 탭의 인덱스를 확인할 수 있습니다.
-      if (_tabController.index == 0) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MyCollection())
-        );
-      } else if (_tabController.index == 1) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MyCollection())
-        );
-      } else if (_tabController.index == 2) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => MyCollection())
-        );
-      }
-    });
+  // Firebase에서 review 컬렉션에서 데이터 가져오기
+  Future<List<DocumentSnapshot>> _getReviews() async {
+    QuerySnapshot reviewSnapshot = await FirebaseFirestore.instance
+        .collection('review')
+        .where('userNickName', isEqualTo: _userNickName) // 필드명 수정 필요
+        .get();
+
+    return reviewSnapshot.docs;
   }
 
   @override
@@ -90,311 +78,54 @@ class _MyPageAddView2State extends State<MyPageAddView2> with SingleTickerProvid
             return Scaffold(
               appBar: AppBar(
                 elevation: 0,
-                title: Text('(임시)내후기 모아보기',style: TextStyle(color: Colors.blueGrey),),
+                title: Text('내가 쓴 후기글', style: TextStyle(color: Colors.black),),
                 backgroundColor: Colors.transparent,
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  color: Colors.black,
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+                    Navigator.pop(context);
                   },
+                  icon: Icon(Icons.arrow_back, color: Colors.black),
                 ),
-                actions: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => IsNotification()));
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Image.asset(
-                        'assets/icons/alram.png',
-                        width: 20,
-                        height: 20,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 7),
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => MyPageSettings())
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 20),
-                      child: Image.asset(
-                        'assets/icons/setting.gif',
-                        width: 20,
-                        height: 20,
-                      ),
-                    ),
-                  ),
-                ],
               ),
-              body: ListView(
-                children: <Widget>[
-                  Center(
-                    child: Column(
-                      children: [
-                        //프로필사진
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            CircleAvatar(
-                              radius: 30,
-                              backgroundImage: AssetImage('assets/main/가로1.jpg'),
-                            ),
-                            SizedBox(width: 10),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Row(
-                                  children: [
-                                    SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: () {
-                                        // 첫 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                        _showFollowersDialog(context, '후기글', 7);
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Text('7', style: TextStyle(fontWeight: FontWeight.bold)),
-                                          Text('후기글', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: () {
-                                        // 두 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                        _showFollowersDialog(context, '팔로워', 100);
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
-                                          Text('팔로워', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    GestureDetector(
-                                      onTap: () {
-                                        // 세 번째 숫자를 눌렀을 때 다이얼로그 표시
-                                        _showFollowersDialog(context, '팔로잉', 100);
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Text('100', style: TextStyle(fontWeight: FontWeight.bold)),
-                                          Text('팔로잉', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            )
-
-                          ],
-                        ),
-                        SizedBox(height: 20),
-                        Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 75),
-                              child: Text(
-                                '전시온도',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                        TemperatureBar(temperature: temperature),
-                        SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15, right: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => BeBackEx()));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Image.asset(
-                                        'assets/icons/ticket.png',
-                                        width: 30,
-                                        height: 30,
-                                      ),
-                                    ),
+                body: FutureBuilder(
+                  future: _getReviews(), // review 컬렉션에서 데이터 가져오기
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator(); // 데이터 로딩 중에는 로딩 인디케이터 표시
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      List<DocumentSnapshot> reviews = snapshot.data as List<DocumentSnapshot>;
+                      return ListView(
+                        children: <Widget>[
+                          Center(
+                            child: Column(
+                              children: [
+                                GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 3,
                                   ),
-                                  Text('다녀온 전시',style: TextStyle(fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              SizedBox(width: 7),
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => LikeEx()));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Image.asset(
-                                        'assets/icons/heart.png',
-                                        width: 30,
-                                        height: 30,
-                                      ),
-                                    ),
-                                  ),
-                                  Text('좋아요 한 전시',style: TextStyle(fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              SizedBox(width: 7),
-                              Column(
-                                children: [
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (context) => MyCalendar()));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Image.asset(
-                                        'assets/icons/calender.png',
-                                        width: 30,
-                                        height: 30,
-                                      ),
-                                    ),
-                                  ),
-                                  Text('캘린더',style: TextStyle(fontWeight: FontWeight.bold),),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        SizedBox(height: 10),
-                        GridView.builder(
-                          shrinkWrap: true,  // 추가
-                          physics: NeverScrollableScrollPhysics(),  // 추가
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                          ),
-                          itemCount: 9,
-                          itemBuilder: (context, index) {
-                            if (index < 8) {
-                              return Image.asset('assets/main/전시2.jpg');
-                              //마이후기 사진 리스트 8개 넘기기
-                              //마이후기 사진 리스트 8개 넘기기
-                            } else {
-                              return GestureDetector(
-                                onTap: () {
-                                  //더보기 클릭시 마이후기 상세 페이지로
-                                  //더보기 클릭시 마이후기 상세 페이지로
-                                  print('더보기 클릭하셨습니다');
-                                },
-                                child: Container(
-                                  color: Colors.grey.withOpacity(0.3),
-                                  child: Center(
-                                    child: Text('더보기', style: TextStyle(color: Colors.black)),
-                                  ),
+                                  itemCount: reviews.length,
+                                  itemBuilder: (context, index) {
+                                    // reviews에서 필요한 데이터를 가져와서 출력
+                                    String imageURL = reviews[index].get('imageURL'); // 필드명 수정 필요
+                                    return Image.network(imageURL, fit: BoxFit.cover,);
+                                  },
                                 ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              bottomNavigationBar: BottomNavigationBar(
-                currentIndex: _currentIndex,
-                onTap: _onTabTapped,
-                items: [
-                  BottomNavigationBarItem(
-                    icon: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-                        },
-                        icon : Icon(Icons.home),
-                        color: Colors.black
-                    ),
-                    label: '',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => Ex_list()));
-                        },
-                        icon : Icon(Icons.account_balance, color: Colors.black)
-                    ),
-                    label: '',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
-                        },
-                        icon : Icon(Icons.comment),
-                        color: Colors.black
-                    ),
-                    label: '',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
-                        },
-                        icon : Icon(Icons.library_books),
-                        color: Colors.black
-                    ),
-                    label: '',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: IconButton(
-                        onPressed: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
-                        },
-                        icon : Icon(Icons.account_circle),
-                        color: Colors.black
-                    ),
-                    label: '',
-                  ),
-                ],
-              ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                )
             );
           },
         )
       )
       );
-  }
-
-  void _showFollowersDialog(BuildContext context, String title, int count) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Column(
-            children: <Widget>[
-              Text('팔로잉: $count'),
-              Text('팔로워: $count'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('닫기'),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
