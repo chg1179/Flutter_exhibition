@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
+import 'package:exhibition_project/review/review_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
@@ -101,7 +102,12 @@ class _MyPageAddView2State extends State<MyPageAddView2>
                         itemCount: reviews.length,
                         itemBuilder: (context, index) {
                           String imageURL = reviews[index].get('imageURL');
-                          return Image.network(imageURL, fit: BoxFit.cover);
+                          return InkWell(
+                              onTap: (){
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviews[index].id)));
+                              },
+                              child: Image.network(imageURL, fit: BoxFit.cover)
+                          );
                         },
                       ),
                     ],
