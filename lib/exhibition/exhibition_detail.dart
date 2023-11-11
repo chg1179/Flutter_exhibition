@@ -1,5 +1,6 @@
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
+import 'package:exhibition_project/exhibition/ex_map.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
@@ -600,16 +601,17 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               width: 40,
                               child: IconButton(
                                 onPressed: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) => ExMap(address: _galleryData!['addr'], locationName: _exDetailData!['galleryName'], exTitle:  _exDetailData!['exTitle'])));
                                   // 지도 띄우기
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AddressGoogleMaps(
-                                        address: _galleryData!['addr'],
-                                        locationName: _exDetailData!['galleryName'],
-                                      );
-                                    },
-                                  );
+                                  // showModalBottomSheet(
+                                  //   context: context,
+                                  //   builder: (BuildContext context) {
+                                  //     return AddressGoogleMaps(
+                                  //       address: _galleryData!['addr'],
+                                  //       locationName: _exDetailData!['galleryName'],
+                                  //     );
+                                  //   },
+                                  // );
                                 },
                                 icon: Icon(Icons.location_on),
                               ),

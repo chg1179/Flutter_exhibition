@@ -463,38 +463,46 @@ class _MainListState extends State<MainList> {
                                           errorWidget: (context, url, error) => Icon(Icons.error),
                                         ),
                                       ),
-                                      Positioned(
-                                        width: 280,
-                                          left: 58,
-                                          bottom: 12,// 조정하여 텍스트가 원하는 위치에 표시될 수 있도록 설정
+                                      Center(
                                         child: Container(
-                                          padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15), // 텍스트 주변 패딩
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [Colors.transparent, Colors.black], // 그라데이션 색상
-                                            ),
-                                          ),
+                                          width: 280,
+                                          height: 421,
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            crossAxisAlignment: CrossAxisAlignment.end,
                                             children: [
-                                              Text(
-                                                '${data['exTitle']}',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
+                                              Container(
+                                                width: 280,
+                                                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15), // 텍스트 주변 패딩
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [Colors.transparent, Colors.black], // 그라데이션 색상
+                                                  ),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      '${data['exTitle']}',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      '${galleryName}/${galleryRegion}',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    // Add more Text widgets if needed
+                                                  ],
                                                 ),
                                               ),
-                                              Text(
-                                                '${galleryName}/${galleryRegion}',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                              // Add more Text widgets if needed
                                             ],
                                           ),
                                         ),
