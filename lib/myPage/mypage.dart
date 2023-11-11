@@ -39,6 +39,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
   late TabController _tabController;
   late DocumentSnapshot _userDocument;
   late String? _userNickName;
+  String? _userProfileImage;
   final PageController _pageController = PageController();
   void _onTabTapped(int index) {
     setState(() {
@@ -90,6 +91,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        _userProfileImage = _userDocument.get('profileImage') ?? "";
       });
     }
   }
@@ -310,8 +312,9 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                     children: [
                                       CircleAvatar(
                                         radius: 40,
-                                        backgroundImage: AssetImage(
-                                            'assets/main/더보기.jpg'),
+                                        backgroundImage: _userProfileImage != null
+                                            ? NetworkImage(_userProfileImage!)
+                                            : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                                       ),
                                       SizedBox(height: 5),
                                       Text(_userNickName ?? '', style: TextStyle(

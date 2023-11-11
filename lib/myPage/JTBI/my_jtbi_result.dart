@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/myPage/my_collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
+import '../../artist/artist_info.dart';
 import '../../model/user_model.dart';
 
 class JtbiResult extends StatefulWidget {
@@ -10,10 +12,36 @@ class JtbiResult extends StatefulWidget {
   State<JtbiResult> createState() => _JtbiResultState();
 }
 class _JtbiResultState extends State<JtbiResult> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late UserModel user;
   Map<String, dynamic>? _jbtiData;
   double dynamicValue = 0.0;
   double astaticValue = 0.0;
+  double appreciationValue = 0.0;
+  double classicValue = 0.0;
+  double dimensionValue = 0.0;
+  double exploratoryValue = 0.0;
+  double flatValue = 0.0;
+  double newValue = 0.0;
+  late String? _userNickName = "";
+  late DocumentSnapshot _userDocument;
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+      });
+    }
+  }
+  // 세션으로 document 값 구하기
+  Future<DocumentSnapshot> getDocumentById(String documentId) async {
+    DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
+    return document;
+  }
 
 
   @override
@@ -31,6 +59,12 @@ class _JtbiResultState extends State<JtbiResult> {
         _jbtiData = snapshot.docs.first.data() as Map<String, dynamic>;
         dynamicValue = (_jbtiData!['dynamicValue'] as num).toDouble();
         astaticValue = (_jbtiData!['astaticValue'] as num).toDouble();
+        appreciationValue = (_jbtiData!['appreciationValue'] as num).toDouble();
+        classicValue = (_jbtiData!['classicValue'] as num).toDouble();
+        dimensionValue = (_jbtiData!['dimensionValue'] as num).toDouble();
+        exploratoryValue = (_jbtiData!['exploratoryValue'] as num).toDouble();
+        flatValue = (_jbtiData!['flatValue'] as num).toDouble();
+        newValue = (_jbtiData!['newValue'] as num).toDouble();
         setState(() {}); // Rebuild를 유도하기 위해 setState 호출
       } else {
         print('취향 분석 결과가 없습니다.');
@@ -104,53 +138,50 @@ class _JtbiResultState extends State<JtbiResult> {
               ),
               SizedBox(height: 10,),
               KeywordText(keyword: "차원"),
-              if (dynamicValue != 0.0 && astaticValue != 0.0)
+              if (dimensionValue != 0.0 && flatValue != 0.0)
                 TemperatureBar1(
-                  leftPercentage: astaticValue,
-                  rightPercentage: dynamicValue
+                  leftPercentage: dimensionValue > flatValue ? dimensionValue : flatValue,
+                  rightPercentage: dimensionValue > flatValue ? flatValue : dimensionValue,
+                  type : dimensionValue > flatValue ? 0 : 1
                 ),
               KeywordText(keyword: "움직임"),
-              // TemperatureBar2(
-              //   leftPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
-              //       ? (_jbtiData?['dynamic'] ?? 0)
-              //       : (_jbtiData?['astatic'] ?? 0),
-              //   rightPercentage: (_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0)
-              //       ? (_jbtiData?['astatic'] ?? 0)
-              //       : (_jbtiData?['dynamic'] ?? 0),
-              // ),
-              // KeywordText(keyword: "변화"),
-              // TemperatureBar3(
-              //   leftPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
-              //       ? (_jbtiData?['classic'] ?? 0)
-              //       : (_jbtiData?['new'] ?? 0),
-              //   rightPercentage: (_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0)
-              //       ? (_jbtiData?['new'] ?? 0)
-              //       : (_jbtiData?['classic'] ?? 0),
-              // ),
-              // KeywordText(keyword: "경험"),
-              // TemperatureBar4(
-              //   leftPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
-              //       ? (_jbtiData?['appreciation'] ?? 0)
-              //       : (_jbtiData?['exploratory'] ?? 0),
-              //   rightPercentage: (_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0)
-              //       ? (_jbtiData?['exploratory'] ?? 0)
-              //       : (_jbtiData?['appreciation'] ?? 0),
-              // ),
-              // KeywordText(keyword: "자아"),
-              // TemperatureBar5(
-              //   leftPercentage: (
-              //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['dimension'] ?? 0) : (_jbtiData?['flat'] ?? 0)) +
-              //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['dynamic'] ?? 0) : (_jbtiData?['astatic'] ?? 0)) +
-              //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['classic'] ?? 0) : (_jbtiData?['new'] ?? 0)) +
-              //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['appreciation'] ?? 0) : (_jbtiData?['exploratory'] ?? 0))
-              //   ) / 4.0,
-              //   rightPercentage: 100.0 - (
-              //       ((_jbtiData?['dimension'] ?? 0) >= (_jbtiData?['flat'] ?? 0) ? (_jbtiData?['flat'] ?? 0) : (_jbtiData?['dimension'] ?? 0)) +
-              //           ((_jbtiData?['dynamic'] ?? 0) >= (_jbtiData?['astatic'] ?? 0) ? (_jbtiData?['astatic'] ?? 0) : (_jbtiData?['dynamic'] ?? 0)) +
-              //           ((_jbtiData?['classic'] ?? 0) >= (_jbtiData?['new'] ?? 0) ? (_jbtiData?['new'] ?? 0) : (_jbtiData?['classic'] ?? 0)) +
-              //           ((_jbtiData?['appreciation'] ?? 0) >= (_jbtiData?['exploratory'] ?? 0) ? (_jbtiData?['exploratory'] ?? 0) : (_jbtiData?['appreciation'] ?? 0))
-              //   ) / 4.0,
-              // ),
+              if (astaticValue != 0.0 && dynamicValue != 0.0)
+                TemperatureBar2(
+                  leftPercentage: astaticValue > dynamicValue ? astaticValue : dynamicValue,
+                  rightPercentage: astaticValue > dynamicValue ? dynamicValue : astaticValue,
+                    type : dimensionValue > flatValue ? 0 : 1
+                ),
+              KeywordText(keyword: "변화"),
+              if (classicValue != 0.0 && newValue != 0.0)
+                TemperatureBar3(
+                  leftPercentage: classicValue > newValue ? classicValue : newValue,
+                  rightPercentage: classicValue > newValue ? newValue : classicValue,
+                    type : dimensionValue > flatValue ? 0 : 1
+                ),
+              KeywordText(keyword: "경험"),
+              if (appreciationValue != 0.0 && exploratoryValue != 0.0)
+                TemperatureBar4(
+                  leftPercentage: appreciationValue > exploratoryValue ? appreciationValue : exploratoryValue,
+                  rightPercentage: appreciationValue > exploratoryValue ? exploratoryValue : appreciationValue,
+                    type : dimensionValue > flatValue ? 0 : 1
+                ),
+              KeywordText(keyword: "자아"),
+              TemperatureBar5(
+                leftPercentage: (
+                    (dimensionValue >= flatValue ? dimensionValue : flatValue) +
+                        (dynamicValue >= astaticValue ? dynamicValue : astaticValue) +
+                        (classicValue >= newValue ? classicValue : newValue) +
+                        (appreciationValue >= exploratoryValue ? appreciationValue : exploratoryValue)
+                ) / 4.0,
+                rightPercentage: 100.0 - (
+                    (dimensionValue >= flatValue ? flatValue : dimensionValue) +
+                        (dynamicValue >= astaticValue ? astaticValue : dynamicValue) +
+                        (classicValue >= newValue ? newValue : classicValue) +
+                        (appreciationValue >= exploratoryValue ? exploratoryValue : appreciationValue)
+                ) / 4.0,
+                  type : dimensionValue > flatValue ? 0 : 1
+              ),
+
               Divider(
                 color: Colors.grey[300], // 수평선의 색상 설정
                 thickness: 1, // 수평선의 두께 설정
@@ -182,86 +213,101 @@ class _JtbiResultState extends State<JtbiResult> {
                 ],
               ),
               SizedBox(height: 12,),
-              Row(
-                children: [
-                  Container(
-                    width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
-                    height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
-                    color: Colors.blue, // 배경 색상 설정
-                    child: Center(
-                      child: Icon(
-                        Icons.person, // 원하는 아이콘을 설정하세요
-                        size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
-                        color: Colors.white, // 아이콘 색상 설정
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '작가 이름',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '전공',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: StreamBuilder(
+                  stream: _firestore
+                      .collection('user')
+                      .where('nickName', isEqualTo: _userNickName)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return SpinKitWave(
+                        color: Color(0xff464D40),
+                        size: 20.0,
+                        duration: Duration(seconds: 3),
+                      );
+                    } else {
+                      if (userSnapshot.data!.docs.isEmpty) {
+                        return Text('아직 선호하는 작가가 없으시네요!',style: TextStyle(color: Colors.grey),); // 리스트가 없을 때 메시지 표시
+                      }
+                      return Column(
+                        children: userSnapshot.data!.docs.map((userDoc) {
+                          return StreamBuilder(
+                            stream: _firestore
+                                .collection('user')
+                                .doc(userDoc.id)
+                                .collection('artistLike')
+                                .limit(2)
+                                .snapshots(),
+                            builder: (context, AsyncSnapshot<QuerySnapshot> artistLikeSnapshot) {
+                              if (!artistLikeSnapshot.hasData) {
+                                return SpinKitWave(
+                                  color: Color(0xff464D40),
+                                  size: 20.0,
+                                  duration: Duration(seconds: 3),
+                                );
+                              } else {
+                                if (artistLikeSnapshot.data!.docs.isEmpty) {
+                                  return Text('아직 선호하는 작가가 없으시네요!',style: TextStyle(color: Colors.grey),); // 리스트가 없을 때 메시지 표시
+                                }
+                                return Column(
+                                  children: artistLikeSnapshot.data!.docs.map((artistDoc) {
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => ArtistInfo(document: artistDoc['artistId'])),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                        child: Row(
+                                          children: [
+                                            artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
+                                            CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            )
+                                                : CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            ),
+                                            SizedBox(width: 30),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  artistDoc['artistName'],
+                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                ),
+                                                Text(
+                                                  artistDoc['expertise'],
+                                                  style: TextStyle(fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
+                              }
+                            },
+                          );
+                        }).toList(),
+                      );
+                    }
+                  },
+                ),
               ),
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  Container(
-                    width: 79, // 이미지의 너비, 원하는 크기로 조절하세요
-                    height: 79, // 이미지의 높이, 원하는 크기로 조절하세요
-                    color: Colors.blue, // 배경 색상 설정
-                    child: Center(
-                      child: Icon(
-                        Icons.person, // 원하는 아이콘을 설정하세요
-                        size: 50, // 아이콘의 크기, 원하는 크기로 조절하세요
-                        color: Colors.white, // 아이콘 색상 설정
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16), // 이미지와 텍스트 사이의 간격 조절
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '작가 이름',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        '전공',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
             ],
           ),
         ),
       );
-
   }
 }
 class KeywordText extends StatelessWidget {
@@ -282,7 +328,8 @@ class KeywordText extends StatelessWidget {
 class TemperatureBar1 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-  TemperatureBar1({required this.leftPercentage, required this.rightPercentage});
+  final double type;
+  TemperatureBar1({required this.leftPercentage, required this.rightPercentage, required this.type});
   @override
   Widget build(BuildContext context) {
     Color leftColor = Color(0xFF50A8AD); // #50A8AD 색상을 사용
@@ -334,8 +381,14 @@ class TemperatureBar1 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('외향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('내향형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text(
+              type == 0 ? '입체형' : '평면형',
+              style: TextStyle(fontSize: 10, color: leftColor, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              type != 0 ? '입체형' : '평면형',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
           ],
         )
       ],
@@ -345,7 +398,8 @@ class TemperatureBar1 extends StatelessWidget {
 class TemperatureBar2 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-  TemperatureBar2({required this.leftPercentage, required this.rightPercentage});
+  final double type;
+  TemperatureBar2({required this.leftPercentage, required this.rightPercentage, required this.type});
   @override
   Widget build(BuildContext context) {
     Color leftColor = Color(0xFFE2A941);
@@ -397,9 +451,16 @@ class TemperatureBar2 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('직관형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('현실주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text(
+              type == 0 ? '정적형' : '동적형',
+              style: TextStyle(fontSize: 10, color: Color(0xFFE2A941), fontWeight: FontWeight.bold),
+            ),
+            Text(
+              type != 0 ? '정적형' : '동적형',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
           ],
+
         )
       ],
     );
@@ -408,7 +469,8 @@ class TemperatureBar2 extends StatelessWidget {
 class TemperatureBar3 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-  TemperatureBar3({required this.leftPercentage, required this.rightPercentage});
+  final double type;
+  TemperatureBar3({required this.leftPercentage, required this.rightPercentage,  required this.type});
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFF58AC8B);
@@ -460,9 +522,16 @@ class TemperatureBar3 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('이성적사고형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('원칙주의형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text(
+              type == 0 ? '고전적' : '현대적',
+              style: TextStyle(fontSize: 10, color: leftColor, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              type != 0 ? '고전적' : '현대적',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
           ],
+
         )
       ],
     );
@@ -471,7 +540,8 @@ class TemperatureBar3 extends StatelessWidget {
 class TemperatureBar4 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-  TemperatureBar4({required this.leftPercentage, required this.rightPercentage});
+  final double type;
+  TemperatureBar4({required this.leftPercentage, required this.rightPercentage, required this.type});
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFFCDA1B5);
@@ -523,9 +593,16 @@ class TemperatureBar4 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('계획형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('탐색형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text(
+              type == 0 ? '감상형' : '탐구형',
+              style: TextStyle(fontSize: 10, color: leftColor, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              type != 0 ? '감상형' : '탐구형',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
           ],
+
         )
       ],
     );
@@ -534,7 +611,8 @@ class TemperatureBar4 extends StatelessWidget {
 class TemperatureBar5 extends StatelessWidget {
   final double leftPercentage;
   final double rightPercentage;
-  TemperatureBar5({required this.leftPercentage, required this.rightPercentage});
+  final double type;
+  TemperatureBar5({required this.leftPercentage, required this.rightPercentage, required this.type});
   @override
   Widget build(BuildContext context) {
     Color? leftColor = Color(0xFF8B719A);
@@ -586,9 +664,16 @@ class TemperatureBar5 extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('자기주장형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
-            Text('신중형',style: TextStyle(fontSize: 10,color: Colors.grey, fontWeight: FontWeight.bold),),
+            Text(
+              type == 0 ? '자기주장형' : '타협형',
+              style: TextStyle(fontSize: 10, color: leftColor, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              type != 0 ? '자기주장형' : '타협형',
+              style: TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold),
+            ),
           ],
+
         )
       ],
     );
