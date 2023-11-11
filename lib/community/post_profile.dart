@@ -52,7 +52,7 @@ class _CommProfileState extends State<CommProfile> {
         if (userQuerySnapshot.docs.isNotEmpty) {
           final userId = userQuerySnapshot.docs.first.id;
           final followerQuerySnapshot = await _firestore.collection('user').doc(userId).collection('follower').where('nickName', isEqualTo: sessionUserNickName).get();
-          
+
           //상대유저프로필사진 갯또다제
           final userProfileSnapshot = await _firestore.collection('user').doc(userId).get();
           final userProfileImage = userProfileSnapshot['profileImage'];
@@ -122,7 +122,7 @@ class _CommProfileState extends State<CommProfile> {
             _loading = false;
           });
         }
-        // 팔로잉 및 팔로워 수 가져오기
+        // 팔로잉 및 팔로워 수 가져오기 + 상대 유저 후기글도
         final followingCount = await getFollowingCount(userId);
         final followerCount = await getFollowerCount(userId);
 
@@ -144,6 +144,7 @@ class _CommProfileState extends State<CommProfile> {
 
   int _followingCount = 0;
   int _followerCount = 0;
+  int _reviewCount = 0;
 
 
 
@@ -200,7 +201,7 @@ class _CommProfileState extends State<CommProfile> {
           .where('userNickName', isEqualTo: userNickName)
           .get();
 
-      print('Images Snapshot Size: ${imagesSnapshot.size}');
+      print('Images Snapshot Size==========>: ${imagesSnapshot.size}');
 
       // 3. _imgList 업데이트
       setState(() {
@@ -211,7 +212,10 @@ class _CommProfileState extends State<CommProfile> {
             'image': imageURL,
           };
         }).toList();
+
         _userProfileImage = _imgList.isNotEmpty ? _imgList[0]['image'] : null;
+
+        _reviewCount = _imgList.length;
       });
     }
   }
@@ -219,7 +223,7 @@ class _CommProfileState extends State<CommProfile> {
 
 
 
-  // 팔로잉 수 구하기
+  // 팔로잉 수 구하기러기
   Future<int> getFollowingCount(String desiredNickName) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('user')
@@ -234,7 +238,7 @@ class _CommProfileState extends State<CommProfile> {
 
     return 0; // 유저를 찾지 못한 경우 0을 반환합니다.
   }
-
+  // 팔로워 수 구하기차
   Future<int> getFollowerCount(String desiredNickName) async {
     final snapshot = await FirebaseFirestore.instance
         .collection('user')
@@ -249,215 +253,214 @@ class _CommProfileState extends State<CommProfile> {
 
     return 0; // 유저를 찾지 못한 경우 0을 반환합니다.
   }
-  // 팔로워 수 구하기
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<QuerySnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('user')
-          .where('nickName', isEqualTo: widget.nickName) // desiredNickName에 찾고자 하는 닉네임을 넣어주세요
-          .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasData) {
-            // 데이터가 존재하는 경우
-            final users = snapshot.data?.docs;
-            for (var user in users!) {
-              // 닉네임이 같은 유저를 찾음
-              final userDoc = user.data() as Map<String, dynamic>;
-              final userNickName = userDoc['nickName'] ?? 'No Nickname';
-              print('유저를 찾았습니다! 닉네임 : $userNickName');
+        future: FirebaseFirestore.instance
+            .collection('user')
+            .where('nickName', isEqualTo: widget.nickName) // desiredNickName에 찾고자 하는 닉네임을 넣어주세요
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasData) {
+              // 데이터가 존재하는 경우
+              final users = snapshot.data?.docs;
+              for (var user in users!) {
+                // 닉네임이 같은 유저를 찾음
+                final userDoc = user.data() as Map<String, dynamic>;
+                final userNickName = userDoc['nickName'] ?? 'No Nickname';
+                print('유저를 찾았습니다! 닉네임 : $userNickName');
+              }
+            } else {
+              // 데이터가 없는 경우
+              print('해당유저는 없는 닉네임의 유저입니다.');
             }
-          } else {
-            // 데이터가 없는 경우
-            print('해당유저는 없는 닉네임의 유저입니다.');
+          } else if (snapshot.hasError) {
+            // 에러 발생
+            print('Error: 해당 유저는 없는 유저입니다.${snapshot.error}');
           }
-        } else if (snapshot.hasError) {
-          // 에러 발생
-          print('Error: 해당 유저는 없는 유저입니다.${snapshot.error}');
-        }
-        return MaterialApp(
-          home: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                "프로필",
-                style: TextStyle(
-                  color: Colors.black,
+          return MaterialApp(
+            home: Scaffold(
+              appBar: AppBar(
+                title: Text(
+                  "프로필",
+                  style: TextStyle(
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              backgroundColor: Colors.white,
-              iconTheme: IconThemeData(color: Colors.black),
-              elevation: 0,
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    // 물음표 아이콘 클릭 시 수행할 동작
-                  },
-                  icon: Icon(Icons.search_outlined, size: 30, color: (Color(0xff464D40))),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: IconButton(
+                backgroundColor: Colors.white,
+                iconTheme: IconThemeData(color: Colors.black),
+                elevation: 0,
+                actions: [
+                  IconButton(
                     onPressed: () {
-                      // 프로필 아이콘 클릭 시 수행할 동작
+                      // 물음표 아이콘 클릭 시 수행할 동작
                     },
-                    icon: Icon(Icons.account_circle, size: 30, color: (Color(0xff464D40))),
+                    icon: Icon(Icons.search_outlined, size: 30, color: (Color(0xff464D40))),
                   ),
-                ),
-              ],
-              leading: IconButton(
-                onPressed: (){
-                  Navigator.pop(context);
-                },
-                icon: Icon(Icons.arrow_back, color: Colors.black,),
-              ),
-            ),
-            body: Column(
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(left: 30,right: 35,top: 20, bottom: 20),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: _userProfileImage != null
-                                ? NetworkImage(_userProfileImage!)
-                                : AssetImage('assets/logo/green_logo.png') as ImageProvider,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.only(right: 5),
-                              width: MediaQuery.of(context).size.width * 0.55,
-                              child: Row(
-                                children: [
-                                  Text(
-                                    widget.nickName,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                  Spacer(),
-                                  Container(
-                                    padding: EdgeInsets.only(top: 3),
-                                    width: 90,
-                                    height: 30,
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        toggleFollow();
-                                      },
-                                      style: getFollowButtonStyle(),
-                                      icon: Icon(isFollowed ? Icons.check : Icons.add, size: 17,),
-                                      label: Text(isFollowed ? "팔로잉" : "팔로우", style: TextStyle(fontSize: 13),),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(height: 20,),
-                            Container(
-                              width: MediaQuery.of(context).size.width - 180,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Text(
-                                        "1",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontSize: 17,
-                                        ),
-                                      ),
-                                      Text(
-                                        "게시물",
-                                        style: TextStyle(
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Text(
-                                        _followerCount.toString(),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontSize: 17,
-                                        ),
-                                      ),
-                                      Text(
-                                        "팔로워",
-                                        style: TextStyle(
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      Text(
-                                        _followingCount.toString(),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black,
-                                          fontSize: 17,
-                                        ),
-                                      ),
-                                      Text(
-                                        "팔로잉",
-                                        style: TextStyle(
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(width: 5,)
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(),
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.all(10),
-                    child: GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 5,
-                        mainAxisSpacing: 5,
-                      ),
-                      itemCount: _imgList.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          child: Image.network(
-                            _imgList[index]['image']!,
-                            fit: BoxFit.cover,
-                          ),
-                        );
+                  Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: IconButton(
+                      onPressed: () {
+                        // 프로필 아이콘 클릭 시 수행할 동작
                       },
+                      icon: Icon(Icons.account_circle, size: 30, color: (Color(0xff464D40))),
                     ),
                   ),
+                ],
+                leading: IconButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(Icons.arrow_back, color: Colors.black,),
                 ),
-              ],
+              ),
+              body: Column(
+                children: [
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      children: [
+                        Container(
+                          margin: EdgeInsets.only(left: 30,right: 35,top: 20, bottom: 20),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundImage: _userProfileImage != null
+                                  ? NetworkImage(_userProfileImage!)
+                                  : AssetImage('assets/logo/green_logo.png') as ImageProvider,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.only(right: 5),
+                                width: MediaQuery.of(context).size.width * 0.55,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      widget.nickName,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Container(
+                                      padding: EdgeInsets.only(top: 3),
+                                      width: 90,
+                                      height: 30,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          toggleFollow();
+                                        },
+                                        style: getFollowButtonStyle(),
+                                        icon: Icon(isFollowed ? Icons.check : Icons.add, size: 17,),
+                                        label: Text(isFollowed ? "팔로잉" : "팔로우", style: TextStyle(fontSize: 13),),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 20,),
+                              Container(
+                                width: MediaQuery.of(context).size.width - 180,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(
+                                          _reviewCount.toString(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 17,
+                                          ),
+                                        ),
+                                        Text(
+                                          "후기글",
+                                          style: TextStyle(
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Text(
+                                          _followerCount.toString(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 17,
+                                          ),
+                                        ),
+                                        Text(
+                                          "팔로워",
+                                          style: TextStyle(
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Text(
+                                          _followingCount.toString(),
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 17,
+                                          ),
+                                        ),
+                                        Text(
+                                          "팔로잉",
+                                          style: TextStyle(
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(width: 5,)
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(),
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 5,
+                          mainAxisSpacing: 5,
+                        ),
+                        itemCount: _imgList.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            child: Image.network(
+                              _imgList[index]['image']!,
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      }
+          );
+        }
     );
   }
 }
