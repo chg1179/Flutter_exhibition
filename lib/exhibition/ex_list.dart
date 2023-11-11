@@ -4,6 +4,7 @@ import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:exhibition_project/main.dart';
@@ -110,7 +111,11 @@ class _Ex_listState extends State<Ex_list> {
       stream: _createStream(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 0.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (snap.hasError) {
           return Center(child: Text('에러 발생: ${snap.error}'));
@@ -152,7 +157,11 @@ class _Ex_listState extends State<Ex_list> {
                         .snapshots(),
                     builder: (context, gallerySnapshot) {
                       if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return Center(child: SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 30.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ));
                       }
                       if (gallerySnapshot.hasData && gallerySnapshot.data!.exists) {
                         final galleryName = gallerySnapshot.data!['galleryName'] as String;

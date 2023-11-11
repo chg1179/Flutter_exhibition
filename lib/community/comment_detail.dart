@@ -214,19 +214,32 @@ class _CommentDetailState extends State<CommentDetail> {
     return Row(
       children: [
         Expanded(
-          child: TextField(
-            controller: _replyCtr,
-            maxLines: null,
-            decoration: InputDecoration(
-              hintText: '답글을 작성해주세요',
-              contentPadding: EdgeInsets.all(10),
-              border: InputBorder.none,
+          child: Container(
+            margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 15),
+            child: TextField(
+              controller: _replyCtr,
+              maxLines: null,
+              decoration: InputDecoration(
+                hintText: '답글을 작성해주세요.',
+                contentPadding: EdgeInsets.all(10),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xff464D40)), // 포커스가 있을 때의 테두리 색상
+                ),
+              ),
             ),
           ),
         ),
-        TextButton(
-          onPressed: _addReply,
-          child: Text('등록', style: TextStyle(color: Color(0xff464D40), fontWeight: FontWeight.bold)),
+        Container(
+          margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 15),
+          child: TextButton(
+            onPressed: _addReply,
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+              minimumSize: MaterialStateProperty.all(Size(50, 48)), // 너비 100, 높이 40으로 설정
+            ),
+            child: Text('등록', style: TextStyle(color: Colors.white)),
+          ),
         ),
       ],
     );
@@ -271,29 +284,42 @@ class _CommentDetailState extends State<CommentDetail> {
                   child: Icon(
                     Icons.subdirectory_arrow_right,
                     size: 20,
+                    color: Colors.grey,
                   ),
                 ),
                 Container(
-                  width: MediaQuery.of(context).size.width - 105,
+                  width: MediaQuery.of(context).size.width - 70,
                   padding: EdgeInsets.only(top: 10, bottom: 10),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(userNickName, style: TextStyle(fontSize: 10)),
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 12,
+                                backgroundImage: AssetImage('assets/ex/ex1.png'),
+                              ),
+                              SizedBox(width: 10),
+                              Text(userNickName, style: TextStyle(fontSize: 15)),
+                            ],
+                          ),
                           SizedBox(height: 5),
                           Text(
                             replyData['write_date'] != null
                                 ? _formatTimestamp(replyData['write_date'] as Timestamp)
                                 : '날짜 없음', // 또는 다른 대체 텍스트
-                            style: TextStyle(fontSize: 10),
-                          ),
-                          Text(
-                            _addLineBreaks(replyText, MediaQuery.of(context).size.width),
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 13, color: Colors.grey),
                           ),
                         ],
+                      ),
+                      SizedBox(height: 10,),
+                      Text(
+                        _addLineBreaks(replyText, MediaQuery.of(context).size.width),
+                        style: TextStyle(fontSize: 15),
                       ),
                     ],
                   ),
@@ -321,7 +347,7 @@ class _CommentDetailState extends State<CommentDetail> {
         ),
         elevation: 0,
         centerTitle: true,
-        title: Text('댓글', style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold)),
+        title: Text('답글 작성', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
       ),
       body: Column(
@@ -353,22 +379,34 @@ class _CommentDetailState extends State<CommentDetail> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(userNickName, style: TextStyle(fontSize: 13)),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundImage: AssetImage('assets/ex/ex1.png'),
+                            ),
+                            SizedBox(width: 10,),
+                            Text(userNickName, style: TextStyle(fontSize: 15)),
+                          ],
+                        ),
                         Row(
                           children: [
                             Text(
                               commentData['write_date'] != null
                                   ? _formatTimestamp(commentData['write_date'] as Timestamp)
                                   : '날짜 없음', // 또는 다른 대체 텍스트
-                              style: TextStyle(fontSize: 10),
+                              style: TextStyle(fontSize: 13, color: Colors.grey),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    Text(commentText, style: TextStyle(fontSize: 13)),
-                    SizedBox(height: 5),
+                    SizedBox(height: 20,),
+                    Text(commentText, style: TextStyle(fontSize: 15)),
+                    SizedBox(height: 20),
                   ],
                 ),
               );

@@ -1,4 +1,3 @@
-
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/comment_detail.dart';
@@ -43,7 +42,7 @@ class _CommDetailState extends State<CommDetail> {
     final difference = currentTime.difference(commentTime);
 
     if (difference.inDays > 0) {
-      return DateFormat('yyyy-MM-dd').format(commentTime);
+      return DateFormat('yyyy년 MM월 dd일').format(commentTime);
     } else if (difference.inHours > 0) {
       return '${difference.inHours}시간 전';
     } else if (difference.inMinutes > 0) {
@@ -324,7 +323,7 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
-          buildIcons(widget.document,viewCount, likeCount),
+          buildIcons(widget.document, viewCount, likeCount),
         ],
       ),
     );
@@ -332,24 +331,23 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget buildAuthorInfo(String writeDate, String userNickName) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
               CircleAvatar(
-                radius: 15,
+                radius: 20,
                 backgroundImage: AssetImage('assets/ex/ex1.png'),
               ),
-              SizedBox(width: 5),
-              Text(userNickName, style: TextStyle(fontSize: 13)),
+              SizedBox(width: 10),
+              Text(userNickName, style: TextStyle(fontSize: 15)),
             ],
           ),
           Text(
-            writeDate,
-            style: TextStyle(fontSize: 10, color: Colors.black45, fontWeight: FontWeight.bold),
+            writeDate, style: TextStyle(fontSize: 13, color: Colors.black45),
           ),
         ],
       ),
@@ -358,22 +356,22 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget buildTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      padding: const EdgeInsets.all(10),
+      child: Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
     );
   }
 
   Widget buildContent(String content) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(content, style: TextStyle(fontSize: 15),),
+      padding: const EdgeInsets.all(10),
+      child: Text(content, style: TextStyle(fontSize: 14),),
     );
   }
 
   Widget buildImage() {
     String? imagePath = _postData?['imageURL'] as String?;
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(10),
       child: imagePath != null && imagePath.isNotEmpty
           ? Image.network(
         imagePath,
@@ -387,15 +385,15 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+      padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             children: [
-              buildIconsItem(Icons.visibility, viewCount.toString()),
+              buildIconsItem(Icons.visibility_outlined, viewCount.toString()),
               SizedBox(width: 5),
-              buildIconsItem(Icons.chat_bubble_rounded, commentCnt.toString()),
+              buildIconsItem(Icons.chat_bubble_outline_rounded, commentCnt.toString()),
               SizedBox(width: 5),
             ],
           ),
@@ -411,16 +409,12 @@ class _CommDetailState extends State<CommDetail> {
 
   Widget buildIconsItem(IconData icon, String text, [Color? iconColor]) {
     return Container(
-      padding: EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: Color(0xff464D40),
-        borderRadius: BorderRadius.circular(20),
-      ),
+      padding: EdgeInsets.only(left: 5, right: 5,),
       child: Row(
         children: [
-          Icon(icon, size: 13, color: iconColor ?? Colors.white),
-          SizedBox(width: 2),
-          Text(text, style: TextStyle(color: Colors.white)),
+          Icon(icon, size: 21, color: iconColor ?? Colors.grey[600]),
+          SizedBox(width: 5),
+          Text(text, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         ],
       ),
     );
@@ -431,12 +425,12 @@ class _CommDetailState extends State<CommDetail> {
       children: [
         Expanded(
           child: Container(
-            margin: EdgeInsets.all(5),
+            margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 15),
             child: TextField(
               controller: _commentCtr,
               maxLines: null, // 댓글이 여러 줄로 나타날 수 있도록 함
               decoration: InputDecoration(
-                hintText: '댓글을 작성해주세요',
+                hintText: '댓글을 작성해주세요.',
                 contentPadding: EdgeInsets.all(10),
                 border: OutlineInputBorder(),
                 focusedBorder: OutlineInputBorder(
@@ -447,13 +441,16 @@ class _CommDetailState extends State<CommDetail> {
             ),
           ),
         ),
-        TextButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
-            minimumSize: MaterialStateProperty.all(Size(50, 5)), // 너비 100, 높이 40으로 설정
+        Container(
+        margin: EdgeInsets.only(left: 5, right: 5, top: 5, bottom: 15),
+          child: TextButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+              minimumSize: MaterialStateProperty.all(Size(50, 48)), // 너비 100, 높이 40으로 설정
+            ),
+            onPressed: _addComment,
+            child: Text('등록', style: TextStyle(color: Colors.white)),
           ),
-          onPressed: _addComment,
-          child: Text('등록', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -631,48 +628,56 @@ class _CommDetailState extends State<CommDetail> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(userNickName, style: TextStyle(fontSize: 11)),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundImage: AssetImage("assets/ex/ex1.png"),
+                        ),
+                        SizedBox(width: 10,),
+                        Text(userNickName, style: TextStyle(fontSize: 14)),
+                      ],
+                    ),
                     Row(
                       children: [
                         Text(
                           commentData['write_date'] != null
                               ? _formatTimestamp(commentData['write_date'] as Timestamp)
                               : '날짜 없음', // 또는 다른 대체 텍스트
-                          style: TextStyle(fontSize: 10),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
+                        SizedBox(width: 5,),
                         if (_userNickName == userNickName)
                         GestureDetector(
                           onTap: () {
                             _showCommentMenu(commentData, documentId, commentText);
                           },
-                          child: Icon(Icons.more_vert, size: 15),
+                          child: Icon(Icons.more_vert, size: 16, color: Colors.grey[500],),
                         ),
                       ],
                     ),
                   ],
                 ),
-                SizedBox(height: 5),
+                SizedBox(height: 10),
                 Text(
                   _addLineBreaks(commentText, MediaQuery.of(context).size.width),
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: 13),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(
-                        commentId: documentId,
-                        postId: widget.document,
-                      )),
-                      );
-                    },
-                    child: Text(
-                      '답글쓰기',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                        decoration: TextDecoration.underline,
-                      ),
+                SizedBox(height: 10,),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CommentDetail(
+                      commentId: documentId,
+                      postId: widget.document,
+                    )),
+                    );
+                  },
+                  child: Text(
+                    '답글쓰기',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey[600],
                     ),
                   ),
                 ),
@@ -816,14 +821,14 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소', style: TextStyle(color: Colors.black),),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // 현재 다이얼로그 닫기
                 _deleteComment(documentId, commentId); // 삭제 동작 수행
               },
-              child: Text('삭제'),
+              child: Text('삭제',style: TextStyle(color: Colors.black),),
             ),
           ],
         );
@@ -939,7 +944,7 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소', style: TextStyle(color: Colors.black),),
             ),
             TextButton(
               onPressed: () {
@@ -947,7 +952,7 @@ class _CommDetailState extends State<CommDetail> {
                 _editReply(commentId, replyId, updatedReply);
                 Navigator.pop(context);
               },
-              child: Text('저장'),
+              child: Text('저장', style: TextStyle(color: Colors.black),),
             ),
           ],
         );
@@ -1054,7 +1059,7 @@ class _CommDetailState extends State<CommDetail> {
             for (int i = 0; i < replies.length; i++) _buildReplyRow(replies[i], commentId),
             if (data.docs.length > _visibleReplyCount)
               Padding(
-                padding: const EdgeInsets.only(left: 53),
+                padding: const EdgeInsets.only(left: 50),
                 child: ReplyToggleButton(
                   showAllReplies: _showAllReplies,
                   onTap: () {
@@ -1088,10 +1093,11 @@ class _CommDetailState extends State<CommDetail> {
             padding: EdgeInsets.all(10),
             child: Icon(
               Icons.subdirectory_arrow_right,
-              size: 20,
+              size: 20, color: Colors.grey,
             ),
           ),
           Container(
+            width: MediaQuery.of(context).size.width - 90,
             padding: EdgeInsets.only(top: 10, bottom: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1099,30 +1105,40 @@ class _CommDetailState extends State<CommDetail> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(userNickName!, style: TextStyle(fontSize: 10)),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundImage: AssetImage('assets/ex/ex1.png'),
+                        ),
+                        SizedBox(width: 10),
+                        Text(userNickName!, style: TextStyle(fontSize: 14)),
+                      ],
+                    ),
                     Row(
                       children: [
                         Text(
                           replyData['write_date'] != null
                               ? _formatTimestamp(replyData['write_date'] as Timestamp)
                               : '날짜 없음', // 또는 다른 대체 텍스트
-                          style: TextStyle(fontSize: 10),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
+                        SizedBox(width: 5),
                         if (_userNickName == userNickName)
                           GestureDetector(
                             onTap: () {
                               _showReplyMenu(replyData, commentId, replyText, replyId);
                             },
-                            child: Icon(Icons.more_vert, size: 15),
+                            child: Icon(Icons.more_vert, size: 15, color: Colors.grey,),
                           ),
                       ],
                     ),
                   ],
                 ),
-                SizedBox(height: 5),
+                SizedBox(height: 10),
                 Text(
                   _addLineBreaks(replyText, MediaQuery.of(context).size.width),
-                  style: TextStyle(fontSize: 12),
+                  style: TextStyle(fontSize: 13),
                 ),
               ],
             ),
@@ -1146,12 +1162,7 @@ class _CommDetailState extends State<CommDetail> {
           color: Colors.black,
         ),
         elevation: 0,
-        title: Center(
-          child: Text(
-            '커뮤니티',
-            style: TextStyle(color: Colors.black, fontSize: 15),
-          ),
-        ),
+        title: Text('COMMUNITY', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
@@ -1163,7 +1174,7 @@ class _CommDetailState extends State<CommDetail> {
           if (_userNickName == _postData?['userNickName']) // 닉네임 비교
             GestureDetector(
               onTap: _showMenu,
-              child: Icon(Icons.more_vert, color: Color(0xff464D40), size: 20),
+              child: Icon(Icons.more_vert, color: Colors.grey, size: 20),
             ),
           SizedBox(width: 15),
         ],
@@ -1216,7 +1227,7 @@ class _CommDetailState extends State<CommDetail> {
                     }
                     if (snapshot.hasData) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 50.0),
+                        padding: const EdgeInsets.only(bottom: 80.0),
                         child: _commentsList(snapshot.data as QuerySnapshot<Object?>),
                       );
                     } else {
@@ -1277,9 +1288,8 @@ class _ReplyToggleButtonState extends State<ReplyToggleButton> {
       child: Text(
         widget.showAllReplies ? '답글 접기' : '답글 더보기',
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 11,
           color: Colors.grey,
-          decoration: TextDecoration.underline,
         ),
       ),
     );
