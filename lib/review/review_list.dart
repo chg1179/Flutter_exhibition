@@ -121,13 +121,13 @@ class _ReviewListState extends State<ReviewList> {
     }
 
     // 화면 다시 그림
-    _reviewList = tempReviewList;
+    setState(() {
+      _reviewList = tempReviewList;
+    });
 
     print(_reviewList);
     await _loadUserData();
     await initializeLikeStatus();
-
-    // 사용자 데이터 로드
   }
 
   // document에서 원하는 값 뽑기
@@ -140,8 +140,10 @@ class _ReviewListState extends State<ReviewList> {
       setState(() {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
-        _profileImage = _userDocument.get('profileImage');
         print('닉네임: $_userNickName');
+      });
+      setState(() {
+        _userNickName = null;
       });
     }
   }
@@ -316,8 +318,16 @@ class _ReviewListState extends State<ReviewList> {
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (reviewData['title'] != null) Text(reviewData['title'], style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      if (reviewData['id'] != null && reviewData['likeCount'] != null)
+                      if (reviewData['title'] != null)
+                        Flexible( // Flexible을 사용하여 텍스트가 화면을 넘어가면 줄 바꿈되도록 함
+                          child: Text(
+                            reviewData['title'],
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            overflow: TextOverflow.ellipsis, // 길 경우 일정 길이 이상이면 자동으로 줄 바꿈
+                            maxLines: 2, // 최대 두 줄까지 표시
+                          ),
+                        ),
+                      if (reviewData['id'] != null)
                         buildLikeButton(reviewData['id'], reviewData['likeCount'])
                     ],
                   ),

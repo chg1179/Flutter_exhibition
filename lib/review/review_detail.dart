@@ -132,7 +132,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
                 leading: Icon(Icons.delete),
                 title: Text('삭제하기'),
                 onTap: () {
-                  _confirmDelete(document as DocumentSnapshot<Object?>);
+                  _confirmDelete();
                 },
               ),
             ],
@@ -143,7 +143,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
   }
 
   // 리뷰 삭제 확인 대화상자 표시
-  void _confirmDelete(DocumentSnapshot document) {
+  void _confirmDelete() {
     showDialog(
       context: context,
       builder: (context) {
@@ -159,7 +159,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
             ),
             TextButton(
               onPressed: () {
-                _deleteReview(document);
+                _deleteReview(widget.document!);
                 Navigator.pop(context);
                 Navigator.pop(context);
                 Navigator.push(
@@ -178,9 +178,10 @@ class _ReviewDetailState extends State<ReviewDetail> {
   }
 
   // 리뷰 삭제
-  void _deleteReview(DocumentSnapshot document) async {
-    await FirebaseFirestore.instance.collection("review").doc(document.id).delete();
+  void _deleteReview(String documentId) async {
+    await FirebaseFirestore.instance.collection("review").doc(documentId).delete();
   }
+
 
   // 리뷰 상세 정보 위젯
   Widget _reviewDetailWidget() {

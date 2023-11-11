@@ -21,7 +21,7 @@ class _ReviewEditState extends State<ReviewEdit> {
   final _contentCtr = TextEditingController();
   final _customHashtagCtr = TextEditingController();
   bool _showCustomHashtagInput = false;
-
+  int maxTitleLength = 100;
   List<String> _selectTag = [];
   List<Widget> textFields = [];
   List<Widget> imageFields = [];
@@ -236,8 +236,7 @@ class _ReviewEditState extends State<ReviewEdit> {
         _contentCtr.clear();
         _imageFile = null;
 
-        final message = widget.documentId != null ? '후기가 수정되었습니다!' : '후기가 등록되었습니다!';
-        _showDialog(message);
+
 
         // 수정 버튼일 경우 ReviewDetail 페이지로 이동
         if (widget.documentId != null) {
@@ -256,12 +255,14 @@ class _ReviewEditState extends State<ReviewEdit> {
         _showDialog('제목을 입력해주세요');
       } else if (_contentCtr.text.isEmpty) {
         _showDialog('내용을 입력해주세요');
+      } else if(_imageFile == null && (downloadURL == null || downloadURL!.isEmpty)){
+        _showDialog('이미지를 등록해주세요');
+      } else {
+        final message = widget.documentId != null ? '후기가 수정되었습니다!' : '후기가 등록되었습니다!';
+        _showEditDialog(message);
       }
-      print('후기 등록 실패 왜? ');
     }
   }
-
-
 
 
   Future<void> getImage() async {
@@ -483,6 +484,7 @@ class _ReviewEditState extends State<ReviewEdit> {
   Widget _buildTitleInput() {
     return TextField(
       controller: _titleCtr,
+      maxLines: null,
       decoration: InputDecoration(
         hintText: '제목을 입력해주세요.',
         hintStyle: TextStyle(
@@ -490,8 +492,31 @@ class _ReviewEditState extends State<ReviewEdit> {
           fontSize: 18,
         ),
         border: InputBorder.none,
-
       ),
+      onChanged: (text){
+        if(text.length > 100){
+          _showMaxLengthExceededDialog();
+        }
+      },
+    );
+  }
+
+  void _showMaxLengthExceededDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text('제목은 100자 이하로 입력해주세요.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -527,7 +552,7 @@ class _ReviewEditState extends State<ReviewEdit> {
       maxLength: 300,
       controller: _contentCtr,
       decoration: InputDecoration(
-        hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
+        hintText: '아래 버튼을 클릭해 본문에 태그를 입력해보세요! (최대 30개)',
         hintStyle: TextStyle(
           color: Colors.black38,
           fontSize: 13,
@@ -550,6 +575,25 @@ class _ReviewEditState extends State<ReviewEdit> {
   }
 
   Future<void> _showDialog(String txt) async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text(txt),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text('확인', style: TextStyle(color: Colors.black87),)
+              )
+            ],
+          );
+        }
+    );
+  }
+
+  Future<void> _showEditDialog(String txt) async {
     showDialog(
         context: context,
         builder: (context) {
