@@ -11,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../firebase_options.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -56,40 +57,45 @@ class _Ex_listState extends State<Ex_list> {
     });
   }
 
-  // StreamBuilder를 재구성
-
-  /*
-    구현 - 지역 여러 개 선택
-    구현해야 하는 부분 - 전시중이면서, 최신순, 인기순, 종료 출력 / 전시가 종료된 항목들의 최신순, 인기순, 종료순 출력
-   */
   Stream<QuerySnapshot> _createStream() {
+    DateTime today = DateTime.now();
     Query collectionQuery = FirebaseFirestore.instance.collection('exhibition');
 
-    // 선택된 지역이 '전체'가 아니면 스트림을 필터링하는 쿼리 생성
-    // 선택한 지역과 하나라도 일치한다면 출력
-    if (!_placeSelectedOptions.contains('전체')) {
+    // _ongoing 값이 true일 때는 endDate가 오늘 날짜 이후인 문서를 검색
+    if(_order != 'endDate'){
+      if (_ongoing) {
+        collectionQuery = collectionQuery
+            .where('endDate', isGreaterThanOrEqualTo : today)
+            .orderBy('endDate').orderBy(_order, descending: _trueOrfalse); // .orderBy(_order, descending: _trueOrfalse);
+
+      } else {
+        // _ongoing 값이 false일 때는 endDate가 오늘 날짜 이전인 문서를 검색
+        collectionQuery = collectionQuery
+            .where('endDate', isLessThan : today)
+            .orderBy('endDate').orderBy(_order, descending: _trueOrfalse);
+      }
+    } else {
+      if (_ongoing) {
+        collectionQuery = collectionQuery
+            .where('endDate', isGreaterThanOrEqualTo : today).orderBy(_order, descending: _trueOrfalse);
+      } else {
+        collectionQuery = collectionQuery
+            .where('endDate', isLessThan : today).orderBy(_order, descending: _trueOrfalse);
+      }
+    }
+
+
+    // region 필터링을 위한 조건
+    if (!_placeSelectedOptions.contains('전체') && _placeSelectedOptions.length <= 10) {
       collectionQuery = collectionQuery.where('region', whereIn: _placeSelectedOptions);
     }
 
-    DateTime currentDate = DateTime.now(); // 현재 날짜를 받아와 진행중인 전시인지를 확인
-
-
-    // 여기 아래부터 전시중을 비교하는 부분으로, 수정 필요
-    
-    // ongoing이 true이면 endDate가 현재 날짜보다 큰 문서를 가져옴
-    if (_ongoing && _order == 'endDate') { // 마감이 되지 않았으면서, 종료가 빠른 순서를 출력.
-      collectionQuery = collectionQuery
-          .where(_order, isGreaterThanOrEqualTo: currentDate)
-          .orderBy(_order, descending: _trueOrfalse);
-    } else {
-      // ongoing이 아닌 경우 orderBy를 그대로 사용
-      collectionQuery = collectionQuery.orderBy(_order, descending: _trueOrfalse);
-    }
     return collectionQuery.snapshots();
   }
 
   String getOngoing(DateTime startDate, DateTime endDate) {
     DateTime currentDate = DateTime.now();
+
     if(currentDate.isBefore(startDate)){
       return "예정";
     }else if(currentDate.isBefore(endDate)) {
@@ -373,100 +379,100 @@ class _Ex_listState extends State<Ex_list> {
             child: Row(
               children: [
                 ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                      textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.black,)),
-                      foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
-                      elevation: MaterialStateProperty.all(0),
-                    ),
-                    onPressed: (){
-                      showModalBottomSheet(
-                          enableDrag : true,
-                          shape : RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15))),
-                          context: context,
-                          builder: (context) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.remove, size: 35,),
-                                Text("정렬 기준", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                                SizedBox(height: 20,),
-                                TextButton(
-                                    style: ButtonStyle(
-                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                    ),
-                                    onPressed: (){
-                                      setState(() {
-                                        _selectedOption = "최신순";
-                                        _order = "startDate";
-                                        _trueOrfalse = true;
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                    child: Text("최신순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                    textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.black,)),
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+                    elevation: MaterialStateProperty.all(0),
+                  ),
+                  onPressed: (){
+                    showModalBottomSheet(
+                      enableDrag : true,
+                      shape : RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15))),
+                      context: context,
+                      builder: (context) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.remove, size: 35,),
+                            Text("정렬 기준", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                            SizedBox(height: 20,),
+                            TextButton(
+                                style: ButtonStyle(
+                                  minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                 ),
-                                SizedBox(
-                                  width: 120,
-                                  child: Divider(
-                                    color: Colors.black,
-                                    thickness: 0.1,
-                                  ),
+                                onPressed: (){
+                                  setState(() {
+                                    _selectedOption = "최신순";
+                                    _order = "startDate";
+                                    _trueOrfalse = true;
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: Text("최신순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                            ),
+                            SizedBox(
+                              width: 120,
+                              child: Divider(
+                                color: Colors.black,
+                                thickness: 0.1,
+                              ),
+                            ),
+                            TextButton(
+                                style: ButtonStyle(
+                                  minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                 ),
-                                TextButton(
-                                    style: ButtonStyle(
-                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                    ),
-                                    onPressed: (){
-                                      setState(() {
-                                        _selectedOption = "인기순";
-                                        _order = "like";
-                                        _trueOrfalse = true;
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                    child: Text("인기순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                                onPressed: (){
+                                  setState(() {
+                                    _selectedOption = "인기순";
+                                    _order = "like";
+                                    _trueOrfalse = true;
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: Text("인기순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                            ),
+                            SizedBox(
+                              width: 120,
+                              child: Divider(
+                                color: Colors.black,
+                                thickness: 0.1,
+                              ),
+                            ),
+                            TextButton(
+                                style: ButtonStyle(
+                                  minimumSize: MaterialStateProperty.all(Size(500, 60)),
                                 ),
-                                SizedBox(
-                                  width: 120,
-                                  child: Divider(
-                                    color: Colors.black,
-                                    thickness: 0.1,
-                                  ),
-                                ),
-                                TextButton(
-                                    style: ButtonStyle(
-                                      minimumSize: MaterialStateProperty.all(Size(500, 60)),
-                                    ),
-                                    onPressed: (){
-                                      setState(() {
-                                        _selectedOption = "종료순";
-                                        _order = "endDate";
-                                        _trueOrfalse = false;
-                                        Navigator.pop(context);
-                                      });
-                                    },
-                                    child: Text("종료순", style: TextStyle(fontSize: 17, color: Colors.black,),)
-                                ),
-                                SizedBox(
-                                  width: 120,
-                                  child: Divider(
-                                    color: Colors.black,
-                                    thickness: 0.1,
-                                  ),
-                                ),
-                                SizedBox(height: 20,)
-                              ],
-                            );
-                          },
-                      );
+                                onPressed: (){
+                                  setState(() {
+                                    _selectedOption = "종료순";
+                                    _order = "endDate";
+                                    _trueOrfalse = false;
+                                    Navigator.pop(context);
+                                  });
+                                },
+                                child: Text("종료순", style: TextStyle(fontSize: 17, color: Colors.black,),)
+                            ),
+                            SizedBox(
+                              width: 120,
+                              child: Divider(
+                                color: Colors.black,
+                                thickness: 0.1,
+                              ),
+                            ),
+                            SizedBox(height: 20,)
+                          ],
+                        );
+                      },
+                    );
 
-                    },
-                    child: Row(
-                      children: [
-                        Text("${_selectedOption} ", style: TextStyle(color: Colors.black, fontSize: 15)),
-                        Icon(Icons.expand_more, color: Colors.black,)
-                      ],
-                    ),
+                  },
+                  child: Row(
+                    children: [
+                      Text("${_selectedOption} ", style: TextStyle(color: Colors.black, fontSize: 15)),
+                      Icon(Icons.expand_more, color: Colors.black,)
+                    ],
+                  ),
                 ),
                 Spacer(),
                 Padding(
@@ -499,13 +505,16 @@ class _Ex_listState extends State<Ex_list> {
                                     ),
                                     Spacer(),
                                     Padding(
-                                      padding: const EdgeInsets.only(right: 20),
-                                      child: BottomSheetSwitch(
-                                        switchValue: _ongoing,
-                                        valueChanged: (value) {
-                                          _ongoing = value;
-                                        },
-                                      )
+                                        padding: const EdgeInsets.only(right: 20),
+                                        child: BottomSheetSwitch(
+                                          switchValue: _ongoing,
+                                          valueChanged: (value) {
+                                            setState(() {
+                                              _ongoing = value;
+                                            });
+
+                                          },
+                                        )
                                     )
                                   ],
                                 ),
@@ -659,13 +668,13 @@ class _BottomSheetSwitch extends State<BottomSheetSwitch> {
   Widget build(BuildContext context) {
     return Container(
       child: CupertinoSwitch(
-          value: _switchValue,
-          onChanged: (bool value) {
-            setState(() {
-              _switchValue = value;
-              widget.valueChanged(value);
-            });
-          },
+        value: _switchValue,
+        onChanged: (bool value) {
+          setState(() {
+            _switchValue = value;
+            widget.valueChanged(value);
+          });
+        },
         activeColor: Color(0xff464D40),
       ),
     );
@@ -737,6 +746,10 @@ class _PlaceFlgState extends State<PlaceFlg> {
           // 모든 옵션이 선택되어 있으면 "전체" 추가
           _placeSelectedOptions.add("전체");
         }
+      }
+      // 모든 지역이 해제되었을 때 '전체'를 자동으로 선택
+      if (_placeSelectedOptions.isEmpty) {
+        _placeSelectedOptions.add("전체");
       }
     });
     widget.onSelectionChanged(); // 상태 변경 후 콜백 호출
@@ -990,7 +1003,6 @@ class _ResetState extends State<Reset> {
     setState(() {
       _placeSelectedOptions = ["전체"];
       widget.onReset(); // 초기화 버튼을 눌렀을 때 콜백 함수를 호출합니다.
-      Navigator.pop(context);
     });
   }
 
