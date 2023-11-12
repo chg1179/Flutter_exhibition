@@ -867,44 +867,49 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
       return Text('아직 친구가 없어요!');
     }
 
-    return Column(
-      children: <Widget>[
-        // 팔로워 목록을 활용하여 원하는 형태로 표시
-        for (var follower in followerList)
-          ListTile(
-            leading: CircleAvatar(
-              // 팔로워의 프로필 사진
-              backgroundImage: NetworkImage(follower['profileImage']),
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          // 팔로워 목록을 활용하여 원하는 형태로 표시
+          for (var follower in followerList)
+            ListTile(
+              leading: CircleAvatar(
+                // 팔로워의 프로필 사진
+                backgroundImage: NetworkImage(follower['profileImage']),
+              ),
+              title: Text(follower['nickName']), // 팔로워의 닉네임
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: follower['nickName'])));
+              },
             ),
-            title: Text(follower['nickName']), // 팔로워의 닉네임
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: follower['nickName'])));
-            },
-          ),
-      ],
+        ],
+      ),
     );
   }
+
 
   Widget _buildFollowingContent(List<Map<String, dynamic>> followingList) {
     if (followingList.isEmpty) {
       return Text('아직 친구가 없어요!');
     }
 
-    return Column(
-      children: <Widget>[
-        // 팔로잉 목록을 활용하여 원하는 형태로 표시
-        for (var following in followingList)
-          ListTile(
-            leading: CircleAvatar(
-              // 팔로잉의 프로필 사진
-              backgroundImage: NetworkImage(following['profileImage']),
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          // 팔로잉 목록을 활용하여 원하는 형태로 표시
+          for (var following in followingList)
+            ListTile(
+              leading: CircleAvatar(
+                // 팔로잉의 프로필 사진
+                backgroundImage: NetworkImage(following['profileImage']),
+              ),
+              title: Text(following['nickName']), // 팔로잉의 닉네임
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: following['nickName'])));
+              },
             ),
-            title: Text(following['nickName']), // 팔로잉의 닉네임
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: following['nickName'])));
-            },
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
