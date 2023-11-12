@@ -53,6 +53,31 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+  ButtonStyle _unPushBtnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(0, 25)),
+      backgroundColor: MaterialStateProperty.all(Colors.white),
+      elevation: MaterialStateProperty.all<double>(0),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          fontSize: 12,
+        ),
+      ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.black;
+      }),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
+  }
+
   String? _userNickName;
   String? _alarmNickName;
   // document에서 원하는 값 뽑기
@@ -338,6 +363,39 @@ class _CommDetailState extends State<CommDetail> {
           buildTitle(title),
           buildContent(content),
           buildImage(),
+          Padding(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            child: FutureBuilder<QuerySnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('post')
+                  .doc(widget.document)
+                  .collection('hashtag')
+                  .get(),
+              builder: (context, AsyncSnapshot<QuerySnapshot> hashtagSnap){
+                if (hashtagSnap.hasError) {
+                  return Center(child: Text('에러 발생: ${hashtagSnap.error}'));
+                }
+                if (!hashtagSnap.hasData) {
+                  return Center(child: Text(''));
+                }
+                return Wrap(
+                  spacing: 5,
+                  runSpacing: -12,
+                  children: hashtagSnap.data!.docs.map((doc) {
+                    final keyword = doc['tag_name'] as String;
+
+                    return ElevatedButton(
+                      child: Text('#$keyword'),
+                      onPressed: () {
+                        // Handle hashtag button press
+                      },
+                      style: _unPushBtnStyle(),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
           buildIcons(widget.document, viewCount, likeCount),
         ],
       ),

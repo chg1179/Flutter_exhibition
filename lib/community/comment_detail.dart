@@ -301,7 +301,7 @@ class _CommentDetailState extends State<CommentDetail> {
                             children: [
                               CircleAvatar(
                                 radius: 12,
-                                backgroundImage: AssetImage('assets/ex/ex1.png'),
+                                backgroundImage: AssetImage('assets/logo/green_logo.png'),
                               ),
                               SizedBox(width: 10),
                               Text(userNickName, style: TextStyle(fontSize: 15)),
@@ -386,7 +386,7 @@ class _CommentDetailState extends State<CommentDetail> {
                           children: [
                             CircleAvatar(
                               radius: 12,
-                              backgroundImage: AssetImage('assets/ex/ex1.png'),
+                              backgroundImage: AssetImage('assets/logo/green_logo.png'),
                             ),
                             SizedBox(width: 10,),
                             Text(userNickName, style: TextStyle(fontSize: 15)),

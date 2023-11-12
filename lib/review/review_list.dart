@@ -6,6 +6,7 @@ import 'package:exhibition_project/review/review_detail.dart';
 import 'package:exhibition_project/user/sign.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../community/post_main.dart';
@@ -37,6 +38,7 @@ class _ReviewListState extends State<ReviewList> {
   int _currentIndex = 0;
   String? _userNickName;
   String? _profileImage;
+  bool _isLoading = true;
 
   // 좋아요 상태를 저장할 맵
   Map<String, bool> isLikedMap = {};
@@ -79,6 +81,11 @@ class _ReviewListState extends State<ReviewList> {
   }
 
   Future<void> _loadReviewData(String searchText, String sortBy) async {
+
+    setState(() {
+      _isLoading = true;
+    });
+
     final user = Provider.of<UserModel?>(context, listen: false);
 
     // Firestore에서 'review' 컬렉션의 데이터를 가져오기 위한 쿼리를 생성
@@ -127,6 +134,12 @@ class _ReviewListState extends State<ReviewList> {
     print(_reviewList);
     await _loadUserData();
     await initializeLikeStatus();
+
+    setState(() {
+      _isLoading = false;
+      // 여기에 데이터를 설정하는 로직 추가
+    });
+
   }
 
   // 유저 프로필 이미지 가져오기
@@ -283,9 +296,11 @@ class _ReviewListState extends State<ReviewList> {
 
   // 후기 리스트
   Widget buildReviewList() {
-
     if (_reviewList.isEmpty) {
-      return Center(child: Text('검색 결과가 없습니다😥'));
+      return Padding(
+        padding: const EdgeInsets.only(top: 150),
+        child: Center(child: Text('검색 결과가 없습니다😥')),
+      );
     }
 
     return Expanded(
@@ -356,6 +371,23 @@ class _ReviewListState extends State<ReviewList> {
                           ),
                         if (reviewData['id'] != null)
                           buildLikeButton(reviewData['id'], reviewData['likeCount'])
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (reviewData['content'] != null)
+                          Flexible( // Flexible을 사용하여 텍스트가 화면을 넘어가면 줄 바꿈되도록 함
+                            child: Text(
+                              reviewData['content'],
+                              style: TextStyle(fontSize: 14),
+                              overflow: TextOverflow.ellipsis, // 길 경우 일정 길이 이상이면 자동으로 줄 바꿈
+                              maxLines: 2, // 최대 두 줄까지 표시
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -509,7 +541,18 @@ class _ReviewListState extends State<ReviewList> {
               textAlignVertical: TextAlignVertical.center,
             ),
           ),
-          buildReviewList(),
+          _isLoading
+           ? Padding(
+             padding: const EdgeInsets.only(top: 300),
+             child: Center(
+              child: SpinKitWave( // FadingCube 모양 사용
+                color: Color(0xff464D40), // 색상 설정
+                size: 20.0, // 크기 설정
+                duration: Duration(seconds: 3), //속도 설정
+              )
+          ),
+           )
+          : buildReviewList(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
