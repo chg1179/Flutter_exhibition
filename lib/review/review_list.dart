@@ -109,7 +109,6 @@ class _ReviewListState extends State<ReviewList> {
             reviewData['isLiked'] = isLiked;
           }
         }
-
         return reviewData;
       })
           .where((review) {
@@ -128,6 +127,15 @@ class _ReviewListState extends State<ReviewList> {
     print(_reviewList);
     await _loadUserData();
     await initializeLikeStatus();
+  }
+
+  // 유저 프로필 이미지 가져오기
+  Future<String?> getUserProfileImage(String userNickName) async {
+    final userSnapshot = await _firestore.collection('user').where('nickName', isEqualTo: userNickName).limit(1).get();
+    if (userSnapshot.docs.isNotEmpty) {
+      return userSnapshot.docs.first.get('profileImage');
+    }
+    return null;
   }
 
   // document에서 원하는 값 뽑기
@@ -153,7 +161,8 @@ class _ReviewListState extends State<ReviewList> {
     DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
     return document;
   }
-  
+
+
   // 셀렉트바
   Widget buildSelectBar() {
     return Container(
@@ -287,7 +296,6 @@ class _ReviewListState extends State<ReviewList> {
           final reviewData = _reviewList[index];
           final screenWidth = MediaQuery.of(context).size.width;
           return Container(
-            padding: const EdgeInsets.all(10.0),
             child: GestureDetector(
               onTap: () {
                 FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
@@ -297,24 +305,51 @@ class _ReviewListState extends State<ReviewList> {
               },
               child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(5.0),
-                    child: Image.network(
-                      reviewData['imageURL'],
-                      width: screenWidth,
-                      height: 200,
-                      fit: BoxFit.cover,
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
+                      },
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 15,
+                            backgroundImage: _profileImage != null
+                                ? NetworkImage(_profileImage!)
+                                : AssetImage('assets/logo/green_logo.png') as ImageProvider,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',
+                            style: TextStyle(fontSize: 15, color: Colors.black),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  ListTile(
-                    title: Row(
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(5.0), // 원하는 모서리 반지름 값
+                      child: Image.network(
+                        reviewData['imageURL'],
+                        width: screenWidth,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15, right: 15, bottom: 5),
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         if (reviewData['title'] != null)
                           Flexible( // Flexible을 사용하여 텍스트가 화면을 넘어가면 줄 바꿈되도록 함
                             child: Text(
                               reviewData['title'],
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                               overflow: TextOverflow.ellipsis, // 길 경우 일정 길이 이상이면 자동으로 줄 바꿈
                               maxLines: 2, // 최대 두 줄까지 표시
                             ),
@@ -323,50 +358,31 @@ class _ReviewListState extends State<ReviewList> {
                           buildLikeButton(reviewData['id'], reviewData['likeCount'])
                       ],
                     ),
-                    subtitle: Column(
+                  ),
+                 Padding(
+                   padding: const EdgeInsets.only(left: 15, right: 15, bottom: 20),
+                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Text(
                               '${reviewData['write_date'] != null ? DateFormat('yyyy.MM.dd').format(reviewData['write_date'].toDate()) : "날짜 없음"}  | ',
-                              style: TextStyle(fontSize: 13),
+                              style: TextStyle(fontSize: 15, color: Colors.black54),
                             ),
                             SizedBox(width: 2),
-                            Icon(Icons.visibility, size: 13),
-                            SizedBox(width: 2),
-                            Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 13)),
+                            Icon(Icons.visibility, size: 15,  color: Colors.black54),
+                            SizedBox(width: 5),
+                            Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 15,  color: Colors.black54)),
                           ],
                         ),
-                        SizedBox(height: 5),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
-                              },
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 8,
-                                    backgroundImage: _profileImage != null
-                                        ? NetworkImage(_profileImage!)
-                                        : AssetImage('assets/logo/green_logo.png') as ImageProvider,
-                                  ),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',
-                                    style: TextStyle(fontSize: 13, color: Colors.black),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                          ],
-                        )
                       ],
                     ),
+                 ),
+                  Container(
+                      height:1.0,
+                      width: MediaQuery.of(context).size.width,
+                      color: Colors.black12
                   ),
                 ],
               ),

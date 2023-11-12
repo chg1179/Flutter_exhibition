@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/myPage/addAlarm.dart';
+import 'package:exhibition_project/review/review_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../model/user_model.dart';
@@ -21,6 +23,7 @@ class _CommProfileState extends State<CommProfile> {
   Map<String, dynamic>? _userInfo;
   List<Map<String, String>> _imgList = [];
   String? _userProfileImage;
+  int _currentIndex = 0; // index 추가
 
   ButtonStyle getFollowButtonStyle() {
     return isFollowed
@@ -207,14 +210,15 @@ class _CommProfileState extends State<CommProfile> {
       setState(() {
         _imgList = imagesSnapshot.docs.map((doc) {
           final imageURL = doc['imageURL'] as String;
+          final reviewId = doc.id; // 리뷰 문서 ID 가져오기
           print('Image URL: $imageURL'); // 이미지 URL 콘솔 출력
           return {
             'image': imageURL,
+            'reviewId': reviewId, // 리뷰 문서 ID 저장
           };
         }).toList();
 
         _userProfileImage = _imgList.isNotEmpty ? _imgList[0]['image'] : null;
-
         _reviewCount = _imgList.length;
       });
     }
@@ -446,10 +450,15 @@ class _CommProfileState extends State<CommProfile> {
                         ),
                         itemCount: _imgList.length,
                         itemBuilder: (context, index) {
-                          return Container(
-                            child: Image.network(
-                              _imgList[index]['image']!,
-                              fit: BoxFit.cover,
+                          return GestureDetector(
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: _imgList[index]['reviewId'])));
+                            },
+                            child: Container(
+                              child: Image.network(
+                                _imgList[index]['image']!,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           );
                         },

@@ -40,7 +40,7 @@ class _CommMainState extends State<CommMain> {
   bool isLiked = false;
 
   List<String> _tagList = [
-    '전체', '설치미술', '온라인전시', '유화', '미디어', '사진', '조각', '특별전시'
+    '전체', '전시', '유화',  '특별전시', '미디어', '사진', '조각',  '설치미술', '온라인전시'
   ];
 
   int selectedButtonIndex = 0;
@@ -251,6 +251,7 @@ class _CommMainState extends State<CommMain> {
         });
       }
     }
+    setState(() {});
   }
 
   // 좋아요 버튼을 누를 때 호출되는 함수
@@ -289,8 +290,6 @@ class _CommMainState extends State<CommMain> {
       _showDialog();
     }
   }
-
-
 
   void _showDialog(){
     showDialog(

@@ -26,7 +26,6 @@ class _CommEditState extends State<CommEdit> {
   late ImageUploader uploader;
   XFile? _imageFile;
   String? downloadURL;
-  bool _showCustomHashtagInput = true;
   List<String> _selectTag = [];
   List<String> _tagList = [
     '전시',
@@ -276,7 +275,6 @@ class _CommEditState extends State<CommEdit> {
                   child: Row(
                     children: [
                       InkWell(
-                        onTap: toggleCustomHashtagInput,
                         child: Container(
                           width: 20,
                           height: 20,
@@ -482,21 +480,13 @@ class _CommEditState extends State<CommEdit> {
           ),
           contentPadding: EdgeInsets.all(10),
           border: OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Color(0xff464D40))
+          )
         ),
         cursorColor: Color(0xff464D40),
       ),
     );
-  }
-
-  void toggleCustomHashtagInput() {
-    setState(() {
-      if (_showCustomHashtagInput) {
-        if (_customHashtagCtr.text.isNotEmpty) {
-          addCustomHashtagToList();
-        }
-      }
-      _showCustomHashtagInput = !_showCustomHashtagInput;
-    });
   }
 
   void addCustomHashtagToList() {
@@ -508,7 +498,6 @@ class _CommEditState extends State<CommEdit> {
       }
 
       _customHashtagCtr.text = '';
-      toggleCustomHashtagInput();
     }
   }
 
@@ -537,36 +526,34 @@ class _CommEditState extends State<CommEdit> {
             );
           }).toList()
         ),
-        // 직접 입력 창을 나타내거나 숨기기 위한 부분
-        if (_showCustomHashtagInput)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10,),
-              _buildCustomHashtagInput(),
-              SizedBox(height: 5),
-              ElevatedButton(
-                child: Text('추가'),
-                onPressed: addCustomHashtagToList,
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
-                  backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
-                  textStyle: MaterialStateProperty.all(
-                    TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                    ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 10,),
+            _buildCustomHashtagInput(),
+            SizedBox(height: 5),
+            ElevatedButton(
+              child: Text('추가'),
+              onPressed: addCustomHashtagToList,
+              style: ButtonStyle(
+                minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
+                backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+                textStyle: MaterialStateProperty.all(
+                  TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
                   ),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5),
-                      side: BorderSide(color: Color(0xff464D40)),
-                    ),
+                ),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    side: BorderSide(color: Color(0xff464D40)),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
+        ),
       ],
     );
   }

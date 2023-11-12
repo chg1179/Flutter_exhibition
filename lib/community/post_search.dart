@@ -19,11 +19,11 @@ class _PostSearchState extends State<PostSearch> {
 
   ButtonStyle _unPushBtnStyle() {
     return ButtonStyle(
-      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      minimumSize: MaterialStateProperty.all(Size(0, 25)),
       backgroundColor: MaterialStateProperty.all(Colors.white),
       textStyle: MaterialStateProperty.all(
         TextStyle(
-          fontSize: 13,
+          fontSize: 12,
         ),
       ),
       foregroundColor: MaterialStateProperty.resolveWith((states) {
@@ -51,7 +51,7 @@ class _PostSearchState extends State<PostSearch> {
     try {
       QuerySnapshot postQuerySnapshot = await _firestore.collection('post').get();
 
-      Set<String> addedPostIds = Set(); // 이미 추가된 게시글 ID를 추적하는 Set
+      Set<String> addedPostIds = Set();
 
       List<Map<String, dynamic>> postList = [];
 
@@ -62,12 +62,28 @@ class _PostSearchState extends State<PostSearch> {
           if (postData != null) {
             postData['id'] = postDoc.id;
 
-            // 게시글 제목 내용을 검색
-            if ((postData['title'] as String?)?.contains(searchText) == true ||
-                (postData['content'] as String?)?.contains(searchText) == true) {
+            bool isMatchingSearch =
+                (postData['title'] as String?)?.contains(searchText) == true ||
+                    (postData['content'] as String?)?.contains(searchText) == true;
+
+            if (!isMatchingSearch) {
+              // 게시글 해시태그 검색
+              QuerySnapshot hashtagQuerySnapshot =
+              await postDoc.reference.collection('hashtag').get();
+
+              if (hashtagQuerySnapshot.docs.isNotEmpty) {
+                isMatchingSearch = hashtagQuerySnapshot.docs
+                    .any((hashtagDoc) {
+                  final hashtagData = hashtagDoc.data() as Map<String, dynamic>?;
+                  final tag_name = hashtagData?['tag_name'] as String? ?? '';
+                  return tag_name.isNotEmpty && tag_name.contains(searchText);
+                });
+              }
+            }
+
+            if (isMatchingSearch) {
               String postId = postDoc.id;
 
-              // 중복 체크
               if (!addedPostIds.contains(postId)) {
                 addedPostIds.add(postId);
 
@@ -83,38 +99,6 @@ class _PostSearchState extends State<PostSearch> {
                 postData['hashtagList'] = hashtagList;
 
                 postList.add(postData);
-              }
-            }
-
-            // 게시글 해시태그 검색
-            QuerySnapshot hashtagQuerySnapshot =
-            await postDoc.reference.collection('hashtag').get();
-
-            if (hashtagQuerySnapshot.docs.isNotEmpty) {
-              List<String> matchingHashtags = hashtagQuerySnapshot.docs
-                  .where((hashtagDoc) {
-                final hashtagData =
-                hashtagDoc.data() as Map<String, dynamic>?;
-
-                final tag_name = hashtagData?['tag_name'] as String? ?? '';
-                return tag_name.isNotEmpty && tag_name.contains(searchText);
-              }).map((hashtagDoc) => hashtagDoc.reference.parent.parent!.id).toList();
-
-              // 게시글 ID로 해당 게시글 정보를 가져온다.
-              for (String postId in matchingHashtags) {
-                DocumentSnapshot postSnapshot =
-                await _firestore.collection('post').doc(postId).get();
-                Map<String, dynamic>? postInfo = postSnapshot.data() as Map<String, dynamic>?;
-
-                if (postInfo != null) {
-                  postInfo['id'] = postId;
-
-                  // 중복 체크
-                  if (!addedPostIds.contains(postId)) {
-                    addedPostIds.add(postId);
-                    postList.add(postInfo);
-                  }
-                }
               }
             }
           }
@@ -165,39 +149,46 @@ class _PostSearchState extends State<PostSearch> {
                 onTap: (){
                   Navigator.push(context, MaterialPageRoute(builder: (context) => CommDetail(document: postData['id'])));
                 },
-                child: Container(
-                  width: MediaQuery.of(context).size.width,
-                  margin: EdgeInsets.only(bottom: 20),
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title!,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                child: Column(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width,
+                      padding: EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title!,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          Text(
+                            content,
+                            style: TextStyle(fontSize: 13),
+                          ),
+                          if(postData['write_date'] != null)
+                            Text(
+                              '작성일: ${DateFormat('yyyy.MM.dd').format(postData['write_date'].toDate())}',
+                              style: TextStyle(fontSize: 12, color: Colors.black54),
+                            ),
+                          Wrap(
+                            spacing: 5,
+                            runSpacing: -10,
+                            children: hashtagList.map((hashtag) {
+                              return ElevatedButton(
+                                onPressed: (){},
+                                child: Text('# $hashtag'),
+                                style: _unPushBtnStyle(),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
-                      Text(
-                        content,
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      if(postData['write_date'] != null)
-                        Text(
-                          '작성일: ${DateFormat('yyyy.MM.dd').format(postData['write_date'].toDate())}',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
-                        ),
-                      Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        children: hashtagList.map((hashtag) {
-                          return ElevatedButton(
-                            onPressed: (){},
-                            child: Text(hashtag),
-                            style: _unPushBtnStyle(),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Container(
+                      height: 0.8, // 선의 높이
+                      color: Colors.black26, // 선의 색상
+                    )
+                  ],
                 ),
               );
             },

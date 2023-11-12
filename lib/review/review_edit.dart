@@ -20,11 +20,20 @@ class _ReviewEditState extends State<ReviewEdit> {
   final _titleCtr = TextEditingController();
   final _contentCtr = TextEditingController();
   final _customHashtagCtr = TextEditingController();
-  bool _showCustomHashtagInput = false;
   int maxTitleLength = 100;
   List<String> _selectTag = [];
   List<Widget> textFields = [];
   List<Widget> imageFields = [];
+  List<String> _tagList = [
+    '전시',
+    '설치미술',
+    '온라인전시',
+    '유화',
+    '미디어',
+    '사진',
+    '조각',
+    '특별전시',
+  ];
 
   final ImageSelector selector = ImageSelector();
   late ImageUploader uploader;
@@ -181,11 +190,6 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
-  void toggleCustomHashtagInput() {
-    setState(() {
-      _showCustomHashtagInput = !_showCustomHashtagInput;
-    });
-  }
 
   void addCustomHashtagToList() {
     if (_customHashtagCtr.text.isNotEmpty) {
@@ -197,7 +201,6 @@ class _ReviewEditState extends State<ReviewEdit> {
       }
 
       _customHashtagCtr.text = '';
-      toggleCustomHashtagInput();
     }
   }
 
@@ -355,6 +358,78 @@ class _ReviewEditState extends State<ReviewEdit> {
     );
   }
 
+  ButtonStyle _unPushBtnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      backgroundColor: MaterialStateProperty.all(Colors.white),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          fontSize: 13,
+        ),
+      ),
+      foregroundColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.pressed)) {
+          return Colors.white;
+        }
+        return Colors.black;
+      }),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
+  }
+
+  ButtonStyle _pushBtnStyle() {
+    return ButtonStyle(
+      minimumSize: MaterialStateProperty.all(Size(0, 30)),
+      backgroundColor: MaterialStateProperty.all(Color(0xff464D40)),
+      textStyle: MaterialStateProperty.all(
+        TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+        ),
+      ),
+      shape: MaterialStateProperty.all(
+        RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: BorderSide(color: Color(0xff464D40)),
+        ),
+      ),
+    );
+  }
+
+  Widget _hashTagList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('추천 해시태그✨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Wrap(
+            spacing: 4,
+            children: _tagList.map((tagName) {
+              return ElevatedButton(
+                child: Text('# $tagName'),
+                onPressed: () {
+                  setState(() {
+                    if (_selectTag.contains(tagName)) {
+                      // 선택 해제된 해시태그를 제거
+                      removeSelectedTag(tagName);
+                    } else {
+                      // 선택된 해시태그를 추가
+                      addSelectedTag(tagName);
+                    }
+                  });
+                },
+                style: _selectTag.contains(tagName) ? _pushBtnStyle() : _unPushBtnStyle(),
+              );
+            }).toList()
+        ),
+      ],
+    );
+  }
+
   // 태그 입력 폼
   Widget _buildCustomHashtagInput() {
     return Container(
@@ -429,13 +504,17 @@ class _ReviewEditState extends State<ReviewEdit> {
                 ],
               ),
             ),
-
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              child: _buildContentInput(),
+            ),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: _selectTagForm(),
             ),
-            if (_showCustomHashtagInput)
-              Column(
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10),
@@ -463,10 +542,11 @@ class _ReviewEditState extends State<ReviewEdit> {
                   ),
                 ],
               ),
+            ),
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: _buildContentInput(),
-            ),
+              child: _hashTagList(),
+            )
           ],
         ),
         SizedBox(height: 20),
@@ -563,11 +643,11 @@ class _ReviewEditState extends State<ReviewEdit> {
 
   Widget _buildContentInput() {
     return TextField(
-      maxLines: 10,
-      maxLength: 300,
+      maxLines: 15,
       controller: _contentCtr,
+      style: TextStyle(fontSize: 15),
       decoration: InputDecoration(
-        hintText: '아래 버튼을 클릭해 본문에 태그를 입력해보세요! (최대 30개)',
+        hintText: '본문에 태그를 입력해보세요!(최대 30개)',
         hintStyle: TextStyle(
           color: Colors.black38,
           fontSize: 13,
@@ -694,7 +774,6 @@ class _ReviewEditState extends State<ReviewEdit> {
                   _buildImgButton(),
                   SizedBox(width: 10,),
                   InkWell(
-                    onTap: toggleCustomHashtagInput,
                     child: Container(
                       width: 30,
                       height: 30,

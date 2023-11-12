@@ -459,7 +459,9 @@ class _ReviewDetailState extends State<ReviewDetail> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           color: Colors.black,
-          onPressed: _onBackPressed
+          onPressed: (){
+            Navigator.of(context).pop();
+          }
         ),
       ),
       body: _reviewDetailWidget(),
