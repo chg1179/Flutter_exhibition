@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 
 class PostSearch extends StatefulWidget {
@@ -23,14 +24,13 @@ class _PostSearchState extends State<PostSearch> {
       textStyle: MaterialStateProperty.all(
         TextStyle(
           fontSize: 13,
-          fontWeight: FontWeight.bold,
         ),
       ),
       foregroundColor: MaterialStateProperty.resolveWith((states) {
         if (states.contains(MaterialState.pressed)) {
           return Colors.white;
         }
-        return Colors.black45;
+        return Colors.black;
       }),
       shape: MaterialStateProperty.all(
         RoundedRectangleBorder(
@@ -51,6 +51,8 @@ class _PostSearchState extends State<PostSearch> {
     try {
       QuerySnapshot postQuerySnapshot = await _firestore.collection('post').get();
 
+      Set<String> addedPostIds = Set(); // 이미 추가된 게시글 ID를 추적하는 Set
+
       List<Map<String, dynamic>> postList = [];
 
       if (postQuerySnapshot.docs.isNotEmpty) {
@@ -63,19 +65,25 @@ class _PostSearchState extends State<PostSearch> {
             // 게시글 제목 내용을 검색
             if ((postData['title'] as String?)?.contains(searchText) == true ||
                 (postData['content'] as String?)?.contains(searchText) == true) {
+              String postId = postDoc.id;
 
-              List<String> hashtagList = [];
-              QuerySnapshot hashtagQuerySnapshot =
-              await postDoc.reference.collection('hashtag').get();
+              // 중복 체크
+              if (!addedPostIds.contains(postId)) {
+                addedPostIds.add(postId);
 
-              if (hashtagQuerySnapshot.docs.isNotEmpty) {
-                hashtagList = hashtagQuerySnapshot.docs
-                    .map((hashtagDoc) => hashtagDoc['tag_name'] as String)
-                    .toList();
+                List<String> hashtagList = [];
+                QuerySnapshot hashtagQuerySnapshot =
+                await postDoc.reference.collection('hashtag').get();
+
+                if (hashtagQuerySnapshot.docs.isNotEmpty) {
+                  hashtagList = hashtagQuerySnapshot.docs
+                      .map((hashtagDoc) => hashtagDoc['tag_name'] as String)
+                      .toList();
+                }
+                postData['hashtagList'] = hashtagList;
+
+                postList.add(postData);
               }
-              postData['hashtagList'] = hashtagList;
-
-              postList.add(postData);
             }
 
             // 게시글 해시태그 검색
@@ -85,7 +93,8 @@ class _PostSearchState extends State<PostSearch> {
             if (hashtagQuerySnapshot.docs.isNotEmpty) {
               List<String> matchingHashtags = hashtagQuerySnapshot.docs
                   .where((hashtagDoc) {
-                final hashtagData = hashtagDoc.data() as Map<String, dynamic>?;
+                final hashtagData =
+                hashtagDoc.data() as Map<String, dynamic>?;
 
                 final tag_name = hashtagData?['tag_name'] as String? ?? '';
                 return tag_name.isNotEmpty && tag_name.contains(searchText);
@@ -93,12 +102,18 @@ class _PostSearchState extends State<PostSearch> {
 
               // 게시글 ID로 해당 게시글 정보를 가져온다.
               for (String postId in matchingHashtags) {
-                DocumentSnapshot postSnapshot = await _firestore.collection('post').doc(postId).get();
+                DocumentSnapshot postSnapshot =
+                await _firestore.collection('post').doc(postId).get();
                 Map<String, dynamic>? postInfo = postSnapshot.data() as Map<String, dynamic>?;
 
                 if (postInfo != null) {
                   postInfo['id'] = postId;
-                  postList.add(postInfo);
+
+                  // 중복 체크
+                  if (!addedPostIds.contains(postId)) {
+                    addedPostIds.add(postId);
+                    postList.add(postInfo);
+                  }
                 }
               }
             }
@@ -119,20 +134,23 @@ class _PostSearchState extends State<PostSearch> {
   }
 
 
+
   Widget _Search() {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _searchResults,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(),
+        if (!snapshot.hasData) {
+          return SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
           );
         } else if (snapshot.hasError) {
           return Text('데이터를 불러오는 중 오류가 발생했습니다: ${snapshot.error}');
         } else {
           List<Map<String, dynamic>> postDataList = snapshot.data ?? [];
           if (postDataList.isEmpty) {
-            return Text('검색 결과가 없습니다.');
+            return Center(child: Text('검색 결과가 없습니다😢'));
           }
 
           return ListView.builder(
@@ -142,8 +160,6 @@ class _PostSearchState extends State<PostSearch> {
               final title = postData['title'] ?? '';
               final content = postData['content'] ?? '';
               final List<String> hashtagList = (postData['hashtagList'] as List<String>?) ?? [];
-
-              print('해당 게시글의 hashtagList $index: $hashtagList');
 
               return GestureDetector(
                 onTap: (){
@@ -158,7 +174,7 @@ class _PostSearchState extends State<PostSearch> {
                     children: [
                       Text(
                         title!,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       Text(
                         content,
@@ -173,8 +189,10 @@ class _PostSearchState extends State<PostSearch> {
                         spacing: 5,
                         runSpacing: 5,
                         children: hashtagList.map((hashtag) {
-                          return Chip(
-                            label: Text(hashtag),
+                          return ElevatedButton(
+                            onPressed: (){},
+                            child: Text(hashtag),
+                            style: _unPushBtnStyle(),
                           );
                         }).toList(),
                       ),

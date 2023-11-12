@@ -4,6 +4,7 @@ import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/review/review_edit.dart';
 import 'package:exhibition_project/review/review_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +41,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
   }
 
   String? _userProfileImage;
-
+  String? _userNickName;
   Future<void> _getProfileImg() async {
     try {
       final userQuerySnapshot = await FirebaseFirestore.instance.collection('user').where('nickName', isEqualTo: widget.userNickName).get();
@@ -51,9 +52,24 @@ class _ReviewDetailState extends State<ReviewDetail> {
       setState(() {
         _userProfileImage = userProfileImage;
       });
-      print('해당유저프로필인가요: $_userProfileImage');
+      print('해당유저프로필: $_userProfileImage');
     } catch (error) {
       print('유저데이터 불러오는데 오류 발생: $error');
+    }
+  }
+
+  // document에서 원하는 값 뽑기
+  Future<void> _loadUserData() async {
+    final user = Provider.of<UserModel?>(context, listen: false);
+    if (user != null && user.isSignIn) {
+      DocumentSnapshot document = await getDocumentById(user.userNo!);
+      DocumentSnapshot _userDocument;
+
+      setState(() {
+        _userDocument = document;
+        _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
+        print('닉네임: $_userNickName');
+      });
     }
   }
 
@@ -89,6 +105,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
     super.initState();
     _getHashtags();
     _getProfileImg();
+    _loadUserData();
   }
   // 메뉴 아이콘 클릭
   void _showMenu() {
@@ -142,32 +159,53 @@ class _ReviewDetailState extends State<ReviewDetail> {
     );
   }
 
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('삭제 완료'),
+          content: Text('후기가 삭제되었습니다.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReviewList(),
+                  ),
+                );
+              },
+              child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   // 리뷰 삭제 확인 대화상자 표시
   void _confirmDelete() {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('삭제'),
+          title: Text('삭제',  style: TextStyle(color: Color(0xff464D40))),
           content: Text('후기를 삭제하시겠습니까?'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소',  style: TextStyle(color: Color(0xff464D40))),
             ),
             TextButton(
               onPressed: () {
                 _deleteReview(widget.document!);
                 Navigator.pop(context);
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReviewList(),
-                  ),
-                );
+                _showSuccessDialog(); // 성공 다이얼로그 표시
               },
               child: Text('삭제'),
             ),
@@ -177,10 +215,43 @@ class _ReviewDetailState extends State<ReviewDetail> {
     );
   }
 
+
   // 리뷰 삭제
   void _deleteReview(String documentId) async {
-    await FirebaseFirestore.instance.collection("review").doc(documentId).delete();
+    try {
+      // 해당 리뷰(document) 삭제
+      await FirebaseFirestore.instance.collection("review").doc(documentId).delete();
+
+      // 해당 리뷰에 연결된 해시태그 삭제
+      await FirebaseFirestore.instance
+          .collection("review")
+          .doc(documentId)
+          .collection("hashtag")
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+      // 해당 리뷰에 연결된 좋아요 정보 삭제
+      await FirebaseFirestore.instance
+          .collection("review")
+          .doc(documentId)
+          .collection("likes")
+          .get()
+          .then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
+      });
+
+      _showSuccessDialog(); // 성공 다이얼로그 표시
+    } catch (error) {
+      print('삭제 중 오류 발생: $error');
+    }
   }
+
 
 
   // 리뷰 상세 정보 위젯
@@ -190,7 +261,11 @@ class _ReviewDetailState extends State<ReviewDetail> {
         future: FirebaseFirestore.instance.collection("review").doc(document).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator(); // 데이터를 가져오는 동안 로딩 표시
+            return SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 20.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            ); // 데이터를 가져오는 동안 로딩 표시
           }
 
           if (snapshot.hasError) {
@@ -201,7 +276,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
             return Text('데이터 없음');
           }
 
-          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final data = snapshot.data?.data() as Map<String, dynamic>;
           final title = data['title'] as String;
           final content = data['content'] as String;
           final imageURL = data['imageURL'] as String?;
@@ -253,13 +328,14 @@ class _ReviewDetailState extends State<ReviewDetail> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                child: IconButton(
-                                  onPressed: _showMenu,
-                                  icon: Icon(Icons.more_vert, size: 20,),
-                                  color: Colors.black45,
+                              if (_userNickName == nickName)
+                                Container(
+                                  child: IconButton(
+                                    onPressed: _showMenu,
+                                    icon: Icon(Icons.more_vert, size: 20,),
+                                    color: Colors.black45,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),

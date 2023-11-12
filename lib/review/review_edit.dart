@@ -63,62 +63,64 @@ class _ReviewEditState extends State<ReviewEdit> {
   }
 
   Future<void> _loadReviewData(String documentId) async {
-
     try {
-      final documentSnapshot =
-      await FirebaseFirestore.instance.collection('review').doc(documentId).get();
+      if (documentId.isNotEmpty) {
+        final documentSnapshot =
+        await FirebaseFirestore.instance.collection('review')
+            .doc(documentId)
+            .get();
 
-      if (documentSnapshot.exists) {
-        final data = documentSnapshot.data() as Map<String, dynamic>;
-        final title = data['title'] as String;
-        final content = data['content'] as String;
-        final imageURL = data['imageURL'] as String?;
+        if (documentSnapshot.exists) {
+          final data = documentSnapshot.data() as Map<String, dynamic>;
+          final title = data['title'] as String;
+          final content = data['content'] as String;
+          final imageURL = data['imageURL'] as String?;
 
-        setState(() {
-          _titleCtr.text = title;
-          _contentCtr.text = content;
-          downloadURL = imageURL;
-        });
-      } else {
-        print('리뷰를 찾을 수 없습니다.');
+          setState(() {
+            _titleCtr.text = title;
+            _contentCtr.text = content;
+            downloadURL = imageURL;
+          });
+          final CollectionReference reviewCollection = FirebaseFirestore
+              .instance.collection('review');
+          final QuerySnapshot hashtagQuery = await reviewCollection.doc(
+              documentId).collection('hashtag').get();
+
+          if (hashtagQuery.docs.isNotEmpty) {
+            final List<String> selectedHashtags = [];
+
+            for (final doc in hashtagQuery.docs) {
+              final data = doc.data() as Map<String, dynamic>;
+              final hashtagName = data['tag_name'] as String;
+
+              selectedHashtags.add(hashtagName);
+            }
+
+            setState(() {
+              _selectTag = selectedHashtags;
+            });
+          }
+        } else {
+          print('리뷰를 찾을 수 없습니다.');
+        }
       }
     } catch (e) {
       print('데이터를 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
-  Future<void> _loadHashtags(String postId) async {
-    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
-    final QuerySnapshot hashtagQuery = await postsCollection.doc(postId).collection('hashtag').get();
-
-    if (hashtagQuery.docs.isNotEmpty) {
-      final List<String> selectedHashtags = [];
-
-      for (final doc in hashtagQuery.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final hashtagName = data['tag_name'] as String;
-
-        selectedHashtags.add(hashtagName);
-      }
-
-      setState(() {
-        _selectTag = selectedHashtags;
-      });
-    }
-  }
-
-  Future<void> updateHashtags(List<String> hashtags, String postId) async {
-    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('post');
+  Future<void> updateHashtags(List<String> hashtags, String docId) async {
+    final CollectionReference postsCollection = FirebaseFirestore.instance.collection('review');
 
     // 기존 해시태그 문서들을 모두 삭제
-    final QuerySnapshot existingHashtags = await postsCollection.doc(postId).collection('hashtag').get();
+    final QuerySnapshot existingHashtags = await postsCollection.doc(docId).collection('hashtag').get();
     for (final doc in existingHashtags.docs) {
       await doc.reference.delete();
     }
 
     // 새로운 선택 해시태그를 추가
     for (String hashtag in hashtags) {
-      final DocumentReference hashtagDocRef = postsCollection.doc(postId).collection('hashtag').doc();
+      final DocumentReference hashtagDocRef = postsCollection.doc(docId).collection('hashtag').doc();
 
       await hashtagDocRef.set({
         'tag_name': hashtag,
@@ -126,19 +128,34 @@ class _ReviewEditState extends State<ReviewEdit> {
     }
   }
 
-  Future<void> addHashtags(List<String> hashtags, String reviewId) async {
+  Future<void> addHashtags(List<String> hashtags, String docId) async {
     final CollectionReference reviewCollection = FirebaseFirestore.instance.collection('review');
 
-    for (String hashtag in hashtags) {
-      final DocumentReference hashtagDocRef = reviewCollection.doc(reviewId).collection('hashtag').doc(); // 문서 ID 자동 생성
+    // 이미 존재하는 해시태그를 담을 Set
+    final existingHashtags = Set<String>();
 
-      // hashtag 문서가 이미 있는지 확인
-      final hashtagSnapshot = await hashtagDocRef.get();
-      if (!hashtagSnapshot.exists) {
-        // hashtag 문서가 없으면 추가
-        await hashtagDocRef.set({
-          'tag_name': hashtag,
-        });
+    // 기존 해시태그 조회
+    final existingHashtagQuery = await reviewCollection.doc(docId).collection('hashtag').get();
+    for (final doc in existingHashtagQuery.docs) {
+      final data = doc.data();
+      final hashtagName = data['tag_name'] as String;
+
+      existingHashtags.add(hashtagName);
+    }
+
+    // 새로운 선택 해시태그를 추가
+    for (String hashtag in hashtags) {
+      if (!existingHashtags.contains(hashtag)) {
+        final DocumentReference hashtagDocRef = reviewCollection.doc(docId).collection('hashtag').doc();
+
+        // hashtag 문서가 이미 있는지 확인
+        final hashtagSnapshot = await hashtagDocRef.get();
+        if (!hashtagSnapshot.exists) {
+          // hashtag 문서가 없으면 추가
+          await hashtagDocRef.set({
+            'tag_name': hashtag,
+          });
+        }
       }
     }
   }
@@ -149,8 +166,10 @@ class _ReviewEditState extends State<ReviewEdit> {
       setState(() {
         _selectTag.add(tagName);
       });
+      print('추가시 Selected Tags: $_selectTag'); // 로그로 확인
     }
   }
+
 
   // 선택된 해시태그를 제거하는 함수
   void removeSelectedTag(String tagName) {
@@ -158,16 +177,12 @@ class _ReviewEditState extends State<ReviewEdit> {
       setState(() {
         _selectTag.remove(tagName);
       });
+      print('삭제시 Selected Tags: $_selectTag'); // 로그로 확인
     }
   }
 
   void toggleCustomHashtagInput() {
     setState(() {
-      if (_showCustomHashtagInput) {
-        if (_customHashtagCtr.text.isNotEmpty) {
-          addCustomHashtagToList();
-        }
-      }
       _showCustomHashtagInput = !_showCustomHashtagInput;
     });
   }
@@ -178,6 +193,7 @@ class _ReviewEditState extends State<ReviewEdit> {
 
       if (!_selectTag.contains(customHashtag)) {
         addSelectedTag(customHashtag);
+        addHashtags([customHashtag], widget.documentId ?? '');
       }
 
       _customHashtagCtr.text = '';
@@ -186,79 +202,78 @@ class _ReviewEditState extends State<ReviewEdit> {
   }
 
   Future<void> _saveReview() async {
-    if (_titleCtr.text.isNotEmpty && _contentCtr.text.isNotEmpty && _imageFile != null) {
-      CollectionReference post = FirebaseFirestore.instance.collection("review");
+    if (_titleCtr.text.isEmpty || _contentCtr.text.isEmpty) {
+      _showDialog('제목과 내용을 입력해주세요');
+      return;
+    }
 
-      if (_imageFile != null) {
-        try {
-          await uploadImage();
-        } catch (e) {
-          print('이미지 업로드 중 오류 발생: $e');
-          return;
-        }
-      }
+    if (_imageFile == null && (downloadURL == null || downloadURL!.isEmpty)) {
+      _showDialog('이미지를 등록해주세요');
+      return;
+    }
 
+    CollectionReference review = FirebaseFirestore.instance.collection("review");
+
+    if (_imageFile != null) {
       try {
-        if (widget.documentId != null) {
-          await post.doc(widget.documentId!).update({
-            'title': _titleCtr.text,
-            'content': _contentCtr.text,
-            if(downloadURL != null) 'imageURL' : downloadURL
-          });
-
-           await updateHashtags(_selectTag, widget.documentId!);
-
-        } else {
-          await _loadUserData();
-
-          DocumentReference newReviewRef = await post.add({
-            'title': _titleCtr.text,
-            'content': _contentCtr.text,
-            'write_date': DateTime.now(),
-            'imageURL': downloadURL,
-            'viewCount': 0,
-            'likeCount' : 0,
-            'userNickName': _userNickName,
-          });
-
-          if(downloadURL != null){
-            await newReviewRef.update({'imageURL' : downloadURL});
-          }
-
-          if (_selectTag.isNotEmpty) {
-            // 선택된 해시태그를 추가
-            await addHashtags(_selectTag, newReviewRef.id);
-          }
-        }
-
-        _titleCtr.clear();
-        _contentCtr.clear();
-        _imageFile = null;
-
-
-
-        // 수정 버튼일 경우 ReviewDetail 페이지로 이동
-        if (widget.documentId != null) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: widget.documentId)));
-        } else {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
-        }
-
+        await uploadImage();
       } catch (e) {
-        print('데이터 저장 중 오류가 발생했습니다: $e');
-      }
-    } else {
-      if (_titleCtr.text.isEmpty && _contentCtr.text.isEmpty) {
-        _showDialog('제목과 내용을 입력해주세요');
-      } else if (_titleCtr.text.isEmpty) {
-        _showDialog('제목을 입력해주세요');
-      } else if (_contentCtr.text.isEmpty) {
-        _showDialog('내용을 입력해주세요');
-      } else if(_imageFile == null && (downloadURL == null || downloadURL!.isEmpty)){
-        _showDialog('이미지를 등록해주세요');
+        print('이미지 업로드 중 오류 발생: $e');
+        _showDialog('이미지 업로드 중 오류가 발생했습니다');
+        return;
       }
     }
+
+    try {
+      if (widget.documentId != null) {
+        await review.doc(widget.documentId!).update({
+          'title': _titleCtr.text,
+          'content': _contentCtr.text,
+          if(downloadURL != null && _imageFile == null) 'imageURL' : downloadURL
+        });
+
+        // 기존 해시태그 삭제
+        await updateHashtags(_selectTag, widget.documentId!);
+
+        // 수정 완료 다이얼로그
+        _showEditDialog('후기가 수정되었습니다.');
+      } else {
+        await _loadUserData();
+
+        DocumentReference newReviewRef = await review.add({
+          'title': _titleCtr.text,
+          'content': _contentCtr.text,
+          'write_date': DateTime.now(),
+          'imageURL': downloadURL,
+          'viewCount': 0,
+          'likeCount': 0,
+          'userNickName': _userNickName,
+        });
+
+        String reviewDocumentId = newReviewRef.id;
+
+        if (downloadURL != null) {
+          await newReviewRef.update({'imageURL': downloadURL});
+        }
+
+        // 새로운 선택 해시태그 추가
+        await addHashtags(_selectTag, reviewDocumentId);
+
+        // 등록 완료 다이얼로그
+        _showEditDialog('후기가 등록되었습니다.');
+      }
+
+
+
+      _titleCtr.clear();
+      _contentCtr.clear();
+      _imageFile = null;
+
+    } catch (e) {
+      print('데이터 저장 중 오류가 발생했습니다: $e');
+    }
   }
+
 
 
   Future<void> getImage() async {
@@ -282,7 +297,7 @@ class _ReviewEditState extends State<ReviewEdit> {
         print('이미지 업로드 중 오류 발생: $e');
       }
     } else {
-      print('이미지를 선택하지 않았습니다. 이미지를 선택하지 않은 상태에서 글을 저장합니다.');
+      print('이미지를 선택하지 않았습니다.');
       downloadURL = null;
     }
   }
@@ -354,13 +369,16 @@ class _ReviewEditState extends State<ReviewEdit> {
           ),
           contentPadding: EdgeInsets.all(10),
           border: OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Color(0xff464D40))
+          )
         ),
         cursorColor: Color(0xff464D40),
       ),
     );
   }
 
-  Widget buildCommForm() {
+  Widget buildReviewForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -411,19 +429,16 @@ class _ReviewEditState extends State<ReviewEdit> {
                 ],
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: _selectTagForm(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: _buildContentInput(),
             ),
             if (_showCustomHashtagInput)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10,),
+                  SizedBox(height: 10),
                   _buildCustomHashtagInput(),
                   SizedBox(height: 5),
                   ElevatedButton(
@@ -448,7 +463,10 @@ class _ReviewEditState extends State<ReviewEdit> {
                   ),
                 ],
               ),
-
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: _buildContentInput(),
+            ),
           ],
         ),
         SizedBox(height: 20),
@@ -476,6 +494,7 @@ class _ReviewEditState extends State<ReviewEdit> {
       return Container();
     }
   }
+
 
   Widget _buildTitleInput() {
     return TextField(
@@ -571,40 +590,53 @@ class _ReviewEditState extends State<ReviewEdit> {
   }
 
   Future<void> _showDialog(String txt) async {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(txt),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('확인', style: TextStyle(color: Colors.black87),)
-              )
-            ],
-          );
-        }
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(txt),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('확인',  style: TextStyle(color: Color(0xff464D40))),
+            )
+          ],
+        );
+      },
     );
   }
 
   Future<void> _showEditDialog(String txt) async {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(txt),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('확인', style: TextStyle(color: Colors.black87),)
-              )
-            ],
-          );
-        }
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          content: Text(txt),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (widget.documentId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ReviewDetail(document: widget.documentId),
+                    ),
+                  );
+                } else {
+                  // 등록 버튼일 경우 ReviewList 페이지로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ReviewList()),
+                  );
+                }
+              },
+              child: Text('확인',  style: TextStyle(color: Color(0xff464D40))),
+            )
+          ],
+        );
+      },
     );
   }
 
@@ -637,7 +669,7 @@ class _ReviewEditState extends State<ReviewEdit> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(bottom: 30),
-                child: buildCommForm(),
+                child: buildReviewForm(),
               ),
             ],
           ),

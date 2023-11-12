@@ -250,9 +250,19 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+  bool isTogglingLike = false;
+
   // 좋아요 버튼을 누를 때 호출되는 함수
   Future<void> toggleLike(String postId) async {
     final user = Provider.of<UserModel?>(context, listen: false);
+
+    // 추가한 부분: 좋아요 토글 중이라면 함수를 빠져나감
+    if (isTogglingLike) {
+      return;
+    }
+
+    // 추가한 부분: 함수가 실행 중임을 표시
+    isTogglingLike = true;
 
     if (user != null && user.isSignIn) {
       DocumentReference postDoc = FirebaseFirestore.instance.collection('post').doc(postId);
@@ -281,6 +291,10 @@ class _CommDetailState extends State<CommDetail> {
         'likeCount': likeCount,
       });
 
+      // 추가한 부분: 함수 실행이 끝났음을 표시
+      isTogglingLike = false;
+
+      // 좋아요 수 업데이트 후에 isLikedMap 업데이트
       setState(() {
         isLikedMap[postId] = !currentIsLiked; // 현재 상태를 토글합니다.
       });

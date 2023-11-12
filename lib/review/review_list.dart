@@ -153,43 +153,28 @@ class _ReviewListState extends State<ReviewList> {
     DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
     return document;
   }
-
-  // 검색바
-  Widget buildSearchBar() {
-    return Container(
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Icon(Icons.search),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _searchCtr,
-              onChanged: (value){
-                _loadReviewData(value,_selectedList!);
-              },
-              decoration: InputDecoration(
-                hintText: '검색어를 입력해주세요',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
+  
   // 셀렉트바
   Widget buildSelectBar() {
-    return TextButton(
-      onPressed: _showFilterSheet,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(_selectedList ?? '', style: TextStyle(color: Colors.black),),
-          Icon(Icons.expand_more, color: Colors.black),
-        ],
+    return Container(
+      padding: const EdgeInsets.only(left: 5, right: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+      ),
+      child: ElevatedButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
+          textStyle: MaterialStateProperty.all<TextStyle>(TextStyle(color: Colors.black,)),
+          foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          elevation: MaterialStateProperty.all(0),
+        ),
+        onPressed: _showFilterSheet,
+        child: Row(
+          children: [
+            Text(_selectedList ?? '', style: TextStyle(color: Colors.black, fontSize: 15),),
+            Icon(Icons.expand_more, color: Colors.black),
+          ],
+        ),
       ),
     );
   }
@@ -288,104 +273,107 @@ class _ReviewListState extends State<ReviewList> {
   }
 
   // 후기 리스트
-  // StreamBuilder를 사용하는 대신에 직접 _reviewList를 이용하여 ListView.builder를 작성
   Widget buildReviewList() {
+
     if (_reviewList.isEmpty) {
       return Center(child: Text('검색 결과가 없습니다😥'));
     }
 
-    return ListView.builder(
-      itemCount: _reviewList.length,
-      itemBuilder: (context, index) {
-        final reviewData = _reviewList[index];
-        final screenWidth = MediaQuery.of(context).size.width;
-        return Container(
-          padding: const EdgeInsets.all(10.0),
-          child: GestureDetector(
-            onTap: () {
-              FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
-                'viewCount': FieldValue.increment(1),
-              });
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'], userNickName : reviewData['userNickName'])));
-            },
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(5.0),
-                  child: Image.network(
-                    reviewData['imageURL'],
-                    width: screenWidth,
-                    height: 200,
-                    fit: BoxFit.cover,
+    return Expanded(
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: _reviewList.length,
+        itemBuilder: (context, index) {
+          final reviewData = _reviewList[index];
+          final screenWidth = MediaQuery.of(context).size.width;
+          return Container(
+            padding: const EdgeInsets.all(10.0),
+            child: GestureDetector(
+              onTap: () {
+                FirebaseFirestore.instance.collection("review").doc(reviewData['id']).update({
+                  'viewCount': FieldValue.increment(1),
+                });
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviewData['id'], userNickName : reviewData['userNickName'])));
+              },
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(5.0),
+                    child: Image.network(
+                      reviewData['imageURL'],
+                      width: screenWidth,
+                      height: 200,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                ),
-                ListTile(
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (reviewData['title'] != null)
-                        Flexible( // Flexible을 사용하여 텍스트가 화면을 넘어가면 줄 바꿈되도록 함
-                          child: Text(
-                            reviewData['title'],
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                            overflow: TextOverflow.ellipsis, // 길 경우 일정 길이 이상이면 자동으로 줄 바꿈
-                            maxLines: 2, // 최대 두 줄까지 표시
-                          ),
-                        ),
-                      if (reviewData['id'] != null)
-                        buildLikeButton(reviewData['id'], reviewData['likeCount'])
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            '${reviewData['write_date'] != null ? DateFormat('yyyy.MM.dd').format(reviewData['write_date'].toDate()) : "날짜 없음"}  | ',
-                            style: TextStyle(fontSize: 13),
-                          ),
-                          SizedBox(width: 2),
-                          Icon(Icons.visibility, size: 13),
-                          SizedBox(width: 2),
-                          Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 13)),
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
-                            },
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 8,
-                                  backgroundImage: _profileImage != null
-                                      ? NetworkImage(_profileImage!)
-                                      : AssetImage('assets/logo/green_logo.png') as ImageProvider,
-                                ),
-                                SizedBox(width: 5),
-                                Text(
-                                  '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',
-                                  style: TextStyle(fontSize: 13, color: Colors.black),
-                                ),
-                              ],
+                  ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (reviewData['title'] != null)
+                          Flexible( // Flexible을 사용하여 텍스트가 화면을 넘어가면 줄 바꿈되도록 함
+                            child: Text(
+                              reviewData['title'],
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              overflow: TextOverflow.ellipsis, // 길 경우 일정 길이 이상이면 자동으로 줄 바꿈
+                              maxLines: 2, // 최대 두 줄까지 표시
                             ),
                           ),
-                          SizedBox(width: 10),
-                        ],
-                      )
-                    ],
+                        if (reviewData['id'] != null)
+                          buildLikeButton(reviewData['id'], reviewData['likeCount'])
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              '${reviewData['write_date'] != null ? DateFormat('yyyy.MM.dd').format(reviewData['write_date'].toDate()) : "날짜 없음"}  | ',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(Icons.visibility, size: 13),
+                            SizedBox(width: 2),
+                            Text(reviewData['viewCount'].toString(), style: TextStyle(fontSize: 13)),
+                          ],
+                        ),
+                        SizedBox(height: 5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
+                              },
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 8,
+                                    backgroundImage: _profileImage != null
+                                        ? NetworkImage(_profileImage!)
+                                        : AssetImage('assets/logo/green_logo.png') as ImageProvider,
+                                  ),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',
+                                    style: TextStyle(fontSize: 13, color: Colors.black),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -464,45 +452,62 @@ class _ReviewListState extends State<ReviewList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: Text('후기', style: TextStyle(color: Colors.black, fontSize: 15)),
-        leading: null,
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        leading: null,
+        elevation: 1,
+        title: Text('REVIEW', style: TextStyle(color: Colors.black)),
       ),
-      body: Stack(
+      body: Column(
         children: [
-          // 검색바
-          Positioned(
-            top: 10,
-            left: 10,
-            right: 10,
-            child: buildSearchBar(),
-          ),
-
           // 셀렉트바
-          Positioned(
-            top: 60,
-            left: 20,
-            child: buildSelectBar(),
+          buildSelectBar(),
+          // 검색바
+          Container(
+            padding: const EdgeInsets.only(left: 10, right: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0xffc4c4c4), // 그림자의 색상
+                  blurRadius: 1.0, // 그림자의 흐림 정도
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchCtr,
+              onChanged: (value){
+                _loadReviewData(value,_selectedList!);
+              },
+              decoration: InputDecoration(
+                hintText: '검색어를 입력해주세요',
+                hintStyle: TextStyle(color: Colors.black, fontSize: 15),
+                contentPadding: EdgeInsets.only(top: 10, bottom: 10, left: 10),
+                border: InputBorder.none,
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.search, color: Colors.black),
+                  onPressed: () {},
+                ),
+              ),
+              cursorColor: Color(0xffD4D8C8),
+              textAlignVertical: TextAlignVertical.center,
+            ),
           ),
-
-          // 후기 리스트
-          Positioned(
-            top: 100,
-            left: 10,
-            right: 10,
-            bottom: 1,
-            child: buildReviewList(),
-          ),
-
-          // 후기 작성 버튼
-          Positioned(
-            bottom: 10,
-            right: 10,
-            child: buildAddReviewButton(),
-          ),
+          buildReviewList(),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          final user = Provider.of<UserModel?>(context, listen: false);
+          if (user != null && user.isSignIn) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewEdit()));
+          } else {
+            _showDialog();
+          }
+        },
+        child: Icon(Icons.post_add, size: 25),
+        backgroundColor: Color(0xff464D40),
+        mini: true,
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed, // 이 부분을 추가합니다.
