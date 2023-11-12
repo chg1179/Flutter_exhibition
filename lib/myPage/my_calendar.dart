@@ -159,7 +159,7 @@ class _MyCalendarState extends State<MyCalendar> {
               }
               int subcollectionLength = snapshot.data ?? 0;
 
-              return Text('$subcollectionLength번째 기록중 📝');
+              return Text('My ${subcollectionLength}th Record 📝');
             },
           ),
 

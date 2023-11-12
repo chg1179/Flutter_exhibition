@@ -826,11 +826,14 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
           title: Text(title),
           content: _buildFollowerContent(followerList),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: Text('닫기'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+              ),
             ),
           ],
         );
@@ -850,11 +853,14 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
           title: Text(title),
           content: _buildFollowingContent(followingList),
           actions: <Widget>[
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
               child: Text('닫기'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+              ),
             ),
           ],
         );

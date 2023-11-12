@@ -1,34 +1,20 @@
-import 'package:exhibition_project/dialog/show_message.dart';
-import 'package:exhibition_project/myPage/JTBI/graph.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-
 import '../../model/user_model.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); // Flutter 엔진과의 연결을 초기화합니다.
-  await Firebase.initializeApp(); // Firebase를 초기화합니다.
-  runApp(App());
-}
 
 class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DefaultTabController(
+    return DefaultTabController(
         length: 9,
         child: JTBI(),
-      ),
-    );
+      );
   }
 }
 
-
 class JTBI extends StatefulWidget {
-
 
   @override
   _JTBIState createState() => _JTBIState();

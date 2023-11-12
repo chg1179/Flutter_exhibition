@@ -6,6 +6,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import '../../artist/artist_info.dart';
 import '../../model/user_model.dart';
+import 'jbti1.dart';
 
 class JtbiResult extends StatefulWidget {
   @override
@@ -123,7 +124,7 @@ class _JtbiResultState extends State<JtbiResult> {
                 height: 20, // 수평선의 높이 설정
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 가운데 정렬
                 children: [
                   Text(
                     '나의 취향분석결과',
@@ -132,6 +133,18 @@ class _JtbiResultState extends State<JtbiResult> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => App()));
+                    },
+                    child: Text('다시하기',
+                      style: TextStyle(
+                        color: Colors.grey, // 원하는 색상으로 변경하세요.
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),),
                   ),
                   // 다른 위젯들을 추가할 수 있습니다.
                 ],

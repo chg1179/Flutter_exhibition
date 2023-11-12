@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:flutter/material.dart';
@@ -89,10 +90,15 @@ class _MainArtWorkState extends State<MainArtWork> {
                                         ],
                                       ),
                                       padding: EdgeInsets.all(6),
-                                      child: Image.network(
-                                        artwork['imageURL'],
+                                      // 11/12 이미지 캐싱추가 *여대
+                                      child: CachedNetworkImage(
+                                        imageUrl: artwork['imageURL'],
                                         fit: BoxFit.cover,
                                       ),
+                                      // Image.network(
+                                      //   artwork['imageURL'],
+                                      //   fit: BoxFit.cover,
+                                      // ),
                                     ),
                                   ),
                                   SizedBox(height: 15,),

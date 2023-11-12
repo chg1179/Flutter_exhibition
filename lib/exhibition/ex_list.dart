@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/exhibition/search.dart';
@@ -193,11 +194,19 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: Image.network(
-                                      imageURL,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,  // 화면 너비에 맞게 설정
-                                    ),
+                                    child: 
+                                        //11/12 이미지 캐싱작업 (여대)
+                                    CachedNetworkImage(
+                                      imageUrl: imageURL,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,  // 화면 너비에 맞게 설정
+                                    )
+                                    
+                                    // Image.network(
+                                    //   imageURL,
+                                    //   fit: BoxFit.cover,
+                                    //   width: double.infinity,  // 화면 너비에 맞게 설정
+                                    // ),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
@@ -262,7 +271,12 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: Image.network(imageURL),
+                                    child:
+                                        // 11/12 이미지 캐싱작업 (여대)
+                                        CachedNetworkImage(
+                                          imageUrl: imageURL,
+                                        )
+                                    // Image.network(imageURL),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
