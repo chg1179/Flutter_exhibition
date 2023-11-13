@@ -679,7 +679,6 @@ class _UserListState extends State<UserList> {
                                     fontSize: 13,
                                   ),
                                 ),
-
                               ],
                             ),
                           ),
@@ -691,7 +690,6 @@ class _UserListState extends State<UserList> {
             }).toList(),
           ),
         );
-
       },
     );
   }

@@ -110,88 +110,85 @@ class _MyCollectionState extends State<MyCollection> {
                               .doc(userSnapshot.data!.docs.first.id)
                               .collection('artworkLike')
                               .snapshots(),
-                          builder: (context, artworkLikeSnapshot) {
-                            if (!artworkLikeSnapshot.hasData) {
-                              return SpinKitWave( // FadingCube 모양 사용
-                                color: Color(0xff464D40), // 색상 설정
-                                size: 20.0, // 크기 설정
-                                duration: Duration(seconds: 3), //속도 설정
+                          builder: (context, artistLikeSnapshot) {
+                            if (!artistLikeSnapshot.hasData) {
+                              return SpinKitWave(
+                                color: Color(0xff464D40),
+                                size: 20.0,
+                                duration: Duration(seconds: 3),
                               );
                             } else {
+                              if (artistLikeSnapshot.data!.docs.isEmpty) {
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 100),
+                                    Text(
+                                      '아직 선호하는 작품이 없으시군요!',
+                                      style: TextStyle(
+                                        color: Colors.grey, // 회색 글씨
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    Icon(
+                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                      color: Colors.grey,
+                                      size: 40,
+                                    ),
+                                  ],
+                                );
+                              }
+
                               return GridView.builder(
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
                                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                    maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
-                                    crossAxisSpacing: 10, // 열 간의 간격
-                                    mainAxisSpacing: 5.0, // 행 간의 간격
-                                    childAspectRatio: 2.5/5
+                                  maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
+                                  crossAxisSpacing: 10, // 열 간의 간격
+                                  mainAxisSpacing: 5.0, // 행 간의 간격
+                                  childAspectRatio: 2.5 / 5,
                                 ),
-                                itemCount: artworkLikeSnapshot.data!.docs.length,
+                                itemCount: artistLikeSnapshot.data!.docs.length,
                                 itemBuilder: (BuildContext context, int index) {
-                                  DocumentSnapshot artwork = artworkLikeSnapshot.data!.docs[index];
+                                  DocumentSnapshot artist = artistLikeSnapshot.data!.docs[index];
                                   return InkWell(
-                                    onTap: (){
-                                      Navigator.push(context, MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: artwork['artistId'], artDoc: artwork['artworkId'],)));
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ArtistInfo(document: artist['artistId']),
+                                        ),
+                                      );
                                     },
                                     child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                      child: Row(
                                         children: [
-                                          SizedBox(
-                                            width: MediaQuery.of(context).size.width * 0.43,
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                border: Border.all(
-                                                  color: Color(0xff5d5148),// 액자 테두리 색상
-                                                  width: 5, // 액자 테두리 두께
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Color(0xffb2b2b2), // 그림자 색상
-                                                    blurRadius: 2, // 흐림 정도
-                                                    spreadRadius: 1, // 그림자 확산 정도
-                                                    offset: Offset(0, 1), // 그림자 위치 조정
-                                                  ),
-                                                ],
-                                              ),
-                                              padding: EdgeInsets.all(6),
-                                              child: Image.network(
-                                                artwork['imageURL'],
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
+                                          artist['imageURL'] == null || artist['imageURL'] == ""
+                                              ? CircleAvatar(
+                                            backgroundImage: NetworkImage(artist['imageURL']),
+                                            radius: 40,
+                                          )
+                                              : CircleAvatar(
+                                            backgroundImage: NetworkImage(artist['imageURL']),
+                                            radius: 40,
                                           ),
-                                          SizedBox(height: 15,),
-                                          Padding(
-                                            padding: const EdgeInsets.only(left: 4, right: 5),
-                                            child: Container(
-                                                width: MediaQuery.of(context).size.width * 0.43,
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Color(0xffcbcbcb), // 그림자 색상
-                                                        blurRadius: 0.5, // 흐림 정도
-                                                        spreadRadius: 1.5, // 그림자 확산 정도
-                                                        offset: Offset(1, 1.5), // 그림자 위치 조정
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  padding: EdgeInsets.all(10),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text('${artwork['artTitle']}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),),
-                                                      Text('${artwork['artistName']}', style: TextStyle(fontSize: 12),),
-                                                      Text('${artwork['artDate']} / ${artwork['artType']}', style: TextStyle(fontSize: 11, color: Colors.grey[700]),),
-                                                    ],
-                                                  ),
-                                                )
-                                            ),
+                                          SizedBox(width: 30),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                artist['artistName'],
+                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                              ),
+                                              Text(
+                                                artist['expertise'],
+                                                style: TextStyle(fontSize: 14),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -224,7 +221,24 @@ class _MyCollectionState extends State<MyCollection> {
                     );
                   } else {
                     if (userSnapshot.data!.docs.isEmpty) {
-                      return Container(); // 리스트가 없을 때
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '다시 로그인 해주세요.',
+                            style: TextStyle(
+                              color: Colors.grey, // 회색 글씨
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Icon(
+                            Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                            color: Colors.grey,
+                            size: 40,
+                          ),
+                        ],
+                      );
                     }
                     return Column(
                       children: userSnapshot.data!.docs.map((userDoc) {
@@ -243,7 +257,25 @@ class _MyCollectionState extends State<MyCollection> {
                               );
                             } else {
                               if (artistLikeSnapshot.data!.docs.isEmpty) {
-                                return Container(); // 리스트가 없을 때
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 100,),
+                                    Text(
+                                      '아직 선호하는 작가가 없으시군요!',
+                                      style: TextStyle(
+                                        color: Colors.grey, // 회색 글씨
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    Icon(
+                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                      color: Colors.grey,
+                                      size: 40,
+                                    ),
+                                  ],
+                                );
                               }
                               return Column(
                                 children: artistLikeSnapshot.data!.docs.map((artistDoc) {
@@ -260,10 +292,10 @@ class _MyCollectionState extends State<MyCollection> {
                                         children: [
                                           artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
                                           CircleAvatar(
-                                          backgroundImage: NetworkImage(artistDoc['imageURL']),
-                                           radius: 40,
-                                            )
-                                          : CircleAvatar(
+                                            backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                            radius: 40,
+                                          )
+                                              : CircleAvatar(
                                             backgroundImage: NetworkImage(artistDoc['imageURL']),
                                             radius: 40,
                                           ),
@@ -314,7 +346,24 @@ class _MyCollectionState extends State<MyCollection> {
                     );
                   } else {
                     if (userSnapshot.data!.docs.isEmpty) {
-                      return Container(); // 리스트가 없을 때
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '다시 시도해 주세요.',
+                            style: TextStyle(
+                              color: Colors.grey, // 회색 글씨
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Icon(
+                            Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                            color: Colors.grey,
+                            size: 40,
+                          ),
+                        ],
+                      );
                     }
                     return Column(
                       children: userSnapshot.data!.docs.map((userDoc) {
@@ -333,7 +382,25 @@ class _MyCollectionState extends State<MyCollection> {
                               );
                             } else {
                               if (galleryLikeSnapshot.data!.docs.isEmpty) {
-                                return Container(); // 리스트가 없을 때
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(height: 100,),
+                                    Text(
+                                      '아직 선호하는 갤러리가 없으시군요!',
+                                      style: TextStyle(
+                                        color: Colors.grey, // 회색 글씨
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    SizedBox(height: 10),
+                                    Icon(
+                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                      color: Colors.grey,
+                                      size: 40,
+                                    ),
+                                  ],
+                                );
                               }
                               return Column(
                                 children: galleryLikeSnapshot.data!.docs.map((gallery) {

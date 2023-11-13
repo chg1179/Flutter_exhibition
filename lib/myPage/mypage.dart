@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 
 import '../community/post_profile.dart';
 import '../model/user_model.dart';
+import 'JTBI/jbti1.dart';
 
 class MyPage extends StatelessWidget {
   @override
@@ -220,6 +221,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
               length: 3,
               child: Builder(
                 builder: (BuildContext scaffoldContext) {
+                  final user = Provider.of<UserModel>(context); // 세션. UserModel
                   return Scaffold(
                     appBar: AppBar(
                       elevation: 0,
@@ -677,17 +679,28 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 children: [
                                   Text('나의 취향분석', style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 17),),
+                                      fontSize: 17),
+                                  ),
                                   IconButton(
-                                      onPressed: () {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(
-                                                builder: (context) =>
-                                                    JtbiResult()));
-                                      },
-                                      icon: Icon(Icons.arrow_forward_ios)
+                                    onPressed: () async {
+                                      // 여기서 user 컬렉션과 jbti 서브컬렉션의 존재 여부를 확인
+                                      bool hasJbtiSubcollection = await checkJbtiSubcollectionExist(user.userNo as String);
+
+                                      // 조건에 따라 페이지 이동
+                                      if (hasJbtiSubcollection) {
+                                        Navigator.push(context, MaterialPageRoute(
+                                          builder: (context) => JtbiResult(),
+                                        ));
+                                      } else {
+                                        Navigator.push(context, MaterialPageRoute(
+                                          builder: (context) => JTBI(),
+                                        ));
+                                      }
+                                    },
+                                    icon: Icon(Icons.arrow_forward_ios),
                                   ),
                                 ],
+
                               ),
                             ),
                             SizedBox(height: 30,),
@@ -814,6 +827,25 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
     );
   }
   }
+  Future<bool> checkJbtiSubcollectionExist(String userId) async {
+    try {
+
+      // jbti 서브컬렉션이 있는지 여부 확인
+      bool hasJbtiSubcollection = await FirebaseFirestore.instance
+          .collection('user')
+          .doc(userId)
+          .collection('jbti')
+          .get()
+          .then((querySnapshot) => querySnapshot.docs.isNotEmpty);
+
+      return hasJbtiSubcollection;
+    } catch (e) {
+      print('에러: $e');
+      return false; // 에러 발생 시 false를 반환하거나 에러 처리를 추가할 수 있습니다.
+    }
+  }
+
+
   /// 팔로워 클릭시 나타나는 다이얼로그
   Future<void> _showFollowersDialog(BuildContext context, String title) async {
     // 팔로워 정보 가져오기

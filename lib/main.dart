@@ -3,11 +3,9 @@ import 'package:exhibition_project/community/post_main.dart';
 import 'package:exhibition_project/dialog/show_message.dart';
 import 'package:exhibition_project/exhibition/ex_list.dart';
 import 'package:exhibition_project/main/artwork.dart';
-import 'package:exhibition_project/main/main_add_view.dart';
 import 'package:exhibition_project/exhibition/search.dart';
 import 'package:exhibition_project/model/user_model.dart';
 import 'package:exhibition_project/review/review_list.dart';
-import 'package:exhibition_project/user/sign.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +13,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'main/first.dart';
-import 'main/second.dart';
 import 'myPage/mypage.dart';
 
 void main() async {

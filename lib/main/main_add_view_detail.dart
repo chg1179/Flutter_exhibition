@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -24,6 +25,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
     },
   ];
   int selectedUserIndex = -1;
+  String firstWord = ''; // 띄어쓰기 전의 글자를 저장할 변수 추가
 
   void handleUserClick(int index) {
     setState(() {
@@ -32,11 +34,24 @@ class _AddViewDetailState extends State<AddViewDetail> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    int spaceIndex = widget.title.indexOf(' ');
+    if (spaceIndex != -1) {
+      firstWord = widget.title.substring(0, spaceIndex);
+    } else {
+      firstWord = widget.title; // 띄어쓰기가 없을 경우 전체 문자열 저장
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('exhibition')
-            .orderBy('startDate', descending: true)
+            .where('type', isEqualTo: firstWord)
+            //.orderBy('startDate', descending: true)
             .limit(6)
             .snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
@@ -49,6 +64,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
           if (!snap.hasData) {
             return Center(child: Text('데이터 없음'));
           }
+
           return Scaffold(
             appBar: AppBar(
               leading: IconButton(
@@ -100,7 +116,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                               final addr = gallerySnapshot.data!['addr'] as String;
                               final galleryRegion = gallerySnapshot.data!['region'] as String;
                               return InkWell( // 클릭시 이벤트 주는 명령어
-                                onTap: () => handleUserClick(index),
+                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ExhibitionDetail(document: doc.id))),
                                 child: Padding(
                                   padding: const EdgeInsets.all(18.0),
                                   child: Center(
@@ -131,7 +147,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                                     '장소 : ${data['galleryName']} / ${data['region']}',
                                                     style: TextStyle(
                                                         fontSize: 12)),
-                                                Text('주소 : $addr}',
+                                                Text('주소 : $addr',
                                                     style: TextStyle(
                                                         fontSize: 12)),
                                                 Text(
@@ -147,9 +163,7 @@ class _AddViewDetailState extends State<AddViewDetail> {
                                         SizedBox(height: 16),
                                         Center(
                                             child: Text(data['content'] != null && data['content'] != '' ? data['content'] : '현재 준비중 입니다.')
-                                        )
-
-                                        ,
+                                        ),
                                         Divider(
                                           color: Colors.grey, // 수평선의 색상 설정
                                           thickness: 1, // 수평선의 두께 설정

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,8 @@ class _MyCalendarState extends State<MyCalendar> {
   late DocumentSnapshot _userDocument;
   late String? _userNickName;
   String evtTitle = '';
+  bool showMore = false; // 추가 아이템을 표시할지 여부
+
 
   List<Event> allEvents = [];
 
@@ -218,6 +222,7 @@ class _MyCalendarState extends State<MyCalendar> {
                   .collection('user')
                   .doc(user?.userNo)
                   .collection('events')
+                  .orderBy('evtDate',descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -229,15 +234,39 @@ class _MyCalendarState extends State<MyCalendar> {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                   return Center(child: Text('데이터 없음'));
                 }
-
+                int itemCount = showMore ? snapshot.data!.docs.length : min(6, snapshot.data!.docs.length);
                 return GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3, // 네모 상자 열 수
                     mainAxisSpacing: 5.0, // 상자 수직 간격
                     crossAxisSpacing: 5.0, // 상자 가로 간격
                   ),
-                  itemCount: snapshot.data!.docs.length,
+                  itemCount: itemCount,
                   itemBuilder: (context, index) {
+
+                    if (index == min(6, snapshot.data!.docs.length)) {
+                      // This is the last item, show the "더보기" text
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            showMore = true; // Update the variable to show more items
+                          });
+                        },
+                        child: Container(
+                          color: Colors.black.withOpacity(0.5), // Semi-transparent black color
+                          child: Center(
+                            child: Text(
+                              '더보기',
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
                     var data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
                     var evtTitle = data['evtTitle'] ?? 'No Event Name';
                     var evtContent = data['evtContent'] ?? '';
@@ -262,7 +291,7 @@ class _MyCalendarState extends State<MyCalendar> {
                                   ? Image.network( '${data['evtImage']}', width: 100, height: 100, fit: BoxFit.contain)
                                   : Image.asset('assets/logo/basic_logo.png', width: 100, height: 100, fit: BoxFit.cover),
                               Text(
-                                '${DateFormat('dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
+                                '${DateFormat('MM월dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
                                 style: TextStyle(
                                   fontSize: 12.0,
                                   color: Color(0xff464D40), // 텍스트 색상 설정
@@ -318,78 +347,80 @@ class _MyCalendarState extends State<MyCalendar> {
             return AlertDialog(
               title: Text('캘린더 기록하기'),
               contentPadding: EdgeInsets.all(20.0),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (imageUrl != null)
-                    Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
-                      child: Image.network(
-                        imageUrl!,
-                        fit: BoxFit.contain,
-                        width: 100,
-                        height: 100,
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (imageUrl != null)
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: Image.network(
+                          imageUrl!,
+                          fit: BoxFit.contain,
+                          width: 100,
+                          height: 100,
+                        ),
+                      ),
+                    TextField(
+                      controller: _eventController,
+                      decoration: InputDecoration(
+                        labelText: '제목',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (text) {
+                        setState(() {
+                          evtTitle = text;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    TextField(
+                      controller: _memoController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: '내용',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (text) {
+                        setState(() {
+                          evtContent = text;
+                        });
+                      },
+                    ),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        imageUrl = await _showImageScrollDialog(context);
+                        setState(() {});
+                      },
+                      child: Text('다녀온 전시 사진 업로드'),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
                       ),
                     ),
-                  TextField(
-                    controller: _eventController,
-                    decoration: InputDecoration(
-                      labelText: '제목',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (text) {
-                      setState(() {
-                        evtTitle = text;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: _memoController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: '내용',
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (text) {
-                      setState(() {
-                        evtContent = text;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      imageUrl = await _showImageScrollDialog(context);
-                      setState(() {});
-                    },
-                    child: Text('다녀온 전시 사진 업로드'),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      friendNickName = await _shareHistory(context);
-                      setState(() {});
-                    },
-                    child: Text('기록 공유'),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                    ),
-                  ),
-                  if (friendNickName != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Text(
-                        friendNickName != null && friendNickName != ''
-                            ? '$friendNickName와 함께했어요!'
-                            : 'Solo',
-                        style: TextStyle(fontSize: 16.0),
+                    SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        friendNickName = await _shareHistory(context);
+                        setState(() {});
+                      },
+                      child: Text('기록 공유'),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
                       ),
                     ),
-                ],
+                    if (friendNickName != null)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          friendNickName != null && friendNickName != ''
+                              ? '$friendNickName와 함께했어요!'
+                              : 'Solo',
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(
@@ -415,6 +446,7 @@ class _MyCalendarState extends State<MyCalendar> {
               ],
             );
           },
+
         );
       },
     );
@@ -623,8 +655,6 @@ class _MyCalendarState extends State<MyCalendar> {
   }
 
 
-
-
   void _addEventToFirestore(String evtTitle, String evtContent, DateTime selectedDay, String? imageUrl, String? friendNickName) async{
     final user = Provider.of<UserModel?>(context, listen: false);
     if (_eventController.text.isEmpty || _memoController.text.isEmpty) {
@@ -677,9 +707,6 @@ class _MyCalendarState extends State<MyCalendar> {
             .get();
 
         _friendNickName = friendUserDoc['nickName'];
-
-
-
 
         // 6. 찾은 사용자의 follower 컬렉션에 세션 user 정보 추가
         if (userSnapshot.docs.isNotEmpty) {
@@ -826,9 +853,6 @@ class _MyCalendarState extends State<MyCalendar> {
       },
     );
   }
-
-
-
 
 
   void _noticeDialog(String message) {
