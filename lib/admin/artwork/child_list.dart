@@ -3,6 +3,7 @@ import 'package:exhibition_project/admin/artwork/artwork_view.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class ChildList extends StatefulWidget {
   const ChildList({
@@ -35,7 +36,11 @@ class _ChildListState extends State<ChildList> {
       stream: getStreamData(widget.parentCollection!, widget.parentName!, false),
       builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
         if (!snap.hasData) {
-          return Center(child: CircularProgressIndicator());
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 30.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
 
         int itemsToShow = widget.displayLimit! < snap.data!.docs.length

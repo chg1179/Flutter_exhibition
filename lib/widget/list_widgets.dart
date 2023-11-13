@@ -1,6 +1,7 @@
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 // 체크박스를 표시하는 위젯
 class CheckBoxItem extends StatelessWidget {
@@ -63,7 +64,11 @@ Widget listContent(DocumentSnapshot document, String parentCollection, String ch
     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
       // 로딩 중일 때, 화면 중앙에 동그란 로딩 표시
       if (!snap.hasData) {
-        return Center(child: CircularProgressIndicator());
+        return Center(child: SpinKitWave( // FadingCube 모양 사용
+          color: Color(0xff464D40), // 색상 설정
+          size: 30.0, // 크기 설정
+          duration: Duration(seconds: 3), //속도 설정
+        ));
       }
 
       // 데이터가 없을 때
