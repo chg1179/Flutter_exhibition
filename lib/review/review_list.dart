@@ -499,30 +499,46 @@ class _ReviewListState extends State<ReviewList> {
       context: context,
       builder: (context) {
         return Container(
-          height: 100,
-          child: ListView.builder(
-            itemCount: _filterList.length,
-            itemBuilder: (context, index) {
-              final selectedList = _filterList[index]['title'] as String;
-              return Column(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      // 선택한 후기 정렬 방식을 저장하고 화면을 갱신
-                      _selectBar(selectedList);
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      _filterList[index]['title'] as String,
-                      style: TextStyle(
-                        color: selectedList == _selectedList ? Colors.blue : Colors.black,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
+          height: 250,
+          child: Column(
+            children: [
+              Icon(Icons.remove, size: 35,),
+              Text("정렬 기준", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+              SizedBox(height: 20,),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _filterList.length,
+                  itemBuilder: (context, index) {
+                    final selectedList = _filterList[index]['title'] as String;
+                    return Column(
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            // 선택한 후기 정렬 방식을 저장하고 화면을 갱신
+                            _selectBar(selectedList);
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            _filterList[index]['title'] as String,
+                            style: TextStyle(
+                              color: selectedList == _selectedList ? Color(0xff464D40) : Colors.grey[600],
+                              fontSize: 17,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 100,
+                          child: Divider(
+                            color: Colors.black,
+                            thickness: 0.1,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         );
       },
