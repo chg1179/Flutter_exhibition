@@ -88,6 +88,7 @@ class _ReviewListState extends State<ReviewList> {
 
     final user = Provider.of<UserModel?>(context, listen: false);
 
+
     // Firestore에서 'review' 컬렉션의 데이터를 가져오기 위한 쿼리를 생성
     QuerySnapshot querySnapshot;
 
@@ -100,7 +101,11 @@ class _ReviewListState extends State<ReviewList> {
 
     List<Map<String, dynamic>> tempReviewList = [];
 
+
     if (querySnapshot.docs.isNotEmpty) {
+
+
+
       // Firestore로부터 받아온 문서들을 매핑하고 필터링
       tempReviewList = querySnapshot.docs
           .map((doc) {
@@ -124,6 +129,8 @@ class _ReviewListState extends State<ReviewList> {
             review['content'].toString().contains(searchText);
       })
           .toList();
+
+
     }
 
     // 화면 다시 그림
@@ -294,6 +301,43 @@ class _ReviewListState extends State<ReviewList> {
     );
   }
 
+  Widget userProfileImageWidget(String userNickName) {
+    return FutureBuilder<String?>(
+      future: getUserProfileImage(userNickName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // 로딩 중 표시
+          return SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 20.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          );
+        } else if (snapshot.hasError) {
+          // 오류가 발생한 경우
+          return Text('프로필 이미지 로딩 중 오류 발생: ${snapshot.error}');
+        } else if (snapshot.hasData) {
+          // 프로필 이미지를 가져온 경우
+          final profileImageUrl = snapshot.data;
+          return profileImageUrl != null
+              ? CircleAvatar(
+            radius: 20,
+            backgroundImage: NetworkImage(profileImageUrl),
+          )
+              : CircleAvatar(
+            radius: 20,
+            backgroundImage: AssetImage('assets/logo/green_logo.png'),
+          );
+        } else {
+          // 데이터 없음
+          return CircleAvatar(
+            radius: 20,
+            backgroundImage: AssetImage('assets/logo/green_logo.png'),
+          );
+        }
+      },
+    );
+  }
+
   // 후기 리스트
   Widget buildReviewList() {
     if (_reviewList.isEmpty) {
@@ -310,6 +354,7 @@ class _ReviewListState extends State<ReviewList> {
         itemBuilder: (context, index) {
           final reviewData = _reviewList[index];
           final screenWidth = MediaQuery.of(context).size.width;
+
           return Container(
             child: GestureDetector(
               onTap: () {
@@ -328,12 +373,7 @@ class _ReviewListState extends State<ReviewList> {
                       },
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 15,
-                            backgroundImage: _profileImage != null
-                                ? NetworkImage(_profileImage!)
-                                : AssetImage('assets/logo/green_logo.png') as ImageProvider,
-                          ),
+                          userProfileImageWidget(reviewData['userNickName']),
                           SizedBox(width: 5),
                           Text(
                             '${reviewData['userNickName'] != null ? reviewData['userNickName'] : "닉네임없음"}',

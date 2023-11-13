@@ -12,7 +12,8 @@ import '../model/user_model.dart';
 
 class CommentData {
   String userNickName;
-  CommentData(this.userNickName);
+  String userProfileImage;
+  CommentData(this.userNickName, this.userProfileImage);
 }
 
 class CommDetail extends StatefulWidget {
@@ -80,6 +81,8 @@ class _CommDetailState extends State<CommDetail> {
 
   String? _userNickName;
   String? _alarmNickName;
+  String? _userProfileImage;
+  String? _thisUserNickName;
   // document에서 원하는 값 뽑기
   Future<void> _loadUserData() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -95,6 +98,25 @@ class _CommDetailState extends State<CommDetail> {
     }
   }
 
+
+  // 유저 프로필 이미지 가져오기
+  Future<void> _getProfileImg() async {
+    try {
+      final userQuerySnapshot = await FirebaseFirestore.instance.collection('user').where('nickName', isEqualTo: _thisUserNickName).get();
+      final userId = userQuerySnapshot.docs.first.id;
+      final userProfileSnapshot = await FirebaseFirestore.instance.collection('user').doc(userId).get();
+      final userProfileImage = userProfileSnapshot['profileImage'];
+
+      setState(() {
+        _userProfileImage = userProfileImage;
+      });
+      print('유저닉네임=====> $_thisUserNickName');
+      print('해당유저프로필=====> $_userProfileImage');
+    } catch (error) {
+      print('유저데이터 불러오는데 오류 발생: $error');
+    }
+  }
+
   // 세션으로 document 값 구하기
   Future<DocumentSnapshot> getDocumentById(String documentId) async {
     DocumentSnapshot document = await FirebaseFirestore.instance.collection('user').doc(documentId).get();
@@ -106,6 +128,7 @@ class _CommDetailState extends State<CommDetail> {
     super.initState();
     _loadData();
     getCommentCnt();
+    _getProfileImg();
     _scrollController.addListener(() {
       if (_scrollController.offset > 3) {
         setState(() {
@@ -144,6 +167,7 @@ class _CommDetailState extends State<CommDetail> {
           _postData?['write_date'] = formattedDate;
 
           _alarmNickName = _postData?['userNickName'] as String;
+          _thisUserNickName = _postData?['userNickName'] as String;
 
           _dataLoaded = true;
         });
@@ -194,10 +218,6 @@ class _CommDetailState extends State<CommDetail> {
     commentCnt = commentSnapshot.docs.length;
   }
 
-  // Future<bool> _onBackPressed() {
-  //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CommMain()));
-  //   return Future.value(false);
-  // }
 
   void _addComment() async {
     final user = Provider.of<UserModel?>(context, listen: false);
@@ -417,10 +437,12 @@ class _CommDetailState extends State<CommDetail> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: AssetImage('assets/logo/green_logo.png'),
+                  backgroundImage: _userProfileImage != null
+                      ? NetworkImage(_userProfileImage!)
+                      : AssetImage('assets/logo/green_logo.png') as ImageProvider,
                 ),
                 SizedBox(width: 10),
-                Text(userNickName!, style: TextStyle(fontSize: 15)),
+                Text(userNickName, style: TextStyle(fontSize: 15)),
               ],
             ),
           ),
