@@ -371,12 +371,15 @@ class QuestionSection extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${questionIndex + 1}   ',
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 17,
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    '${questionIndex + 1}   ',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -388,34 +391,37 @@ class QuestionSection extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '동의',
-                style: TextStyle(color: Colors.black,  fontSize: 13),
-              ),
-              SizedBox(width: 10),
-              ...options.asMap().entries.map((entry) {
-                final int answerIndex = entry.key;
-                final String text = entry.value;
-                return AnswerOption(
-                  questionIndex: questionIndex,
-                  answerIndex: answerIndex,
-                  text: text,
-                  isSelected: selectedAnswerIndex == answerIndex,
-                  onSelected: onAnswerSelected,
-                );
-              }).toList(),
-              SizedBox(
-                width: 10,
-              ),
-              Text(
-                '비동의',
-                style: TextStyle(color: Colors.black, fontSize: 13),
-              ),
-            ],
+          SizedBox(height: 25),
+          Container(
+            width: MediaQuery.of(context).size.width - 30,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '동의',
+                  style: TextStyle(color: Colors.black,  fontSize: 13),
+                ),
+                SizedBox(width: 10),
+                ...options.asMap().entries.map((entry) {
+                  final int answerIndex = entry.key;
+                  final String text = entry.value;
+                  return AnswerOption(
+                    questionIndex: questionIndex,
+                    answerIndex: answerIndex,
+                    text: text,
+                    isSelected: selectedAnswerIndex == answerIndex,
+                    onSelected: onAnswerSelected,
+                  );
+                }).toList(),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  '비동의',
+                  style: TextStyle(color: Colors.black, fontSize: 13),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -451,7 +457,7 @@ class AnswerOption extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        margin: EdgeInsets.symmetric(horizontal: 10),
+        margin: EdgeInsets.symmetric(horizontal: 5),
         decoration: BoxDecoration(
           color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
           border: Border.all(color: borderColor, width: 2),
