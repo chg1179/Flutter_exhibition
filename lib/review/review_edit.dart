@@ -306,56 +306,73 @@ class _ReviewEditState extends State<ReviewEdit> {
   }
 
   Widget _selectTagForm() {
-    return Wrap(
-      spacing: 9,
-      runSpacing: 5,
-      children: _selectTag.map((selectTag) {
-        return Wrap(
-          spacing: 2,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Color(0xff464D40),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Text(
-                  '# $selectTag',
-                  style: TextStyle(
-                    color: Color(0xffD4D8C8),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
+    if(_selectTag.length > 0){
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('나의 태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 8,),
+          Wrap(
+            spacing: 9,
+            runSpacing: 9,
+            children: _selectTag.map((selectTag) {
+              return Wrap(
+                spacing: 2,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  InkWell(
+                    child: Container(
+                      padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+                      decoration: BoxDecoration(
+                        color: Color(0xff464D40),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        '#$selectTag',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                removeSelectedTag(selectTag);
-              },
-              child: Container(
-                width: 15,
-                height: 15,
-                decoration: BoxDecoration(
-                  color: Color(0xffD4D8C8),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.clear,
-                    size: 10,
-                    color: Color(0xff464D40),
+                  InkWell(
+                    onTap: () {
+                      removeSelectedTag(selectTag);
+                    },
+                    child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Color(0xffD4D8C8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.clear,
+                          size: 10,
+                          color: Color(0xff464D40),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ],
-        );
-      }).toList(),
-    );
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+      );
+    }else{
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('나의 태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+          SizedBox(height: 5,),
+          Text("태그를 입력 또는 선택해주세요.", style: TextStyle(color: Colors.grey, fontSize: 12),),
+        ],
+      );
+    }
   }
 
   ButtonStyle _unPushBtnStyle() {
@@ -405,12 +422,14 @@ class _ReviewEditState extends State<ReviewEdit> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('추천 해시태그✨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('추천 태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('태그를 선택하거나 입력해주세요. (최대 30개)', style: TextStyle(fontSize: 12, color: Colors.grey)),
         Wrap(
             spacing: 4,
+            runSpacing: -9,
             children: _tagList.map((tagName) {
               return ElevatedButton(
-                child: Text('# $tagName'),
+                child: Text('#$tagName'),
                 onPressed: () {
                   setState(() {
                     if (_selectTag.contains(tagName)) {
@@ -437,7 +456,7 @@ class _ReviewEditState extends State<ReviewEdit> {
       child: TextField(
         controller: _customHashtagCtr,
         decoration: InputDecoration(
-          hintText: '# 직접 태그를 입력해보세요! (#은 제외)',
+          hintText: '# 직접 태그를 입력해보세요!',
           hintStyle: TextStyle(
             color: Colors.black38,
             fontSize: 13,
@@ -505,23 +524,29 @@ class _ReviewEditState extends State<ReviewEdit> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
+              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 5, top: 5),
               child: _buildContentInput(),
             ),
+            Divider(),
             Padding(
-              padding: const EdgeInsets.all(10.0),
+              padding: const EdgeInsets.only(left: 10, right: 10,  top: 5),
+              child: _hashTagList(),
+            ),
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.only(left: 10, right: 10, bottom: 5, ),
               child: _selectTagForm(),
             ),
+            Divider(),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 10),
                   _buildCustomHashtagInput(),
                   SizedBox(height: 5),
                   ElevatedButton(
-                    child: Text('추가'),
+                    child: Text('추 가', style: TextStyle(fontSize: 15),),
                     onPressed: addCustomHashtagToList,
                     style: ButtonStyle(
                       minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
@@ -543,10 +568,6 @@ class _ReviewEditState extends State<ReviewEdit> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: _hashTagList(),
-            )
           ],
         ),
         SizedBox(height: 20),
@@ -647,10 +668,10 @@ class _ReviewEditState extends State<ReviewEdit> {
       controller: _contentCtr,
       style: TextStyle(fontSize: 15),
       decoration: InputDecoration(
-        hintText: '본문에 태그를 입력해보세요!(최대 30개)',
+        hintText: '내용을 입력해주세요.',
         hintStyle: TextStyle(
           color: Colors.black38,
-          fontSize: 13,
+          fontSize: 14,
         ),
         border: InputBorder.none,
       ),
@@ -736,7 +757,7 @@ class _ReviewEditState extends State<ReviewEdit> {
         ),
         title: Text(
           widget.documentId != null ? '글 수정' : '글 작성',
-          style: TextStyle(color: Colors.black, fontSize: 15),
+          style: TextStyle(color: Colors.black, fontSize: 17),
         ),
         actions: [
           _buildSubmitButton(),
@@ -772,21 +793,6 @@ class _ReviewEditState extends State<ReviewEdit> {
               child: Row(
                 children: [
                   _buildImgButton(),
-                  SizedBox(width: 10,),
-                  InkWell(
-                    child: Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                          color: Color(0xffD4D8C8),
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(5)
-                      ),
-                      child: Center(
-                        child: Text('#', style: TextStyle(fontSize: 20, color: Colors.black38, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
