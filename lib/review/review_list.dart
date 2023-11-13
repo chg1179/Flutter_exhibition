@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/main.dart';
@@ -366,7 +367,7 @@ class _ReviewListState extends State<ReviewList> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.only(top: 15, bottom: 15, left: 10, right: 10),
                     child: GestureDetector(
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => CommProfile(nickName: reviewData['userNickName'])));
@@ -387,11 +388,19 @@ class _ReviewListState extends State<ReviewList> {
                     padding: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5.0), // 원하는 모서리 반지름 값
-                      child: Image.network(
-                        reviewData['imageURL'],
+
+                      // 임이지 캐싱
+                      child: CachedNetworkImage(
+                        imageUrl: reviewData['imageURL'],
                         width: screenWidth,
                         height: 200,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) =>  SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ), // Loading placeholder
+                        errorWidget: (context, url, error) => Icon(Icons.error), // Error placeholder
                       ),
                     ),
                   ),

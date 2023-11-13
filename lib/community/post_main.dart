@@ -1,10 +1,13 @@
+
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/community/post_edit.dart';
 import 'package:exhibition_project/community/post_profile.dart';
 import 'package:exhibition_project/community/post_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../exhibition/ex_list.dart';
@@ -107,6 +110,14 @@ class _CommMainState extends State<CommMain> {
     }
   }
 
+  // 유저 프로필 이미지 가져오기
+  Future<String?> getUserProfileImage(String userNickName) async {
+    final userSnapshot = await FirebaseFirestore.instance.collection('user').where('nickName', isEqualTo: userNickName).limit(1).get();
+    if (userSnapshot.docs.isNotEmpty) {
+      return userSnapshot.docs.first.get('profileImage');
+    }
+    return null;
+  }
 
   // 게시글 당 댓글 수 가져오기
   Future<int> getcommentCnt(String postId) async {
@@ -157,7 +168,7 @@ class _CommMainState extends State<CommMain> {
       final postId = post['id'];
 
       QuerySnapshot commentSnapshot = await FirebaseFirestore.instance
-          .collection('comments')
+          .collection('comment')
           .where('postId', isEqualTo: postId)
           .get();
 
@@ -197,7 +208,6 @@ class _CommMainState extends State<CommMain> {
       // 특정 해시태그가 선택된 경우
       querySnapshot = await FirebaseFirestore.instance
           .collection('post')
-          .where('hashtags', arrayContains: selectedTag) // .where('hashtags', isEqualTo: selectedTag)
           .orderBy('write_date', descending: true)
           .get();
     }
@@ -427,8 +437,6 @@ class _CommMainState extends State<CommMain> {
     );
   }
 
-
-
   Widget buildIcons(String docId, int viewCount, int likeCount) {
     return Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 5),
@@ -465,6 +473,43 @@ class _CommMainState extends State<CommMain> {
       ),
     );
   }
+
+  // Widget userProfileImageWidget(String userNickName) {
+  //   return FutureBuilder<String?>(
+  //     future: getUserProfileImage(userNickName),
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         // 로딩 중 표시
+  //         return SpinKitWave( // FadingCube 모양 사용
+  //           color: Color(0xff464D40), // 색상 설정
+  //           size: 20.0, // 크기 설정
+  //           duration: Duration(seconds: 3), //속도 설정
+  //         );
+  //       } else if (snapshot.hasError) {
+  //         // 오류가 발생한 경우
+  //         return Text('프로필 이미지 로딩 중 오류 발생: ${snapshot.error}');
+  //       } else if (snapshot.hasData) {
+  //         // 프로필 이미지를 가져온 경우
+  //         final profileImageUrl = snapshot.data;
+  //         return profileImageUrl != null
+  //             ? CircleAvatar(
+  //               radius: 20,
+  //               backgroundImage: NetworkImage(profileImageUrl),
+  //             )
+  //             : CircleAvatar(
+  //           radius: 20,
+  //           backgroundImage: AssetImage('assets/logo/green_logo.png'),
+  //         );
+  //       } else {
+  //         // 데이터 없음
+  //         return CircleAvatar(
+  //           radius: 20,
+  //           backgroundImage: AssetImage('assets/logo/green_logo.png'),
+  //         );
+  //       }
+  //     },
+  //   );
+  // }
 
   Widget _commList(List<Map<String, dynamic>> filteredDocs, String kind) {
     // likeCount가 높은 순으로 정렬
@@ -529,12 +574,7 @@ class _CommMainState extends State<CommMain> {
                         },
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundImage: _profileImage != null
-                                  ? NetworkImage(_profileImage!)
-                                  : AssetImage('assets/logo/green_logo.png') as ImageProvider,
-                            ),
+                            //userProfileImageWidget(nickName),
                             SizedBox(width: 10),
                             Text(nickName, style: TextStyle(fontSize: 15)),
                           ],
@@ -569,11 +609,19 @@ class _CommMainState extends State<CommMain> {
                     padding: const EdgeInsets.all(4.0),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        imageURL,
+                      child:
+                      // 이미지 캐싱
+                      CachedNetworkImage(
+                        imageUrl: imageURL,
                         width: 400,
                         height: 200,
                         fit: BoxFit.cover,
+                        placeholder: (context, url) =>  SpinKitWave( // FadingCube 모양 사용
+                          color: Color(0xff464D40), // 색상 설정
+                          size: 20.0, // 크기 설정
+                          duration: Duration(seconds: 3), //속도 설정
+                        ), // Loading placeholder
+                        errorWidget: (context, url, error) => Icon(Icons.error), // Error placeholder
                       ),
                     ),
                   ),
