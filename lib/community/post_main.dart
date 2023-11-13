@@ -206,8 +206,10 @@ class _CommMainState extends State<CommMain> {
           .get();
     } else {
       // 특정 해시태그가 선택된 경우
+
       querySnapshot = await FirebaseFirestore.instance
           .collection('post')
+          .where('hashtags', arrayContains: selectedTag) // .where('hashtags', isEqualTo: selectedTag)
           .orderBy('write_date', descending: true)
           .get();
     }
