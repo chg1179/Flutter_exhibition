@@ -327,7 +327,11 @@ class _CommMyPageState extends State<CommMyPage> {
               future: _myPostsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return SpinKitWave( // FadingCube 모양 사용
+                    color: Color(0xff464D40), // 색상 설정
+                    size: 20.0, // 크기 설정
+                    duration: Duration(seconds: 3), //속도 설정
+                  );
                 } else if (snapshot.hasError) {
                   return Text('에러 발생: ${snapshot.error}');
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
