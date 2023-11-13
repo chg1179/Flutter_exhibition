@@ -1048,7 +1048,7 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소', style: TextStyle(color: Colors.black),),
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40)),),
             ),
             TextButton(
               onPressed: () {
