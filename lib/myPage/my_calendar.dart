@@ -126,6 +126,7 @@ class _MyCalendarState extends State<MyCalendar> {
   Widget build(BuildContext context) {
     final user = Provider.of<UserModel?>(context, listen: false);
     return Scaffold(
+      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -152,21 +153,20 @@ class _MyCalendarState extends State<MyCalendar> {
       ),
       body: Column(
         children: [
-          FutureBuilder<int>(
-            future: getSubcollectionLength(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('에러 발생: ${snapshot.error}'));
-              }
-              int subcollectionLength = snapshot.data ?? 0;
-
-              return Text('My ${subcollectionLength}th Record 📝');
-            },
-          ),
-
+          // FutureBuilder<int>(
+          //   future: getSubcollectionLength(),
+          //   builder: (context, snapshot) {
+          //     if (snapshot.connectionState == ConnectionState.waiting) {
+          //       return Center(child: CircularProgressIndicator());
+          //     }
+          //     if (snapshot.hasError) {
+          //       return Center(child: Text('에러 발생: ${snapshot.error}'));
+          //     }
+          //     int subcollectionLength = snapshot.data ?? 0;
+          //
+          //     return Text('My ${subcollectionLength}th Record');
+          //   },
+          // ),
           TableCalendar(
             calendarFormat: _calendarFormat,
             focusedDay: _focusedDay,
@@ -213,8 +213,47 @@ class _MyCalendarState extends State<MyCalendar> {
             eventLoader: (day) {
               return [];
             },
-
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              width: 170,
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Color(0xff464D40), // 테두리 색상
+                    width: 3.0, // 테두리 두께
+                  ),
+                ),
+              ),
+              child: FutureBuilder<int>(
+                future: getSubcollectionLength(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('에러 발생: ${snapshot.error}'));
+                  }
+                  int subcollectionLength = snapshot.data ?? 0;
+
+                  return Row(
+                    children: [
+                      Text(
+                        'My ${subcollectionLength}th Record ',
+                        style: TextStyle(
+                          fontSize: 17
+                        ),
+                      ),
+                      Icon(Icons.brush, size: 18, color: Color(0xff464D40),)
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+
           Expanded(
             child: _events[_selectedDay] != null || _events[_selectedDay]!.isNotEmpty
                 ?StreamBuilder<QuerySnapshot>(
@@ -232,79 +271,84 @@ class _MyCalendarState extends State<MyCalendar> {
                   return Center(child: Text('에러 발생: ${snapshot.error}'));
                 }
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('데이터 없음'));
+                  return Center(child: Text('기록이 없습니다.'));
                 }
                 int itemCount = showMore ? snapshot.data!.docs.length : min(6, snapshot.data!.docs.length);
-                return GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3, // 네모 상자 열 수
-                    mainAxisSpacing: 5.0, // 상자 수직 간격
-                    crossAxisSpacing: 5.0, // 상자 가로 간격
-                  ),
-                  itemCount: itemCount,
-                  itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 140, // 각 열의 최대 너비
+                        crossAxisSpacing: 3.0, // 열 간의 간격
+                        mainAxisSpacing: 3.0, // 행 간의 간격
+                        childAspectRatio: 3/5
+                    ),
+                    itemCount: itemCount,
+                    itemBuilder: (context, index) {
+                      if (index == min(6, snapshot.data!.docs.length)) {
+                        // This is the last item, show the "더보기" text
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              showMore = true; // Update the variable to show more items
+                            });
+                          },
+                          child: Container(
+                            color: Colors.black.withOpacity(0.5), // Semi-transparent black color
+                            child: Center(
+                              child: Text(
+                                '더보기',
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      var data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                      var evtTitle = data['evtTitle'] ?? 'No Event Name';
+                      var evtContent = data['evtContent'] ?? '';
+                      var evtImage = data['evtImage'] ?? '';
+                      var friendNickName = data['friendNickName'] ?? '';
+                      var evtDate = (data['evtDate'] as Timestamp).toDate(); // evtDate 추출
+                      var event = Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id, friendNickName);
 
-                    if (index == min(6, snapshot.data!.docs.length)) {
-                      // This is the last item, show the "더보기" text
                       return GestureDetector(
                         onTap: () {
-                          setState(() {
-                            showMore = true; // Update the variable to show more items
-                          });
+                          _showEventDetailsDialog(event);
                         },
-                        child: Container(
-                          color: Colors.black.withOpacity(0.5), // Semi-transparent black color
-                          child: Center(
-                            child: Text(
-                              '더보기',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                color: Colors.white,
-                              ),
+                        child: Card(
+                          color: Colors.transparent,
+                          elevation: 0,// 배경 투명으로 설정
+                          child: Container(
+                            color: Colors.white,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center, // 그림을 가운데 정렬
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(height: 10,),
+                                data['evtImage'] != null
+                                    ? Image.network( '${data['evtImage']}', width: 105, height: 150, fit: BoxFit.cover)
+                                    : Image.asset('assets/logo/basic_logo.png', width: 110, height: 150, fit: BoxFit.cover),
+                                Spacer(),
+                                Text(
+                                  '${DateFormat('MM월 dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
+                                  style: TextStyle(
+                                    fontSize: 12.0,
+                                    color: Color(0xff464D40), // 텍스트 색상 설정
+                                    // 그 외 다양한 스타일 속성을 적용할 수 있습니다.
+                                  ),
+                                ),
+                                Spacer(),
+                              ],
                             ),
                           ),
                         ),
                       );
-                    }
-
-                    var data = snapshot.data!.docs[index].data() as Map<String, dynamic>;
-                    var evtTitle = data['evtTitle'] ?? 'No Event Name';
-                    var evtContent = data['evtContent'] ?? '';
-                    var evtImage = data['evtImage'] ?? '';
-                    var friendNickName = data['friendNickName'] ?? '';
-                    var evtDate = (data['evtDate'] as Timestamp).toDate(); // evtDate 추출
-                    var event = Event(evtTitle, evtDate, evtContent, snapshot.data!.docs[index].id, friendNickName);
-
-                    return GestureDetector(
-                      onTap: () {
-                        _showEventDetailsDialog(event);
-                      },
-                      child: Card(
-                        color: Colors.transparent,
-                        elevation: 0,// 배경 투명으로 설정
-                        child: Container(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center, // 그림을 가운데 정렬
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              data['evtImage'] != null
-                                  ? Image.network( '${data['evtImage']}', width: 100, height: 100, fit: BoxFit.contain)
-                                  : Image.asset('assets/logo/basic_logo.png', width: 100, height: 100, fit: BoxFit.cover),
-                              Text(
-                                '${DateFormat('MM월dd').format(evtDate).replaceFirst(RegExp('^0'), '')}일의 기록',
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  color: Color(0xff464D40), // 텍스트 색상 설정
-                                  // 그 외 다양한 스타일 속성을 적용할 수 있습니다.
-                                ),
-                              ),
-
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                    },
+                  ),
                 );
               },
             )
@@ -345,7 +389,7 @@ class _MyCalendarState extends State<MyCalendar> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('캘린더 기록하기'),
+              title: Text('캘린더 기록하기', style: TextStyle(fontSize: 17),),
               contentPadding: EdgeInsets.all(20.0),
               content: SingleChildScrollView(
                 child: Column(
@@ -356,16 +400,44 @@ class _MyCalendarState extends State<MyCalendar> {
                         margin: EdgeInsets.symmetric(vertical: 10),
                         child: Image.network(
                           imageUrl!,
-                          fit: BoxFit.contain,
-                          width: 100,
-                          height: 100,
+                          fit: BoxFit.cover,
+                          width: 200,
+                          height: 260,
                         ),
                       ),
+                    Container(
+                      width: 130,
+                      height: 32,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          imageUrl = await _showImageScrollDialog(context);
+                          setState(() {});
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(Color(
+                              0xffb9beb4)),
+                          elevation: MaterialStateProperty.all<double>(0), // 그림자 제거
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image, color: Colors.white), // 이미지 아이콘 추가
+                            SizedBox(width: 5), // 아이콘과 텍스트 간격 조절
+                            Text('사진 업로드', style: TextStyle(fontSize: 14)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10,),
                     TextField(
                       controller: _eventController,
                       decoration: InputDecoration(
-                        labelText: '제목',
-                        border: OutlineInputBorder(),
+                        hintText: '제목',
+                        hintStyle: TextStyle(fontSize: 13.0),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xff464D40)),
+                        ),
+                        border: UnderlineInputBorder(),
                       ),
                       onChanged: (text) {
                         setState(() {
@@ -378,7 +450,11 @@ class _MyCalendarState extends State<MyCalendar> {
                       controller: _memoController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        labelText: '내용',
+                        hintText: '내용을 입력해주세요.',
+                        hintStyle: TextStyle(fontSize: 13.0),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Color(0xff464D40)),
+                        ),
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (text) {
@@ -388,27 +464,9 @@ class _MyCalendarState extends State<MyCalendar> {
                       },
                     ),
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        imageUrl = await _showImageScrollDialog(context);
-                        setState(() {});
-                      },
-                      child: Text('다녀온 전시 사진 업로드'),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                      ),
-                    ),
+
                     SizedBox(height: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        friendNickName = await _shareHistory(context);
-                        setState(() {});
-                      },
-                      child: Text('기록 공유'),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                      ),
-                    ),
+
                     if (friendNickName != null)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
@@ -423,26 +481,51 @@ class _MyCalendarState extends State<MyCalendar> {
                 ),
               ),
               actions: [
+                Container(
+                  height: 30,
+                  width: 100,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      friendNickName = await _shareHistory(context);
+                      setState(() {});
+                    },
+                    child: Text('기록 공유'),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+                      elevation: MaterialStateProperty.all<double>(0), // 그림자 제거
+                    ),
+                  ),
+                ),
+                Spacer(),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                     _eventController.clear();
                     _memoController.clear();
                   },
-                  child: Text('취소',style: TextStyle(color:Color(0xff464D40) ),),
+                  child: Text('취소',style: TextStyle(color:Colors.grey ),),
                 ),
-                ElevatedButton(
+                TextButton(
                   onPressed: () {
                     if (evtTitle.isNotEmpty) {
                       _addEventToFirestore(evtTitle, evtContent, _selectedDay, imageUrl, friendNickName);
                       Navigator.of(context).pop();
                     }
                   },
-                  child: Text('저장'),
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                  ),
+                  child: Text('저장', style: TextStyle(color:Color(0xff464D40) ),),
                 ),
+                // ElevatedButton(
+                //   onPressed: () {
+                //     if (evtTitle.isNotEmpty) {
+                //       _addEventToFirestore(evtTitle, evtContent, _selectedDay, imageUrl, friendNickName);
+                //       Navigator.of(context).pop();
+                //     }
+                //   },
+                //   child: Text('저장'),
+                //   style: ButtonStyle(
+                //     backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
+                //   ),
+                // ),
               ],
             );
           },

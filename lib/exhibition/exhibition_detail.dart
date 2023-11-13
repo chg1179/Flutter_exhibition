@@ -877,6 +877,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
                                     String reviewText = reviewData['content'];
                                     String userNick = reviewData['userNick'];
+                                    String userImage = reviewData['userImage'];
                                     DateTime cDateTime = reviewData['cDateTime'].toDate();
                                     DateTime uDateTime = reviewData['uDateTime'].toDate();
 
@@ -900,7 +901,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                       children: [
                                                         CircleAvatar(
                                                           radius: 18,
-                                                          backgroundImage: AssetImage("assets"),
+                                                          backgroundImage: NetworkImage(userImage)
                                                         ),
                                                         SizedBox(width: 10,),
                                                         Column(
@@ -933,7 +934,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                   Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
                                                     onTap: () {
-                                                      if(_userNickName == userNick){
+                                                      if(_userNickName == userNick|| _userStatus == "A"){
                                                         _deleteExpactationConfirmation(review.reference);
                                                       }
                                                     },
@@ -1058,7 +1059,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                       children: [
                                                         CircleAvatar(
                                                           radius: 18,
-                                                          backgroundImage: AssetImage("assets"),
+                                                          backgroundImage: AssetImage("assets/ex/ex1.png"),
                                                         ),
                                                         SizedBox(width: 10,),
                                                         Column(
@@ -1091,7 +1092,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                 Text("  ·  ", style: TextStyle(color: Colors.grey[500])),
                                                 InkWell(
                                                     onTap: () {
-                                                      if(_userNickName == userNick){
+                                                      if(_userNickName == userNick || _userStatus == "A"){
                                                         _deleteReviewConfirmation(review.reference);
                                                       }
                                                     },

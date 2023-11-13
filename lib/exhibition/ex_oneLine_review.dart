@@ -21,6 +21,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
   Map<String, dynamic>? _oneReviewData;
+  Map<String, dynamic>? _userData;
   final _review = TextEditingController();
   String _observationTime = "1시간";
   String _docentOr = "없음";
@@ -83,6 +84,27 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     }
   }
 
+  void _getUserData() async {
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('exhibition')
+          .where('nickName', isEqualTo: _userNickName)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final documentSnapshot = querySnapshot.docs.first;
+        setState(() {
+          _userData = documentSnapshot.data() as Map<String, dynamic>;
+        });
+      } else {
+        print('유저 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
   void _getTagsForReview() async {
     final tagsSnapshot = await _firestore
         .collection('exhibition')
@@ -113,6 +135,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
     _getExDetailData();
     _getReviewData();
     _getTagsForReview();
+    _getUserData();
   }
 
   Future<void> getImage() async {

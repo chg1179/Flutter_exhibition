@@ -16,6 +16,7 @@ class ExExpactationReview extends StatefulWidget {
 class _ExExpactationReviewState extends State<ExExpactationReview> {
   final _firestore = FirebaseFirestore.instance;
   Map<String, dynamic>? _exDetailData;
+  Map<String, dynamic>? _userData;
   final _review = TextEditingController();
   bool txtCheck = false;
   late DocumentSnapshot _userDocument;
@@ -56,6 +57,29 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     }
   }
 
+  void _getUserData() async {
+    try {
+      final QuerySnapshot querySnapshot = await _firestore
+          .collection('exhibition')
+          .where('nickName', isEqualTo: _userNickName)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final documentSnapshot = querySnapshot.docs.first;
+        setState(() {
+          _userData = documentSnapshot.data() as Map<String, dynamic>;
+        });
+        print(_userData);
+      } else {
+        print('유저 정보를 찾을 수 없습니다.');
+      }
+    } catch (e) {
+      print('데이터를 불러오는 중 오류가 발생했습니다: $e');
+    }
+  }
+
+
   void _getReviewData() async {
     try {
       final documentSnapshot = await _firestore.collection('exhibition').doc(widget.document).collection('expactationReview').doc(widget.ReId).get();
@@ -91,6 +115,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     _init();
     _getExDetailData();
     _getReviewData();
+    _getUserData();
   }
 
   Future<void> addExpactationReview() async {
@@ -100,6 +125,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         'userNick': _userNickName,
         'cDateTime': FieldValue.serverTimestamp(),
         'uDateTime': FieldValue.serverTimestamp(),
+        'userImage' : _userData?['profileImage']
       };
 
       // Add review data

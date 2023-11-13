@@ -206,17 +206,11 @@ class _Ex_listState extends State<Ex_list> {
                                       topRight: Radius.circular(5),
                                     ),
                                     child:
-                                        //11/12 이미지 캐싱작업 (여대)
                                     CachedNetworkImage(
                                       imageUrl: imageURL,
                                         fit: BoxFit.cover,
                                         width: double.infinity,  // 화면 너비에 맞게 설정
                                     )
-                                    // Image.network(
-                                    //   imageURL,
-                                    //   fit: BoxFit.cover,
-                                    //   width: double.infinity,  // 화면 너비에 맞게 설정
-                                    // ),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
@@ -228,11 +222,9 @@ class _Ex_listState extends State<Ex_list> {
                                   ),
                                   ListTile(
                                     title: Padding(
-                                        padding: const EdgeInsets.only(
-                                            top: 5, bottom: 5),
+                                        padding: const EdgeInsets.only(top: 5, bottom: 5),
                                         child: Text(exTitle, style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15),
+                                            fontWeight: FontWeight.bold, fontSize: 15),
                                             maxLines: 2,
                                             overflow: TextOverflow.ellipsis)
                                     ),
@@ -278,14 +270,12 @@ class _Ex_listState extends State<Ex_list> {
                                       topRight: Radius.circular(5),
                                     ),
                                     child:
-                                        // 11/12 이미지 캐싱작업 (여대)
                                         CachedNetworkImage(
                                           imageUrl: imageURL,
                                           fit: BoxFit.cover,
                                           width: double.infinity,
                                           height: 255,
                                         )
-                                    // Image.network(imageURL),
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
