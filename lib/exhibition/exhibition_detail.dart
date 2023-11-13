@@ -1,10 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:exhibition_project/artist/artist_info.dart';
 import 'package:exhibition_project/exhibition/ex_expactation_review.dart';
 import 'package:exhibition_project/exhibition/ex_map.dart';
 import 'package:exhibition_project/exhibition/ex_oneLine_review.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:exhibition_project/main.dart';
-import 'package:exhibition_project/maps/address_google_maps.dart';
 import 'package:exhibition_project/user/sign_in.dart';
 import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +32,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
   Map<String, dynamic>? _exDetailData;
   Map<String, dynamic>? _exArtistData;
   Map<String, dynamic>? _galleryData;
-  Map<String, dynamic>? _exImageData;
   int onelineReviewCount = 0;
   int expactationReviewCount = 0;
   bool _galleryLoading = true;
@@ -387,7 +386,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
     final double appBarHeight = AppBar().preferredSize.height;
     final double statusBarHeight = MediaQuery.of(context).padding.top;
     final double totalHeight = appBarHeight + statusBarHeight;
-    final user = Provider.of<UserModel>(context); // 세션. UserModel 프로바이더에서 값을 가져옴.
+
     Widget _onGoing(){
       String _ongoing = getExhibitionStatus();
       return Container(
@@ -531,10 +530,14 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                   Container(
                     child: SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      child: Image.network(
-                        _exDetailData?['imageURL'],
+                      // child: Image.network(
+                      //   _exDetailData?['imageURL'],
+                      //   fit: BoxFit.fitWidth,
+                      // ),
+                      child: CachedNetworkImage(
+                        imageUrl: _exDetailData?['imageURL'],
                         fit: BoxFit.fitWidth,
-                      ),
+                      )
                     ),
                   ),
                   Padding(
@@ -793,7 +796,14 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   padding: const EdgeInsets.only(top: 10, bottom: 30),
                                   child: Text("*사전예약, 세부 사항 등은 해당 전시관으로 문의부탁드립니다.", style: TextStyle(color: Color(0xff464D40)),),
                                 ),
-                                _exDetailData?['contentURL'] != "" ? Image.network(_exDetailData?['contentURL'], fit: BoxFit.cover, width: MediaQuery.of(context).size.width - 20,) : SizedBox(),
+                                _exDetailData?['contentURL'] != ""
+                                    //? Image.network(_exDetailData?['contentURL'], fit: BoxFit.cover, width: MediaQuery.of(context).size.width - 20,)
+                                    ? CachedNetworkImage(
+                                        imageUrl: _exDetailData?['contentURL'],
+                                        fit: BoxFit.cover,
+                                        width: MediaQuery.of(context).size.width - 20,
+                                      )
+                                    : SizedBox(),
                                 SizedBox(height: 30),
                                 _exDetailData?['content'] == null ? SizedBox() : Text(_exDetailData?['content']),
                                 SizedBox(height: 50,)
@@ -1099,7 +1109,12 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                   builder: (BuildContext context) {
                                                     return Dialog(
                                                       child: Container(
-                                                        child: Image.network(reviewImageURL, fit: BoxFit.cover),
+                                                        child:
+                                                        //Image.network(reviewImageURL, fit: BoxFit.cover),
+                                                          CachedNetworkImage(
+                                                            imageUrl: reviewImageURL,
+                                                            fit: BoxFit.cover,
+                                                          )
                                                       ),
                                                     );
                                                   },
@@ -1110,7 +1125,12 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                   height: 200,
                                                   child: ClipRRect(
                                                       borderRadius: BorderRadius.circular(5),
-                                                      child: Image.network(reviewImageURL, fit: BoxFit.cover,)
+                                                      child:
+                                                      //Image.network(reviewImageURL, fit: BoxFit.cover,)
+                                                      CachedNetworkImage(
+                                                        imageUrl: reviewImageURL,
+                                                        fit: BoxFit.cover,
+                                                      )
                                                   )
                                               ),
                                             ),
@@ -1278,7 +1298,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         final exhibitionDoc = querySnapshot.docs.first;
 
         // 현재 'like' 필드의 값을 가져옴
-        final currentLikeCount = (exhibitionDoc.data()?['like'] as int?) ?? 0;
+        final currentLikeCount = (exhibitionDoc.data()['like'] as int?) ?? 0;
 
         // 'like' 필드를 현재 값에서 -1로 감소시킴
         final newLikeCount = currentLikeCount - 1;

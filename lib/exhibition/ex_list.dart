@@ -39,7 +39,6 @@ class Ex_list extends StatefulWidget {
 }
 
 class _Ex_listState extends State<Ex_list> {
-  final _search = TextEditingController();
   String _selectedOption = '최신순'; // 초기 선택값
   List<String> options = ['최신순', '인기순', '종료순'];
   bool _ongoing = true;
@@ -127,11 +126,14 @@ class _Ex_listState extends State<Ex_list> {
         }
         if (snap.hasError) {
           print("에러 발생: ${snap.error}");
-          return Center(child: SpinKitWave( // FadingCube 모양 사용
-            color: Color(0xff464D40), // 색상 설정
-            size: 30.0, // 크기 설정
-            duration: Duration(seconds: 3), //속도 설정
-          ));
+          return Container(
+            height: 600,
+            child: Center(child: SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 30.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            )),
+          );
         }
         if (!snap.hasData) {
           return Center(child: Text('데이터 없음'));
