@@ -269,34 +269,12 @@ class _CommEditState extends State<CommEdit> {
                 _buildDivider(),
                 SizedBox(height: 10),
                 _buildContentInput(),
-                SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Row(
-                    children: [
-                      InkWell(
-                        child: Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                              color: Color(0xffD4D8C8),
-                              shape: BoxShape.rectangle,
-                              borderRadius: BorderRadius.circular(5)
-                          ),
-                          child: Center(
-                            child: Text('#', style: TextStyle(fontSize: 15, color: Colors.black38, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 5),
-                      _buildImgButton(),
-                    ],
-                  ),
-                ),
-              ],
+                SizedBox(height: 20,)
+                ],
             ),
           ),
           SizedBox(height: 20),
+          _buildImgButton(),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -304,8 +282,8 @@ class _CommEditState extends State<CommEdit> {
                 children: [
                   _buildSelectedImage(),
                   Positioned(
-                    top: 1,
-                    right: 1,
+                    top: 14,
+                    right: 4,
                     child: InkWell(
                       onTap: () {
                         setState(() {
@@ -330,9 +308,8 @@ class _CommEditState extends State<CommEdit> {
               ),
             ],
           ),
-          SizedBox(height: 10),
-          _selectTagForm(),
-          SizedBox(height: 10),
+          SizedBox(height: 20),
+          SizedBox(height: 20),
           _hashTagList(),
         ],
       ),
@@ -341,18 +318,24 @@ class _CommEditState extends State<CommEdit> {
 
   Widget _buildSelectedImage() {
     if (_imageFile != null) {
-      return Image.file(
-        File(_imageFile!.path),
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Image.file(
+          File(_imageFile!.path),
+          width: 150,
+          height: 150,
+          fit: BoxFit.cover,
+        ),
       );
     } else if (downloadURL != null && downloadURL!.isNotEmpty) {
-      return Image.network(
-        downloadURL!,
-        width: 60,
-        height: 60,
-        fit: BoxFit.cover,
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Image.network(
+          downloadURL!,
+          width: 150,
+          height: 150,
+          fit: BoxFit.cover,
+        ),
       );
     } else {
       // 이미지가 선택되지 않은 경우에는 빈 컨테이너 반환
@@ -369,7 +352,6 @@ class _CommEditState extends State<CommEdit> {
           hintStyle: TextStyle(
             color: Colors.black38,
             fontSize: 15,
-            fontWeight: FontWeight.bold,
           ),
           border: InputBorder.none,
         ),
@@ -391,15 +373,24 @@ class _CommEditState extends State<CommEdit> {
     return InkWell(
       onTap: getImage,
       child: Container(
-        width: 20,
-        height: 20,
+        width: 100,
+        height: 25,
         decoration: BoxDecoration(
-          color: Color(0xffD4D8C8),
-          shape: BoxShape.rectangle,
+            color: Color(0xffD4D8C8),
+            shape: BoxShape.rectangle,
             borderRadius: BorderRadius.circular(5)
         ),
-        child: Center(
-          child: Icon(Icons.image_rounded, color: Colors.black26, size: 15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text("이미지 선택", style: TextStyle(fontSize: 12, color: Color(0xff464D40))),
+            SizedBox(width: 3),
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(Icons.image_rounded, color: Color(0xff464D40), size: 15),
+            ),
+          ],
         ),
       ),
     );
@@ -407,13 +398,13 @@ class _CommEditState extends State<CommEdit> {
 
   Widget _buildContentInput() {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 10),
+      padding: const EdgeInsets.only(left: 20, right: 20),
       child: TextField(
         maxLines: 10,
         maxLength: 300,
         controller: _contentCtr,
         decoration: InputDecoration(
-          hintText: '본문에 #을 이용해 태그를 입력해보세요! (최대 30개)',
+          hintText: '내용을 입력해주세요.',
           hintStyle: TextStyle(
             color: Colors.black38,
             fontSize: 13,
@@ -505,12 +496,15 @@ class _CommEditState extends State<CommEdit> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('추천 해시태그✨', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('추천 태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        Text('태그를 선택하거나 입력해주세요. (최대 30개)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        SizedBox(height: 5,),
         Wrap(
           spacing: 4,
+          runSpacing: -9,
           children: _tagList.map((tagName) {
             return ElevatedButton(
-              child: Text('# $tagName'),
+              child: Text('#$tagName'),
               onPressed: () {
                 setState(() {
                   if (_selectTag.contains(tagName)) {
@@ -526,6 +520,12 @@ class _CommEditState extends State<CommEdit> {
             );
           }).toList()
         ),
+        Divider(),
+        SizedBox(height: 5),
+        Text('나의 태그', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        SizedBox(height: 5),
+        _selectTagForm(),
+        SizedBox(height: 10),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -533,7 +533,7 @@ class _CommEditState extends State<CommEdit> {
             _buildCustomHashtagInput(),
             SizedBox(height: 5),
             ElevatedButton(
-              child: Text('추가'),
+              child: Text('추 가', style: TextStyle(fontSize: 15),),
               onPressed: addCustomHashtagToList,
               style: ButtonStyle(
                 minimumSize: MaterialStateProperty.all(Size( MediaQuery.of(context).size.width, 40)),
@@ -559,56 +559,68 @@ class _CommEditState extends State<CommEdit> {
   }
 
   Widget _selectTagForm() {
-    return Wrap(
-      spacing: 9,
-      runSpacing: 5,
-      children: _selectTag.map((selectTag) {
-        return Wrap(
-          spacing: 2,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
+    if(_selectTag.length > 0){
+      return Container(
+        child: Column(
           children: [
-            InkWell(
-              child: Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: Color(0xff464D40),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Text(
-                  '# $selectTag',
-                  style: TextStyle(
-                    color: Color(0xffD4D8C8),
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                removeSelectedTag(selectTag);
-              },
-              child: Container(
-                width: 15,
-                height: 15,
-                decoration: BoxDecoration(
-                  color: Color(0xffD4D8C8),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.clear,
-                    size: 10,
-                    color: Color(0xff464D40),
-                  ),
-                ),
-              ),
+            Wrap(
+              spacing: 9,
+              runSpacing: 9,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: _selectTag.map((selectTag) {
+                return Wrap(
+                  spacing: 2,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    InkWell(
+                      child: Container(
+                        padding: EdgeInsets.only(left: 15, right: 15, top: 5, bottom: 5),
+                        decoration: BoxDecoration(
+                          color: Color(0xff464D40),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Text(
+                          '#$selectTag',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        removeSelectedTag(selectTag);
+                      },
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Color(0xffD4D8C8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.clear,
+                            size: 10,
+                            color: Color(0xff464D40),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ],
-        );
-      }).toList(),
-    );
+        ),
+      );
+    }else{
+      return Container(
+        child: Text("태그를 입력 또는 선택해주세요.", style: TextStyle(color: Colors.grey, fontSize: 12),),
+      );
+    }
   }
 
 
@@ -629,7 +641,7 @@ class _CommEditState extends State<CommEdit> {
         ),
         title: Text(
           widget.documentId != null ? '글 수정' : '글 작성',
-          style: TextStyle(color: Colors.black, fontSize: 15),
+          style: TextStyle(color: Colors.black, fontSize: 17),
         ),
         actions: [
           TextButton(
