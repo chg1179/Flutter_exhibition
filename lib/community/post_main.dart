@@ -151,19 +151,22 @@ class _CommMainState extends State<CommMain> {
   }
 
   Future<void> loadCommentCnt(List<Map<String, dynamic>> selectedPosts) async {
+    Map<String, int> commentCounts = {};
+
     for (var post in selectedPosts) {
       final postId = post['id'];
-      if (!commentCounts.containsKey(postId)) {
-        try {
-          int commentCnt = await getcommentCnt(postId);
-          commentCounts[postId] = commentCnt;
-        } catch (e) {
-          print('댓글수 조회 중 오류 발생: $e');
-          commentCounts[postId] = 0;
-        }
-      }
+
+      QuerySnapshot commentSnapshot = await FirebaseFirestore.instance
+          .collection('comments')
+          .where('postId', isEqualTo: postId)
+          .get();
+
+      commentCounts[postId] = commentSnapshot.docs.length;
     }
-    setState(() {});
+
+    setState(() {
+
+    });
   }
 
   // 세션으로 document 값 구하기
@@ -182,39 +185,26 @@ class _CommMainState extends State<CommMain> {
   }
 
   Future<void> _loadFilteredData() async {
-    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('post')
-        .orderBy('write_date', descending: true)
-        .get();
-
-    final List<Map<String, dynamic>> selectedPosts = [];
-
-    for (QueryDocumentSnapshot doc in querySnapshot.docs) {
-      final title = doc['title'] as String;
-      final content = doc['content'] as String;
-
-      // 선택한 해시태그가 '전체'일 경우 모든 게시물 표시
-      if (selectedTag == '전체') {
-        selectedPosts.add({'id': doc.id, 'data': doc.data()});
-      } else {
-        // 'hashtag' 컬렉션에서 해당 태그를 포함하는 게시글 검색
-        final hashtagSnapshot = await FirebaseFirestore.instance
-            .collection('post')
-            .doc(doc.id)
-            .collection('hashtag')
-            .where('tag_name', isEqualTo: selectedTag)
-            .get();
-
-        if (hashtagSnapshot.docs.isNotEmpty) {
-          selectedPosts.add({'id': doc.id, 'data': doc.data()});
-        } else {
-          // 게시물 제목 또는 내용에 선택한 해시태그가 포함되어 있는 경우 표시
-          if (title.contains(selectedTag) || content.contains(selectedTag)) {
-            selectedPosts.add({'id': doc.id, 'data': doc.data()});
-          }
-        }
-      }
+    QuerySnapshot querySnapshot;
+    print('selectedTag ==> $selectedTag');
+    if (selectedTag == '전체') {
+      // '전체' 해시태그 선택
+      querySnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .orderBy('write_date', descending: true)
+          .get();
+    } else {
+      // 특정 해시태그가 선택된 경우
+      querySnapshot = await FirebaseFirestore.instance
+          .collection('post')
+          .where('hashtags', arrayContains: selectedTag) // .where('hashtags', isEqualTo: selectedTag)
+          .orderBy('write_date', descending: true)
+          .get();
     }
+
+    final List<Map<String, dynamic>> selectedPosts = querySnapshot.docs
+        .map((doc) => {'id': doc.id, 'data': doc.data()})
+        .toList();
 
     setState(() {
       _tagSelectList = selectedPosts;
