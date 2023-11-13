@@ -124,6 +124,7 @@ class _ArtistEditProfileState extends State<ArtistEditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       body: Container(
         child: Center(
           child: Form(

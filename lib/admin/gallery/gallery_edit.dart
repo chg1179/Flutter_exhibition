@@ -152,6 +152,7 @@ class _GalleryEditState extends State<GalleryEdit> {
     return Scaffold(
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Text(
           '갤러리 정보 관리',

@@ -148,6 +148,7 @@ class _ArtworkEditState extends State<ArtworkEdit> {
     return Scaffold(
       backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
+        elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),
         title: Text(
           '작품 정보 관리',

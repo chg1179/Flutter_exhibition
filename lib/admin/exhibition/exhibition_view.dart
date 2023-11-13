@@ -67,6 +67,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
     DateTime startDate = startDateTimestamp.toDate(); // Timestamp를 Dart의 DateTime으로 변환
     DateTime endDate = endDateTimestamp.toDate();
     return Scaffold(
+      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.8),

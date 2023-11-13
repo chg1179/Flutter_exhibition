@@ -93,8 +93,8 @@ Widget setImgTextList(
               child: ElevatedButton(
                 onPressed: loadMoreItems,
                 style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(1), // 그림자 비활성화
-                  backgroundColor: MaterialStateProperty.all(Color(0xffe4e5e0)),
+                  elevation: MaterialStateProperty.all(0), // 그림자 비활성화
+                  backgroundColor: MaterialStateProperty.all(Color(0xffd8dad3)),
                 ),
                 child: Text("더 보기", style: TextStyle(color: Colors.black, fontSize: 15), // 버튼 텍스트 색상을 설정할 수 있습니다.
                 ),

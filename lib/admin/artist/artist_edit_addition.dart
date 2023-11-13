@@ -56,6 +56,7 @@ class _ArtistEditAdditionState extends State<ArtistEditAddition> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.lerp(Color.fromRGBO(70, 77, 64, 1.0), Colors.white, 0.9),
       body: Container(
         padding: EdgeInsets.all(30),
         child: Container(

@@ -199,107 +199,113 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
               ),
               // Save Result Button
               if (calculateProgress() * 100 == 100)
-                ElevatedButton(
-                  onPressed: () async {
-                    for (int i = 0; i < 4; i++) {
-                      int start = i * 3;
-                      int end = start + 3;
-                      double rate1 = calculateGroupScore(selectedAnswerIndices.sublist(start, end));
-                      double rate2 = calculateOppositeGroupScore(selectedAnswerIndices.sublist(start, end));
+                Padding(
+                  padding: const EdgeInsets.only(top: 20, bottom: 5),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Color(0xff464D40), // 배경색
+                      onPrimary: Colors.white, // 글자색
+                      minimumSize: Size(MediaQuery.of(context).size.width-30, 50), // 최소 크기
+                      padding: EdgeInsets.symmetric(horizontal: 16), // 가로 패딩
+                    ),
+                    onPressed: () async {
+                      for (int i = 0; i < 4; i++) {
+                        int start = i * 3;
+                        int end = start + 3;
+                        double rate1 = calculateGroupScore(selectedAnswerIndices.sublist(start, end));
+                        double rate2 = calculateOppositeGroupScore(selectedAnswerIndices.sublist(start, end));
 
-                      double score = (rate1 / (rate1 + rate2)) * 100;
-                      double oppositeScore = (rate2 / (rate1 + rate2)) * 100;
+                        double score = (rate1 / (rate1 + rate2)) * 100;
+                        double oppositeScore = (rate2 / (rate1 + rate2)) * 100;
 
-                      switch (i) {
-                        case 0:
-                          group1Score = score;
-                          group1OppositeScore = oppositeScore;
-                          break;
-                        case 1:
-                          group2Score = score;
-                          group2OppositeScore = oppositeScore;
-                          break;
-                        case 2:
-                          group3Score = score;
-                          group3OppositeScore = oppositeScore;
-                          break;
-                        case 3:
-                          group4Score = score;
-                          group4OppositeScore = oppositeScore;
-                          break;
+                        switch (i) {
+                          case 0:
+                            group1Score = score;
+                            group1OppositeScore = oppositeScore;
+                            break;
+                          case 1:
+                            group2Score = score;
+                            group2OppositeScore = oppositeScore;
+                            break;
+                          case 2:
+                            group3Score = score;
+                            group3OppositeScore = oppositeScore;
+                            break;
+                          case 3:
+                            group4Score = score;
+                            group4OppositeScore = oppositeScore;
+                            break;
+                        }
                       }
-                    }
-                    await FirebaseFirestore.instance
-                        .collection('user')
-                        .doc(sessionId)
-                        .collection('jbti')
-                        .get()
-                        .then((QuerySnapshot querySnapshot) {
-                      if (querySnapshot.size > 0) {
-                        querySnapshot.docs.forEach((doc) {
-                          doc.reference.delete();
-                        });
-                      }
-                    });
+                      await FirebaseFirestore.instance
+                          .collection('user')
+                          .doc(sessionId)
+                          .collection('jbti')
+                          .get()
+                          .then((QuerySnapshot querySnapshot) {
+                        if (querySnapshot.size > 0) {
+                          querySnapshot.docs.forEach((doc) {
+                            doc.reference.delete();
+                          });
+                        }
+                      });
 
-                    await FirebaseFirestore.instance
-                        .collection('user')
-                        .doc(sessionId)
-                        .collection('jbti')
-                        .add({
-                      'dimensionValue': group1Score.round(),
-                      'flatValue': group1OppositeScore.round(),
-                      'dynamicValue': group2Score.round(),
-                      'astaticValue': group2OppositeScore.round(),
-                      'classicValue': group3Score.round(),
-                      'newValue': group3OppositeScore.round(),
-                      'appreciationValue': group4Score.round(),
-                      'exploratoryValue': group4OppositeScore.round(),
-                    });
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Center(
-                            child: Text(
-                              '알림',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                          content: Container(
-                            height: 60, // Container의 높이를 조절
-                            alignment: Alignment.center,
-                            child: Text(
-                              '전시 취향 분석이 완료되었습니다.',
-                              style: TextStyle(fontSize: 13),
-                            ),
-                          ),
-                          actions: [
-                            ElevatedButton(
-                              onPressed: () {
-                                // 확인 버튼을 눌렀을 때 초기화면으로 이동
-                                Navigator.popUntil(context, (route) => route.isFirst);
-                              },
-                              style: ElevatedButton.styleFrom(
-                                primary: Color(0xff464D40), // 배경색 설정
-                                onPrimary: Colors.white, // 텍스트 색상 설정
-                                elevation: 0, // 그림자 제거
-                                minimumSize: Size(double.infinity, 48), // 가로 길이 꽉 채우기
-                              ),
+                      await FirebaseFirestore.instance
+                          .collection('user')
+                          .doc(sessionId)
+                          .collection('jbti')
+                          .add({
+                        'dimensionValue': group1Score.round(),
+                        'flatValue': group1OppositeScore.round(),
+                        'dynamicValue': group2Score.round(),
+                        'astaticValue': group2OppositeScore.round(),
+                        'classicValue': group3Score.round(),
+                        'newValue': group3OppositeScore.round(),
+                        'appreciationValue': group4Score.round(),
+                        'exploratoryValue': group4OppositeScore.round(),
+                      });
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Center(
                               child: Text(
-                                '닫기',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                '알림',
+                                style: TextStyle(fontSize: 17),
                               ),
                             ),
-                          ],
-                        );
-                      },
-                    );
-
-
-
-                  },
-                  child: Text('결과 저장하기'),
+                            content: Container(
+                              height: 60, // Container의 높이를 조절
+                              alignment: Alignment.center,
+                              child: Text(
+                                '전시 취향 분석이 완료되었습니다.',
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  // 확인 버튼을 눌렀을 때 초기화면으로 이동
+                                  Navigator.popUntil(context, (route) => route.isFirst);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  primary: Color(0xff464D40), // 배경색 설정
+                                  onPrimary: Colors.white, // 텍스트 색상 설정
+                                  elevation: 0, // 그림자 제거
+                                  minimumSize: Size(double.infinity, 48), // 가로 길이 꽉 채우기
+                                ),
+                                child: Text(
+                                  '닫기',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    child: Text('결과 저장하기', style: TextStyle(fontSize: 16),),
+                  ),
                 ),
               SizedBox(height: 20)
               // Progress Indicator
@@ -308,18 +314,21 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         ),
       ),
         bottomNavigationBar: BottomAppBar(
-
-            height: 50,
-            child: Column(
-              children: [
-                if (calculateProgress() * 100 == 100) Text('완성!'),
-                if (calculateProgress() * 100 != 100) Text('${(calculateProgress() * 100).toInt()}%'),
-                LinearProgressIndicator(
-                  value: calculateProgress(),
-                  backgroundColor: Colors.grey,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                ),
-              ],
+            height: 60,
+            child: Center(
+              child: Column(
+                children: [
+                  SizedBox(height: 10,),
+                  if (calculateProgress() * 100 == 100) Text('완료!'),
+                  if (calculateProgress() * 100 != 100) Text('${(calculateProgress() * 100).toInt()}%', style: TextStyle(fontStyle: FontStyle.italic, fontWeight: FontWeight.bold, fontSize: 17, color: Color(0xff464D40)),),
+                  SizedBox(height: 5,),
+                  LinearProgressIndicator(
+                    value: calculateProgress(),
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xff464D40)),
+                  ),
+                ],
+              ),
             ),
 
 ),
