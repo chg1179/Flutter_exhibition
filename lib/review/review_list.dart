@@ -603,7 +603,7 @@ class _ReviewListState extends State<ReviewList> {
              child: Center(
               child: SpinKitWave( // FadingCube 모양 사용
                 color: Color(0xff464D40), // 색상 설정
-                size: 20.0, // 크기 설정
+                size: 30.0, // 크기 설정
                 duration: Duration(seconds: 3), //속도 설정
               )
           ),

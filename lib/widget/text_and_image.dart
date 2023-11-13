@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/firestore_connect/public_query.dart';
 import 'package:exhibition_project/widget/list_widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 // Firestore 데이터를 받아 리스트 목록을 출력하는 위젯
 Widget setImgTextList(
@@ -17,7 +18,11 @@ Widget setImgTextList(
     stream: getStreamData(collectionName, name, false),
     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snap) {
       if (!snap.hasData) {
-        return Center(child: CircularProgressIndicator());
+        return Center(child: SpinKitWave( // FadingCube 모양 사용
+          color: Color(0xff464D40), // 색상 설정
+          size: 30.0, // 크기 설정
+          duration: Duration(seconds: 3), //속도 설정
+        ));
       }
       // 일정 갯수씩 출력
       int itemsToShow = displayLimit < snap.data!.docs.length

@@ -121,12 +121,17 @@ class _Ex_listState extends State<Ex_list> {
         if (snap.connectionState == ConnectionState.waiting) {
           return Center(child: SpinKitWave( // FadingCube 모양 사용
             color: Color(0xff464D40), // 색상 설정
-            size: 0.0, // 크기 설정
+            size: 30.0, // 크기 설정
             duration: Duration(seconds: 3), //속도 설정
           ));
         }
         if (snap.hasError) {
-          return Center(child: Text('에러 발생: ${snap.error}'));
+          print("에러 발생: ${snap.error}");
+          return Center(child: SpinKitWave( // FadingCube 모양 사용
+            color: Color(0xff464D40), // 색상 설정
+            size: 30.0, // 크기 설정
+            duration: Duration(seconds: 3), //속도 설정
+          ));
         }
         if (!snap.hasData) {
           return Center(child: Text('데이터 없음'));
@@ -195,14 +200,14 @@ class _Ex_listState extends State<Ex_list> {
                                       topLeft: Radius.circular(5),
                                       topRight: Radius.circular(5),
                                     ),
-                                    child: 
+                                    child:
                                         //11/12 이미지 캐싱작업 (여대)
                                     CachedNetworkImage(
                                       imageUrl: imageURL,
                                         fit: BoxFit.cover,
                                         width: double.infinity,  // 화면 너비에 맞게 설정
                                     )
-                                    
+
                                     // Image.network(
                                     //   imageURL,
                                     //   fit: BoxFit.cover,
