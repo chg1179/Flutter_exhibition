@@ -49,6 +49,7 @@ class _JtbiResultState extends State<JtbiResult> {
   void initState() {
     super.initState();
     _getJbtiData();
+    _loadUserData();
   }
 
   void _getJbtiData() async {
@@ -108,13 +109,55 @@ class _JtbiResultState extends State<JtbiResult> {
                       fontWeight: FontWeight.bold, // 굵게
                     ),
                   ),
-                  Text(
-                    '서정적',
-                    style: TextStyle(
-                      color: Colors.purple, // 보라색
-                      fontSize: 16, // 글씨 크기
-                      fontWeight: FontWeight.bold, // 굵게
-                    ),
+                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: _firestore
+                        .collection('user')
+                        .doc(user.userNo)
+                        .collection('jbti')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: SpinKitWave(
+                            color: Color(0xff464D40),
+                            size: 20.0,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('에러 발생: ${snapshot.error}'));
+                      }
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return Center(child: Text('데이터 없음'));
+                      }
+
+                      // 각 필드의 값을 비교하여 가장 큰 필드명을 찾기
+                      var maxField;
+                      var maxValue = double.negativeInfinity; // 아주 작은 값으로 초기화
+
+                      for (var document in snapshot.data!.docs) {
+                        var data = document.data() as Map<String, dynamic>;
+
+                        // 각 필드의 값을 순회하면서 최대값 찾기
+                        for (var entry in data.entries) {
+                          if (entry.value is num) {
+                            // int를 double로 캐스팅하여 비교
+                            var doubleValue = (entry.value as num).toDouble();
+                            if (doubleValue > maxValue) {
+                              maxField = entry.key;
+                              maxValue = doubleValue;
+                            }
+                          }
+                        }
+                      }
+
+                      return Text(getDisplayText(maxField), style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xFF800080),
+                      ));
+                    },
                   ),
                 ],
               ),
@@ -227,7 +270,7 @@ class _JtbiResultState extends State<JtbiResult> {
               ),
               SizedBox(height: 12,),
               Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(0),
                 child: StreamBuilder(
                   stream: _firestore
                       .collection('user')
@@ -242,7 +285,7 @@ class _JtbiResultState extends State<JtbiResult> {
                       );
                     } else {
                       if (userSnapshot.data!.docs.isEmpty) {
-                        return Text('아직 선호하는 작가가 없으시네요!',style: TextStyle(color: Colors.grey),); // 리스트가 없을 때 메시지 표시
+                        return Text('나의 취향에 맞는 작가 보러가기!', style: TextStyle(color: Colors.grey),);
                       }
                       return Column(
                         children: userSnapshot.data!.docs.map((userDoc) {
@@ -262,7 +305,25 @@ class _JtbiResultState extends State<JtbiResult> {
                                 );
                               } else {
                                 if (artistLikeSnapshot.data!.docs.isEmpty) {
-                                  return Text('아직 선호하는 작가가 없으시네요!',style: TextStyle(color: Colors.grey),); // 리스트가 없을 때 메시지 표시
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 100,),
+                                      Text(
+                                        '아직 선호하는 작가가 없으시군요!',
+                                        style: TextStyle(
+                                          color: Colors.grey, // 회색 글씨
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                        color: Colors.grey,
+                                        size: 40,
+                                      ),
+                                    ],
+                                  );
                                 }
                                 return Column(
                                   children: artistLikeSnapshot.data!.docs.map((artistDoc) {
@@ -274,7 +335,7 @@ class _JtbiResultState extends State<JtbiResult> {
                                         );
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                        padding: const EdgeInsets.only(bottom: 10, right: 20),
                                         child: Row(
                                           children: [
                                             artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
@@ -317,6 +378,7 @@ class _JtbiResultState extends State<JtbiResult> {
                   },
                 ),
               ),
+
             ],
           ),
         ),
@@ -690,5 +752,28 @@ class TemperatureBar5 extends StatelessWidget {
         )
       ],
     );
+  }
+}
+
+String getDisplayText(String field) {
+  switch (field) {
+    case 'appreciationValue':
+      return '감상적';
+    case 'astaticValue':
+      return '정적';
+    case 'classicValue':
+      return '고전적';
+    case 'dimensionValue':
+      return '입체적';
+    case 'dynamicValue':
+      return '동적';
+    case 'exploratoryValue':
+      return '탐구적';
+    case 'flatValue':
+      return '평면적';
+    case 'newValue':
+      return '현대적';
+    default:
+      return '알 수 없음';
   }
 }

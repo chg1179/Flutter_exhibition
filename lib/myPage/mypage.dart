@@ -35,6 +35,7 @@ class mypagetest extends StatefulWidget {
 }
 
 class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateMixin {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   double temperature = 36.5;
   int _currentIndex = 0;
   late TabController _tabController;
@@ -709,10 +710,57 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text("${_userNickName} 님의 선호 장르는 "),
-                                  Text('사진', style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: Color(0xff464D40))),
+                                  StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                                    stream: _firestore
+                                        .collection('user')
+                                        .doc(user.userNo)
+                                        .collection('jbti')
+                                        .snapshots(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return Center(
+                                          child: SpinKitWave(
+                                            color: Color(0xff464D40),
+                                            size: 20.0,
+                                            duration: Duration(seconds: 3),
+                                          ),
+                                        );
+                                      }
+                                      if (snapshot.hasError) {
+                                        return Center(child: Text('에러 발생: ${snapshot.error}'));
+                                      }
+                                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                        return Center(child: Text('데이터 없음'));
+                                      }
+
+                                      // 각 필드의 값을 비교하여 가장 큰 필드명을 찾기
+                                      var maxField;
+                                      var maxValue = double.negativeInfinity; // 아주 작은 값으로 초기화
+
+                                      for (var document in snapshot.data!.docs) {
+                                        var data = document.data() as Map<String, dynamic>;
+
+                                        // 각 필드의 값을 순회하면서 최대값 찾기
+                                        for (var entry in data.entries) {
+                                          if (entry.value is num) {
+                                            // int를 double로 캐스팅하여 비교
+                                            var doubleValue = (entry.value as num).toDouble();
+                                            if (doubleValue > maxValue) {
+                                              maxField = entry.key;
+                                              maxValue = doubleValue;
+                                            }
+                                          }
+                                        }
+                                      }
+
+                                      return Text(getDisplayText(maxField), style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Color(0xff464D40),
+                                      ));
+                                    },
+                                  ),
+
                                   Text(' 입니다.',)
                                 ],
                               ),
@@ -1189,5 +1237,28 @@ class ExhibitionTemperature extends StatelessWidget {
     Future.delayed(Duration(seconds: 2), () {
       entry.remove();
     });
+  }
+}
+
+String getDisplayText(String field) {
+  switch (field) {
+    case 'appreciationValue':
+      return '감상적';
+    case 'astaticValue':
+      return '정적';
+    case 'classicValue':
+      return '고전적';
+    case 'dimensionValue':
+      return '입체적';
+    case 'dynamicValue':
+      return '동적';
+    case 'exploratoryValue':
+      return '탐구적';
+    case 'flatValue':
+      return '평면적';
+    case 'newValue':
+      return '현대적';
+    default:
+      return '알 수 없음';
   }
 }
