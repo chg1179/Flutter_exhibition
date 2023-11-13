@@ -10,7 +10,6 @@ class UseTerms extends StatelessWidget {
         title: Text(
           "이용약관 안내",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),

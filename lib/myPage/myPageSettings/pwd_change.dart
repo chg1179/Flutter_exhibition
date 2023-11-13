@@ -56,7 +56,6 @@ class _PwdChangeState extends State<PwdChange> {
         title: Text(
           "비밀번호 변경",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
@@ -74,7 +73,7 @@ class _PwdChangeState extends State<PwdChange> {
               textFieldLabel('비밀번호'),
               textFieldInput(_pwdController,"특수 문자 포함한 8자 이상의 비밀번호를 입력해 주세요.", "pwd"),
               SizedBox(height: 30),
-              textFieldLabel('비밀번호확인'),
+              textFieldLabel('비밀번호 확인'),
               textFieldInput(_pwdCheckController, "비밀번호를 입력해 주세요.", "pwdCheck"),
               SizedBox(height: 30),
               Container(

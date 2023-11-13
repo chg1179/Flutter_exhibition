@@ -16,7 +16,6 @@ class _State extends State<Security> {
         title: Text(
           "개인/보안",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),

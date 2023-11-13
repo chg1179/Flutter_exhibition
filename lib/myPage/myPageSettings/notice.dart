@@ -19,9 +19,8 @@ class _NoticeState extends State<Notice> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "공지사항",
+          "자주하는 질문",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),

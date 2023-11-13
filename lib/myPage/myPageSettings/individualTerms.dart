@@ -8,7 +8,6 @@ class IndividualTerms extends StatelessWidget {
         title: Text(
           "개인정보취급약관",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),

@@ -17,7 +17,7 @@ class FirstPage extends StatelessWidget {
         if (!snapshot.hasData) {
           return Center(child: SpinKitWave( // FadingCube 모양 사용
             color: Color(0xff464D40), // 색상 설정
-            size: 50.0, // 크기 설정
+            size: 30.0, // 크기 설정
             duration: Duration(seconds: 3), //속도 설정
           )); // 데이터를 가져올 때까지 로딩 표시
         }

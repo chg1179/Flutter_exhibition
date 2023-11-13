@@ -104,18 +104,18 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
   // }
 
   final List<String> questions = [
-    '여러각도에서 관찰할 수 있는 전시가  더 끌리는 편이다.',
-    '액자로 된 전시회는 지루해 하는 편이다.',
+    '여러 각도에서 관찰할 수 있는 전시가 더 끌리는 편이다.',
+    '액자로 된 전시회는 지루하다.',
     '눈을 확 사로잡는 입체적인 전시가 더 좋다.',
-    '이것 저것 체험을 하며 경험하는 것에 흥미를 느낀다.',
+    '이것저것 체험하고 경험하는 것에 흥미를 느낀다.',
     '멈춰있는 작품보단 살아 숨쉬듯 움직이는 작품이 더 좋다.',
-    '영상매체에 관심이 많은 편이다',
-    '‘구관이 명관이다.’ 라는 말에 동의한다.',
-    '뭉크 고흐 모네 다빈치등의 오래된 작품등에 흥미가 많은 편이다.',
-    '옛사람들의 시대상을 알 수 있는 고전 작품이 좋다',
-    '단지 감상만 하기보단, 배움이 있는 전시회가 좋다.',
-    '이것저것 체험하고 만지고 경험해볼수있는 활동을 좋아한다.',
-    '무엇이든지 신기하면 손으로 만져봐야 직성이 풀리는 편이다.',
+    '영상 매체에 관심이 많은 편이다.',
+    '‘구관이 명관이다.’라는 말에 동의한다.',
+    '뭉크, 고흐, 모네, 다빈치 등의 고전 작가에게 흥미가 많은 편이다.',
+    '옛 사람들의 시대상을 알 수 있는 고전 작품이 좋다.',
+    '단지 감상만 하기보다, 배움이 있는 전시회가 좋다.',
+    '이것저것 체험하고 만지고 경험해 볼 수 있는 활동을 좋아한다.',
+    '무엇이든지 신기하면 손으로 만져봐야 직성이 풀리는 편이다.'
   ];
 
   void onAnswerSelected(int questionIndex, int answerIndex) {
@@ -166,7 +166,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         title: Text(
           "전시유형검사",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
@@ -184,7 +183,6 @@ class _JTBIState extends State<JTBI> with SingleTickerProviderStateMixin {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Question Section
               Column(
                 children: List.generate(questions.length, (index) {
                   return Opacity(
@@ -355,20 +353,40 @@ class QuestionSection extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.only(bottom: 20,right: 20,left: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         color: Colors.white,
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Divider(),
           SizedBox(
             height: 20,
           ),
-          Text(
-            '${questionIndex + 1}. $question',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Container(
+            width: MediaQuery.of(context).size.width - 30,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${questionIndex + 1}   ',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '$question',
+                    style: TextStyle(fontSize: 15),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: 20),
           Row(
@@ -376,7 +394,7 @@ class QuestionSection extends StatelessWidget {
             children: [
               Text(
                 '동의',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.black,  fontSize: 13),
               ),
               SizedBox(width: 10),
               ...options.asMap().entries.map((entry) {
@@ -395,7 +413,7 @@ class QuestionSection extends StatelessWidget {
               ),
               Text(
                 '비동의',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.black, fontSize: 13),
               ),
             ],
           ),
@@ -422,7 +440,7 @@ class AnswerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<double> sizes = [50.0, 45.0, 37.0, 45.0, 50.0];
+    List<double> sizes = [40.0, 35.0, 30.0, 35.0, 40.0];
     double size = sizes[answerIndex];
     Color borderColor = _getBorderColor(answerIndex);
 
@@ -433,24 +451,24 @@ class AnswerOption extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        margin: EdgeInsets.symmetric(horizontal: 4),
+        margin: EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: isSelected ? _getAnswerColor(answerIndex) : Colors.transparent,
-          border: Border.all(color: borderColor, width: 3.5),
+          border: Border.all(color: borderColor, width: 2),
           borderRadius: BorderRadius.circular(size / 2),
         ),
         child: Center(
           child: Text(
             isSelected
                 ? (answerIndex == 0
-                ? '5'
+                ? ''
                 : (answerIndex == 1
-                ? '4'
+                ? ''
                 : (answerIndex == 2
-                ? '2.5'
+                ? ''
                 : (answerIndex == 3
-                ? '4'
-                : (answerIndex == 4 ? '5' : '')))))
+                ? ''
+                : (answerIndex == 4 ? '' : '')))))
                 : text,
             style: TextStyle(color: isSelected ? Colors.white : borderColor),
           ),
@@ -461,11 +479,11 @@ class AnswerOption extends StatelessWidget {
 
   Color _getBorderColor(int index) {
     List<Color> borderColors = [
-      Color(0xFF33A374),
-      Color(0xFF33A374),
-      Color(0xFF9A9EAA),
-      Color(0xFF87609A),
-      Color(0xFF87609A),
+      Color(0xFF404F32),
+      Color(0xFF556944),
+      Color(0xFF729851),
+      Color(0xFF9FBF83),
+      Color(0xFFD4D8C8),
     ];
 
     return borderColors[index];
@@ -473,11 +491,11 @@ class AnswerOption extends StatelessWidget {
 
   Color _getAnswerColor(int index) {
     List<Color> answerColors = [
-      Color(0xFF33A374),
-      Color(0xFF33A374),
-      Color(0xFF9A9EAA),
-      Color(0xFF87609A),
-      Color(0xFF87609A),
+      Color(0xFF404F32),
+      Color(0xFF556944),
+      Color(0xFF729851),
+      Color(0xFF9FBF83),
+      Color(0xFFD4D8C8),
     ];
 
     return answerColors[index];

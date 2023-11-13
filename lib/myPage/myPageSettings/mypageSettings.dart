@@ -33,7 +33,6 @@ class _MyPageSettingsState extends State<MyPageSettings> {
         title: Text(
           "설정",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),
@@ -74,7 +73,7 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           SizedBox(height: 20),
           ListTile(
             title: Text(
-              "나의정보",
+              "나의 정보",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
               ),
@@ -82,7 +81,7 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           ),
           Divider(),
           ListTile(
-            title: Text("프로필변경",),
+            title: Text("프로필 변경",),
             leading: Icon(Icons.person_outline_rounded),
             onTap: () {
               Navigator.push(
@@ -93,7 +92,7 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           ),
           Divider(),
           ListTile(
-            title: Text("개인/보안"),
+            title: Text("개인 / 보안"),
             leading: Icon(Icons.lock_outline),
             onTap: () {
               Navigator.push(

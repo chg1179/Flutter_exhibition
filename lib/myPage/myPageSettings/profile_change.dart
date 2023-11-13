@@ -77,7 +77,6 @@ class _ProfileChangeState extends State<ProfileChange> {
         title: Text(
           "프로필 이미지 변경",
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
         ),

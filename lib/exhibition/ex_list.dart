@@ -118,16 +118,19 @@ class _Ex_listState extends State<Ex_list> {
       stream: _createStream(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
         if (snap.connectionState == ConnectionState.waiting) {
-          return Center(child: SpinKitWave( // FadingCube 모양 사용
-            color: Color(0xff464D40), // 색상 설정
-            size: 30.0, // 크기 설정
-            duration: Duration(seconds: 3), //속도 설정
-          ));
+          return Container(
+            height: 500,
+            child: Center(child: SpinKitWave( // FadingCube 모양 사용
+              color: Color(0xff464D40), // 색상 설정
+              size: 30.0, // 크기 설정
+              duration: Duration(seconds: 3), //속도 설정
+            )),
+          );
         }
         if (snap.hasError) {
           print("에러 발생: ${snap.error}");
           return Container(
-            height: 600,
+            height: 500,
             child: Center(child: SpinKitWave( // FadingCube 모양 사용
               color: Color(0xff464D40), // 색상 설정
               size: 30.0, // 크기 설정
@@ -209,7 +212,6 @@ class _Ex_listState extends State<Ex_list> {
                                         fit: BoxFit.cover,
                                         width: double.infinity,  // 화면 너비에 맞게 설정
                                     )
-
                                     // Image.network(
                                     //   imageURL,
                                     //   fit: BoxFit.cover,
@@ -220,10 +222,8 @@ class _Ex_listState extends State<Ex_list> {
                                       alignment: Alignment.centerLeft,
                                       padding: EdgeInsets.only(
                                           left: 17, top: 15, bottom: 5),
-                                      decoration: BoxDecoration(
-                                      ),
                                       child: Text(
-                                          getOngoing(startDate, endDate), style: TextStyle(decoration: TextDecoration.underline, decorationStyle: TextDecorationStyle.double,decorationColor: Color(0xff464D40),decorationThickness: 1.5,)
+                                          getOngoing(startDate, endDate), style: TextStyle(decoration: TextDecoration.underline, decorationStyle: TextDecorationStyle.double,decorationColor: Color(0xff464D40),decorationThickness: 1.5,fontSize: 14)
                                       )
                                   ),
                                   ListTile(
@@ -232,8 +232,8 @@ class _Ex_listState extends State<Ex_list> {
                                             top: 5, bottom: 5),
                                         child: Text(exTitle, style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 16),
-                                            maxLines: 3,
+                                            fontSize: 15),
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis)
                                     ),
                                     subtitle: Column(
@@ -243,18 +243,16 @@ class _Ex_listState extends State<Ex_list> {
                                           padding: const EdgeInsets.only(
                                               bottom: 5),
                                           child: Text("${place} / ${galleryRegion}", style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 12),),
+                                              fontSize: 12),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.only(
                                               bottom: 5),
                                           child: Text(
                                               "${DateFormat('yyyy.MM.dd')
-                                                  .format(
-                                                  startDate)} ~ ${DateFormat(
-                                                  'yyyy.MM.dd').format(
-                                                  endDate)}"),
+                                                  .format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}",  style: TextStyle(fontSize: 14)),
                                         ),
                                       ],
                                     ),
@@ -291,10 +289,7 @@ class _Ex_listState extends State<Ex_list> {
                                   ),
                                   Container(
                                       alignment: Alignment.centerLeft,
-                                      padding: EdgeInsets.only(
-                                          left: 17, top: 15, bottom: 5),
-                                      decoration: BoxDecoration(
-                                      ),
+                                      padding: EdgeInsets.only(left: 17, top: 15, bottom: 5),
                                       child: Text(
                                           getOngoing(startDate, endDate),
                                           style: TextStyle(
@@ -302,6 +297,7 @@ class _Ex_listState extends State<Ex_list> {
                                             decorationStyle: TextDecorationStyle.double,
                                             decorationColor: Color(0xff464D40),
                                             decorationThickness: 1.5,
+                                            fontSize: 14
                                           )
                                       )
                                   ),
@@ -310,8 +306,8 @@ class _Ex_listState extends State<Ex_list> {
                                         padding: const EdgeInsets.only(
                                             top: 5, bottom: 5),
                                         child: Text(exTitle, style: TextStyle(
-                                            fontWeight: FontWeight.bold, fontSize: 16),
-                                            maxLines: 3,
+                                            fontWeight: FontWeight.bold, fontSize: 15),
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis)
                                     ),
                                     subtitle: Column(
@@ -319,13 +315,15 @@ class _Ex_listState extends State<Ex_list> {
                                       children: [
                                         Padding(
                                           padding: const EdgeInsets.only(bottom: 5),
-                                          child: Text("${place} / ${galleryRegion}", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 12),),
+                                          child: Text("${place} / ${galleryRegion}", style: TextStyle(fontSize: 12),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
                                         ),
                                         Padding(
                                           padding: const EdgeInsets.only(
                                               bottom: 5),
                                           child: Text(
-                                              "${DateFormat('yyyy.MM.dd').format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}"),
+                                              "${DateFormat('yyyy.MM.dd').format(startDate)} ~ ${DateFormat('yyyy.MM.dd').format(endDate)}", style: TextStyle(fontSize: 14),),
                                         ),
                                       ],
                                     ),
@@ -511,7 +509,7 @@ class _Ex_listState extends State<Ex_list> {
                         context: context,
                         builder: (context) {
                           return Container(
-                            height: MediaQuery.of(context).size.height * 0.54,
+                            height: MediaQuery.of(context).size.height * 0.6,
                             child: Column(
                               children: [
                                 Icon(Icons.remove, size: 35,),
@@ -536,7 +534,6 @@ class _Ex_listState extends State<Ex_list> {
                                             setState(() {
                                               _ongoing = value;
                                             });
-
                                           },
                                         )
                                     )

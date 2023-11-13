@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 
 Widget textFieldLabel(String text) {
   return SizedBox(
-    width: 80, // 너비 조정
+    width: 100, // 너비 조정
     child: Text(
       text,
       style: TextStyle(
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: FontWeight.bold,
       ),
     ),
