@@ -47,7 +47,7 @@ class FirstPage extends StatelessWidget {
               ),
               Container(
                 child: popularEx(), // ImageList에 전시 정보 전달
-                height: 360,
+                height: 370,
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 15, top: 25, right: 15, bottom: 15),
@@ -130,17 +130,19 @@ class _popularExState extends State<popularEx> {
           .orderBy('postDate', descending: true)
           .get();
       if (snapshot.docs.isNotEmpty) {
-        if (currentPage < (snapshot.docs.length / 3).ceil() - 1) {
-          currentPage++;
-        } else {
-          currentPage = 0;
+        if (_pageController.hasClients) {
+          if (currentPage < (snapshot.docs.length / 3).ceil() - 1) {
+            currentPage++;
+          } else {
+            currentPage = 0;
+          }
+          _pageController.animateToPage(
+            currentPage,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+          );
+          startAutoSlide();
         }
-        _pageController.animateToPage(
-          currentPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeOut,
-        );
-        startAutoSlide();
       }
     });
   }
@@ -234,8 +236,7 @@ class _popularExState extends State<popularEx> {
                               child: Container(
                                 width: 195,
                                 padding: EdgeInsets.only(left: 20, right: 10, top: 10, bottom: 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: ListView(
                                   children: [
                                     CachedNetworkImage(
                                       imageUrl: data['imageURL'], // 이미지 URL
@@ -754,17 +755,19 @@ class _endExListState extends State<endExList> {
           .orderBy('endDate', descending: true)
           .get();
       if (snapshot.docs.isNotEmpty) {
-        if (currentPage < (snapshot.docs.length / 3).ceil() - 1) {
-          currentPage++;
-        } else {
-          currentPage = 0;
+        if (_pageController.hasClients) {
+          if (currentPage < (snapshot.docs.length / 3).ceil() - 1) {
+            currentPage++;
+          } else {
+            currentPage = 0;
+          }
+          _pageController.animateToPage(
+            currentPage,
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+          );
+          startAutoSlide();
         }
-        _pageController.animateToPage(
-          currentPage,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.easeOut,
-        );
-        startAutoSlide();
       }
     });
   }
