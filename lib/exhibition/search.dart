@@ -561,7 +561,7 @@ class _SearchState extends State<Search> {
                 child: TextField(
                   controller: _search,
                   decoration: InputDecoration(
-                    hintText: "전시, 전시관, 작가, 작품 검색",
+                    hintText: "전시, 작가, 전시관, 작품 검색",
                     labelStyle: TextStyle(
                       color: Colors.grey,
                     ),

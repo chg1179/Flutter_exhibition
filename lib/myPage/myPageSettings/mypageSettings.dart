@@ -50,15 +50,16 @@ class _MyPageSettingsState extends State<MyPageSettings> {
       ),
       body: ListView(
         children: [
-          SizedBox(height: 20,),
-          ListTile(
-            title: Text(
-              "나의정보",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
+          if(user.status == 'A') 
+            ListTile(
+              title: Text(
+                "관리",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
+          if(user.status == 'A') Divider(),
           if(user.status == 'A')
             ListTile(
               title: Text("관리자 페이지"),
@@ -70,6 +71,15 @@ class _MyPageSettingsState extends State<MyPageSettings> {
                 );
               },
             ),
+          SizedBox(height: 20),
+          ListTile(
+            title: Text(
+              "나의정보",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Divider(),
           ListTile(
             title: Text("프로필변경",),
@@ -83,23 +93,23 @@ class _MyPageSettingsState extends State<MyPageSettings> {
           ),
           Divider(),
           ListTile(
-            title: Text("JBTI 취향분석 하기"),
-            leading: Icon(Icons.add),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => JTBI()),
-              );
-            },
-          ),
-          Divider(),
-          ListTile(
             title: Text("개인/보안"),
             leading: Icon(Icons.lock_outline),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => Security()),
+              );
+            },
+          ),
+          Divider(),
+          ListTile(
+            title: Text("JBTI 취향분석 하기"),
+            leading: Icon(Icons.add),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => JTBI()),
               );
             },
           ),

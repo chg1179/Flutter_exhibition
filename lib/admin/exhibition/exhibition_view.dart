@@ -93,7 +93,7 @@ class _ExhibitionViewState extends State<ExhibitionView> {
                   Center(
                     child: ClipOval(
                       child: exhibitionData!['imageURL'] != null
-                          ? Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover)//Image.network(exhibitionData!['imageURL'], width: 80, height: 80, fit: BoxFit.cover) //파일 터짐 방지
+                          ? Image.network(exhibitionData!['imageURL'], width: 130, height: 130, fit: BoxFit.cover)
                           : Image.asset('assets/logo/basic_logo.png', width: 130, height: 130, fit: BoxFit.cover),
                     ),
                   ),
@@ -165,28 +165,28 @@ class _ExhibitionViewState extends State<ExhibitionView> {
               SizedBox(height: 5),
               listContent(widget.document, 'exhibition', 'exhibition_fee', 'exKind', 'exFee', false),
               SizedBox(height: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  exhibitionData!['contentURL'] != null && exhibitionData!['contentURL'] != ''
-                      ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("상세 이미지", style: TextStyle(fontWeight: FontWeight.bold),),
-                          SizedBox(height: 10,),
-                          Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
-                        ],
-                      )
-                      : Text('상세 이미지 : 상세 이미지가 없습니다.'),
-                ],
-              ),
-              SizedBox(height: 15),
               Container(
                 width: MediaQuery.of(context).size.width*0.25,
                 child: Text("전시회 설명", style: TextStyle(fontWeight: FontWeight.bold),),
               ),
               SizedBox(height: 10,),
               Text(exhibitionData!['content'] != '' && exhibitionData!['content'] != null ? '${exhibitionData!['content']}' : '작성된 설명이 없습니다.'),
+              SizedBox(height: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  exhibitionData!['contentURL'] != null && exhibitionData!['contentURL'] != ''
+                      ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("상세 이미지", style: TextStyle(fontWeight: FontWeight.bold),),
+                      SizedBox(height: 10,),
+                      Image.network(exhibitionData!['contentURL'], width: double.infinity, fit: BoxFit.cover) //파일 터짐 방지
+                    ],
+                  )
+                      : Container(),
+                ],
+              ),
               SizedBox(height: 30),
               Container(
                 width: MediaQuery.of(context).size.width -30,

@@ -224,7 +224,7 @@ class _MyCollectionState extends State<MyCollection> {
                     );
                   } else {
                     if (userSnapshot.data!.docs.isEmpty) {
-                      return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                      return Container(); // 리스트가 없을 때
                     }
                     return Column(
                       children: userSnapshot.data!.docs.map((userDoc) {
@@ -243,7 +243,7 @@ class _MyCollectionState extends State<MyCollection> {
                               );
                             } else {
                               if (artistLikeSnapshot.data!.docs.isEmpty) {
-                                return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                                return Container(); // 리스트가 없을 때
                               }
                               return Column(
                                 children: artistLikeSnapshot.data!.docs.map((artistDoc) {
@@ -314,7 +314,7 @@ class _MyCollectionState extends State<MyCollection> {
                     );
                   } else {
                     if (userSnapshot.data!.docs.isEmpty) {
-                      return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                      return Container(); // 리스트가 없을 때
                     }
                     return Column(
                       children: userSnapshot.data!.docs.map((userDoc) {
@@ -333,7 +333,7 @@ class _MyCollectionState extends State<MyCollection> {
                               );
                             } else {
                               if (galleryLikeSnapshot.data!.docs.isEmpty) {
-                                return Text('No data available'); // 리스트가 없을 때 메시지 표시
+                                return Container(); // 리스트가 없을 때
                               }
                               return Column(
                                 children: galleryLikeSnapshot.data!.docs.map((gallery) {

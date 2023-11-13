@@ -173,7 +173,7 @@ class _PwdChangeState extends State<PwdChange> {
               await updateUserPassword('user', user.userNo!, hashedPassword);
               Navigator.of(context).pop();
               user.signOut();
-              showMoveDialog(context, '비밀번호가 변경되었습니다. 다시 로그인해주세요.', () => SignInPage());
+              showMoveDialog(context, '변경된 비밀번호로 다시 로그인해주세요.', () => SignInPage());
             } on FirebaseAuthException catch (e) {
               firebaseException(e);
             } catch (e) {

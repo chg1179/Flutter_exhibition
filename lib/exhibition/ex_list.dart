@@ -52,6 +52,7 @@ class _Ex_listState extends State<Ex_list> {
 
   void _resetState() {
     setState(() {
+      _ongoing = true; // 전시중 상태 초기화
       _placeFlg = true; // 지역 상태 초기화
       _categoryFlg = true; // 카테고리 상태 초기화
       _placeSelectedOptions = ["전체"]; // 선택된 지역 초기화
@@ -275,6 +276,9 @@ class _Ex_listState extends State<Ex_list> {
                                         // 11/12 이미지 캐싱작업 (여대)
                                         CachedNetworkImage(
                                           imageUrl: imageURL,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: 255,
                                         )
                                     // Image.network(imageURL),
                                   ),
@@ -500,7 +504,7 @@ class _Ex_listState extends State<Ex_list> {
                         context: context,
                         builder: (context) {
                           return Container(
-                            height: MediaQuery.of(context).size.height * 0.88,
+                            height: MediaQuery.of(context).size.height * 0.54,
                             child: Column(
                               children: [
                                 Icon(Icons.remove, size: 35,),
@@ -544,11 +548,11 @@ class _Ex_listState extends State<Ex_list> {
                                   color: Colors.black,
                                   thickness: 0.1,
                                 ),
-                                CategoryFlg(categoryFlg: _categoryFlg),
+                                /*CategoryFlg(categoryFlg: _categoryFlg),
                                 Divider(
                                   color: Colors.black,
                                   thickness: 0.1,
-                                ),
+                                ),*/
                                 Padding(
                                   padding: const EdgeInsets.only(left: 10, right: 20,top: 10),
                                   child: Row(
@@ -1016,6 +1020,7 @@ class _ResetState extends State<Reset> {
     setState(() {
       _placeSelectedOptions = ["전체"];
       widget.onReset(); // 초기화 버튼을 눌렀을 때 콜백 함수를 호출합니다.
+      Navigator.pop(context);
     });
   }
 

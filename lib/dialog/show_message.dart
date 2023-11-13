@@ -29,9 +29,10 @@ Future<void> showMoveDialog(BuildContext context, String message, Widget Functio
       context: context,
       builder: (context) {
         return AlertDialog(
-          contentPadding: EdgeInsets.fromLTRB(60, 60, 60, 40),
-          actionsPadding: EdgeInsets.fromLTRB(30, 0, 30, 30),
-          content: Text(message, style: TextStyle(fontSize: 18)),
+          content: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(message, style: TextStyle(fontSize: 16)),
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -43,7 +44,7 @@ Future<void> showMoveDialog(BuildContext context, String message, Widget Functio
               },
               child: Text(
                 '확인',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Color.fromRGBO(70, 77, 64, 1.0)),
+                style: TextStyle(color: Color.fromRGBO(70, 77, 64, 1.0)),
               ),
             ),
           ],

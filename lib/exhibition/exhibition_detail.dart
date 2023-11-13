@@ -9,6 +9,7 @@ import 'package:exhibition_project/user/sign_in.dart';
 import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -620,7 +621,9 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                               height: 40,
                               width: 40,
                               child: IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  _copyToClipboard();
+                                },
                                 icon: Icon(Icons.share),
                               ),
                             ),
@@ -1354,6 +1357,22 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
           .catchError((error) {
         print('삭제 중 오류 발생: $error');
       });
+    }
+  }
+
+  // url 주소 복사(클립보드 복사)
+  void _copyToClipboard() {
+    if (_exDetailData != null && _exDetailData!['exPage'] != null) {
+      String textToCopy = _exDetailData!['exPage'].toString();
+
+      Clipboard.setData(ClipboardData(text: textToCopy));
+
+      // 복사되었다는 메시지를 사용자에게 보여줄 수도 있습니다.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('홈페이지 주소가 복사되었습니다.'),
+        ),
+      );
     }
   }
 }
