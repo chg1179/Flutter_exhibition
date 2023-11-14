@@ -333,7 +333,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                               Container(
                                 padding: EdgeInsets.only(top: 15),
                                 width: 300,
-                                height: _artistEducationData!.length * 40.toDouble(),
+                                height: _artistEducationData!.length * 41.toDouble(),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: _artistEducationData!.map((data) {
@@ -361,7 +361,7 @@ class _ArtistInfoState extends State<ArtistInfo> with SingleTickerProviderStateM
                           Container(
                             padding: EdgeInsets.only(top: 10),
                             width: 300,
-                            height: _artistHistoryData!.length * 40.toDouble(),
+                            height: _artistHistoryData!.length * 45.toDouble(),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: _artistHistoryData!.map((data) {
