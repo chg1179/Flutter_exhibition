@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/community/post_detail.dart';
 import 'package:exhibition_project/myPage/addAlarm.dart';
+import 'package:exhibition_project/myPage/mypage.dart';
 import 'package:exhibition_project/review/review_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -297,17 +298,12 @@ class _CommProfileState extends State<CommProfile> {
                 iconTheme: IconThemeData(color: Colors.black),
                 elevation: 0,
                 actions: [
-                  IconButton(
-                    onPressed: () {
-                      // 물음표 아이콘 클릭 시 수행할 동작
-                    },
-                    icon: Icon(Icons.search_outlined, size: 30, color: (Color(0xff464D40))),
-                  ),
+
                   Padding(
                     padding: const EdgeInsets.only(right: 10),
                     child: IconButton(
                       onPressed: () {
-                        // 프로필 아이콘 클릭 시 수행할 동작
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => MyPage()));
                       },
                       icon: Icon(Icons.account_circle, size: 30, color: (Color(0xff464D40))),
                     ),
