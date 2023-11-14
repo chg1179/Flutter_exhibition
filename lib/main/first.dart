@@ -361,7 +361,7 @@ class _MainListState extends State<MainList> {
     return StreamBuilder(
       stream: FirebaseFirestore.instance
           .collection('exhibition')
-          .orderBy('like', descending: true)
+          .where('type', isEqualTo: 'pretty')
           .limit(3)
           .snapshots(),
       builder: (context, AsyncSnapshot<QuerySnapshot> snap) {
