@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/myPage/myPageSettings/mypageSettings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -138,35 +139,15 @@ class _MyCalendarState extends State<MyCalendar> {
         ),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.add_box_outlined, color: Colors.black),
+            icon: Icon(Icons.add_box_outlined, color: Color(0xff464D40)),
             onPressed: () {
               _addEvent(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.settings_outlined, color: Colors.black),
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => MyPageSettings()));
             },
           ),
         ],
       ),
       body: Column(
         children: [
-          // FutureBuilder<int>(
-          //   future: getSubcollectionLength(),
-          //   builder: (context, snapshot) {
-          //     if (snapshot.connectionState == ConnectionState.waiting) {
-          //       return Center(child: CircularProgressIndicator());
-          //     }
-          //     if (snapshot.hasError) {
-          //       return Center(child: Text('에러 발생: ${snapshot.error}'));
-          //     }
-          //     int subcollectionLength = snapshot.data ?? 0;
-          //
-          //     return Text('My ${subcollectionLength}th Record');
-          //   },
-          // ),
           TableCalendar(
             calendarFormat: _calendarFormat,
             focusedDay: _focusedDay,
@@ -231,7 +212,11 @@ class _MyCalendarState extends State<MyCalendar> {
                 future: getSubcollectionLength(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                      color: Color(0xff464D40), // 색상 설정
+                      size: 20.0, // 크기 설정
+                      duration: Duration(seconds: 3), //속도 설정
+                    ));
                   }
                   if (snapshot.hasError) {
                     return Center(child: Text('에러 발생: ${snapshot.error}'));
@@ -265,7 +250,11 @@ class _MyCalendarState extends State<MyCalendar> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return Center(child: SpinKitWave( // FadingCube 모양 사용
+                    color: Color(0xff464D40), // 색상 설정
+                    size: 20.0, // 크기 설정
+                    duration: Duration(seconds: 3), //속도 설정
+                  ));
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('에러 발생: ${snapshot.error}'));
@@ -545,9 +534,9 @@ class _MyCalendarState extends State<MyCalendar> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('다녀온 전시사진 목록'),
+            title: Text('다녀온 전시', style: TextStyle(fontSize: 17),),
             content: SizedBox(
-              width: 300,
+              width: 400,
               height: 400,
               child: FutureBuilder<QuerySnapshot>(
                   future: FirebaseFirestore.instance
@@ -557,17 +546,22 @@ class _MyCalendarState extends State<MyCalendar> {
                       .get(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
+                      return Center(child: SpinKitWave( // FadingCube 모양 사용
+                        color: Color(0xff464D40), // 색상 설정
+                        size: 20.0, // 크기 설정
+                        duration: Duration(seconds: 3), //속도 설정
+                      ));
                     } else if (snapshot.hasError) {
                       return Text('에러 발생: ${snapshot.error}');
                     } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Text('다녀온 전시사진이 아직 없네요!');
+                      return Text('다녀온 전시가 없습니다.');
                     } else {
                       return GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           mainAxisSpacing: 5.0,
                           crossAxisSpacing: 5.0,
+                          childAspectRatio: 4/5
                         ),
                         itemCount: snapshot.data!.docs.length,
                         itemBuilder: (context, index) {
@@ -578,10 +572,7 @@ class _MyCalendarState extends State<MyCalendar> {
                               onTap: () {
                                 Navigator.of(context).pop(imageUrl);
                               },
-                              child: Image.network(
-                                imageUrl, // 이미지를 표시
-                                fit: BoxFit.contain,
-                              ),
+                              child: Image.network(imageUrl,fit: BoxFit.cover),
                             );
                           } else {
                             // 'exImage' 필드가 없거나 오류가 발생한 경우 처리
@@ -594,15 +585,12 @@ class _MyCalendarState extends State<MyCalendar> {
               ),
             ),
             actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('닫기'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                ),
-              ),
+              TextButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("닫기",style: TextStyle(color:Color(0xff464D40))),
+              )
             ],
           );
         },
@@ -642,10 +630,10 @@ class _MyCalendarState extends State<MyCalendar> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('나의 친구 목록'),
+            title: Text('나의 친구 목록', style: TextStyle(fontSize: 17),),
             content: SizedBox(
               width: 300,
-              height: 400,
+              height: 300,
               child: FutureBuilder<QuerySnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('user')
@@ -654,7 +642,11 @@ class _MyCalendarState extends State<MyCalendar> {
                     .get(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
+                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                      color: Color(0xff464D40), // 색상 설정
+                      size: 20.0, // 크기 설정
+                      duration: Duration(seconds: 3), //속도 설정
+                    ));
                   } else if (snapshot.hasError) {
                     return Text('에러 발생: ${snapshot.error}');
                   } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -701,15 +693,12 @@ class _MyCalendarState extends State<MyCalendar> {
               ),
             ),
             actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('닫기'),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Color(0xff464D40)),
-                ),
-              ),
+              TextButton(
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                    },
+                  child: Text("닫기", style: TextStyle(color:Color(0xff464D40)))
+              )
             ],
           );
         },
@@ -851,39 +840,34 @@ class _MyCalendarState extends State<MyCalendar> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(
-            event.evtTitle,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          title: Column(
+            children: [
+              Text(event.evtTitle,style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 3),
+              Text(
+                '${DateFormat('yyyy.MM.dd').format(event.evtDate)}',
+                style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.w300),
+              ),
+              SizedBox(height: 3),
+              Text(event.friendNickName != null && event.friendNickName.isNotEmpty
+                  ? '${event.friendNickName}님과 함께했어요.'
+                  : '나홀로 전시회',
+                style: TextStyle(fontSize: 14.0,fontWeight: FontWeight.w300),
+              ),
+            ],
           ),
-          content: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.all(Radius.circular(10.0)),
-            ),
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start, // 세로 방향에서 좌측 정렬
-              children: [
-                if (event.evtContent != null && event.evtContent.isNotEmpty)
-                  Text(
-                      '기록: ${event.evtContent}',
-                      style: TextStyle(fontSize: 16.0)
-                  ),
-                Divider(),
-                Text(
-                  event.friendNickName != null && event.friendNickName.isNotEmpty
-                      ? '${event.friendNickName}와 함께했어요.'
-                      : '나홀로 전시회',
-                  style: TextStyle(fontSize: 16.0),
-                ),
-                Divider(),
-                Text(
-                  '다녀온 날짜: ${DateFormat('yyyy-MM-dd').format(event.evtDate)}',
-                  style: TextStyle(fontSize: 16.0),
-                ),
-              ],
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, // 세로 방향에서 좌측 정렬
+            children: [
+              Divider(),
+              SizedBox(height: 20,),
+              if (event.evtContent != null && event.evtContent.isNotEmpty)
+              Text('${event.evtContent}', style: TextStyle(fontSize: 15.0)),
+              SizedBox(height: 20,),
+              Divider(),
+              SizedBox(height: 10),
+            ],
           ),
           actions: [
             Padding(
