@@ -368,13 +368,13 @@ class _ExhibitionEditState extends State<ExhibitionEdit> {
                           SizedBox(height: 10),
                           // 선택된 이미지 미리보기
                           Container(
-                            child: _imageContentFile != null && imgContentPath != null
+                            child: _imageContentFile != null && imgContentPath != ''
                               ? Image.file(
                                 File(_imageContentFile!.path),
                                 width: double.infinity,
                                 fit: BoxFit.cover,
                               )
-                              : (widget.document != null && selectContentImgURL != null)
+                              : (widget.document != null && selectContentImgURL != null && selectContentImgURL != '')
                                 ? Image.network(selectContentImgURL!, width: double.infinity, fit: BoxFit.cover)
                                 : Container(), // 이미지를 선택하지 않았을 때
                           ),
