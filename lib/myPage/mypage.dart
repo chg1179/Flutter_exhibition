@@ -730,7 +730,7 @@ class _mypagetestState extends State<mypagetest> with SingleTickerProviderStateM
                                         return Center(child: Text('에러 발생: ${snapshot.error}'));
                                       }
                                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                                        return Center(child: Text('데이터 없음'));
+                                        return Center(child: Text('미정'));
                                       }
 
                                       // 각 필드의 값을 비교하여 가장 큰 필드명을 찾기

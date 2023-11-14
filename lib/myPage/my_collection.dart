@@ -88,371 +88,396 @@ class _MyCollectionState extends State<MyCollection> {
           children: [
             Padding(
               padding: const EdgeInsets.all(10),
-              child: StreamBuilder(
-                stream: _firestore
-                    .collection('user')
-                    .where('nickName', isEqualTo: _userNickName)
-                    .snapshots(),
-                builder: (context, userSnapshot) {
-                  if (!userSnapshot.hasData) {
-                    return SpinKitWave( // FadingCube 모양 사용
-                      color: Color(0xff464D40), // 색상 설정
-                      size: 20.0, // 크기 설정
-                      duration: Duration(seconds: 3), //속도 설정
-                    );
-                  } else {
-                    return ListView.builder(
-                      itemCount: userSnapshot.data!.docs.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return StreamBuilder(
-                          stream: _firestore
-                              .collection('user')
-                              .doc(userSnapshot.data!.docs.first.id)
-                              .collection('artworkLike')
-                              .snapshots(),
-                          builder: (context, artistLikeSnapshot) {
-                            if (!artistLikeSnapshot.hasData) {
-                              return SpinKitWave(
-                                color: Color(0xff464D40),
-                                size: 20.0,
-                                duration: Duration(seconds: 3),
-                              );
-                            } else {
-                              if (artistLikeSnapshot.data!.docs.isEmpty) {
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 100),
-                                    Text(
-                                      '아직 선호하는 작품이 없으시군요!',
-                                      style: TextStyle(
-                                        color: Colors.grey, // 회색 글씨
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Icon(
-                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
-                                      color: Colors.grey,
-                                      size: 40,
-                                    ),
-                                  ],
+              child: SingleChildScrollView(
+                child: StreamBuilder(
+                  stream: _firestore
+                      .collection('user')
+                      .where('nickName', isEqualTo: _userNickName)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return SpinKitWave(
+                        color: Color(0xff464D40),
+                        size: 20.0,
+                        duration: Duration(seconds: 3),
+                      );
+                    } else {
+                      if (userSnapshot.data!.docs.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '다시 로그인 해주세요.',
+                              style: TextStyle(
+                                color: Colors.grey, // 회색 글씨
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Icon(
+                              Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        children: userSnapshot.data!.docs.map((userDoc) {
+                          return StreamBuilder(
+                            stream: _firestore
+                                .collection('user')
+                                .doc(userDoc.id)
+                                .collection('artworkLike')
+                                .snapshots(),
+                            builder: (context, AsyncSnapshot<QuerySnapshot> artistLikeSnapshot) {
+                              if (!artistLikeSnapshot.hasData) {
+                                return SpinKitWave(
+                                  color: Color(0xff464D40),
+                                  size: 20.0,
+                                  duration: Duration(seconds: 3),
                                 );
-                              }
-
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                                  maxCrossAxisExtent: inkWidth, // 각 열의 최대 너비
-                                  crossAxisSpacing: 10, // 열 간의 간격
-                                  mainAxisSpacing: 5.0, // 행 간의 간격
-                                  childAspectRatio: 2.5 / 5,
-                                ),
-                                itemCount: artistLikeSnapshot.data!.docs.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  DocumentSnapshot artist = artistLikeSnapshot.data!.docs[index];
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ArtistInfo(document: artist['artistId']),
+                              } else {
+                                if (artistLikeSnapshot.data!.docs.isEmpty) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 100),
+                                      Text(
+                                        '아직 선호하는 작품이 없으시군요!',
+                                        style: TextStyle(
+                                          color: Colors.grey, // 회색 글씨
+                                          fontSize: 16,
                                         ),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-                                      child: Row(
-                                        children: [
-                                          artist['imageURL'] == null || artist['imageURL'] == ""
-                                              ? CircleAvatar(
-                                            backgroundImage: NetworkImage(artist['imageURL']),
-                                            radius: 40,
-                                          )
-                                              : CircleAvatar(
-                                            backgroundImage: NetworkImage(artist['imageURL']),
-                                            radius: 40,
-                                          ),
-                                          SizedBox(width: 30),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                artist['artistName'],
-                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                              ),
-                                              Text(
-                                                artist['expertise'],
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
                                       ),
-                                    ),
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                        color: Colors.grey,
+                                        size: 40,
+                                      ),
+                                    ],
                                   );
-                                },
-                              );
-                            }
-                          },
-                        );
-                      },
-                    );
-                  }
-                },
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: artistLikeSnapshot.data!.docs.map((artistDoc) {
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => ArtistInfo(document: artistDoc['artistId'])),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                        child: Row(
+                                          children: [
+                                            artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
+                                            CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            )
+                                                : CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            ),
+                                            SizedBox(width: 30),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  constraints: BoxConstraints(
+                                                    maxWidth: 200, // 최대 가로 길이 설정
+                                                  ),
+                                                  child: Text(
+                                                    artistDoc['artTitle'],
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                    overflow: TextOverflow.ellipsis,
+                                                    maxLines: 1, // 한 줄만 표시
+                                                  ),
+                                                ),
+                                                Text(
+                                                  artistDoc['artType'],
+                                                  style: TextStyle(fontSize: 14),
+                                                ),
+                                                Text(
+                                                  artistDoc['artistName'],
+                                                  style: TextStyle(fontSize: 13),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
+                              }
+                            },
+                          );
+                        }).toList(),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(10),
-              child: StreamBuilder(
-                stream: _firestore
-                    .collection('user')
-                    .where('nickName', isEqualTo: _userNickName)
-                    .snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
-                  if (!userSnapshot.hasData) {
-                    return SpinKitWave(
-                      color: Color(0xff464D40),
-                      size: 20.0,
-                      duration: Duration(seconds: 3),
-                    );
-                  } else {
-                    if (userSnapshot.data!.docs.isEmpty) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '다시 로그인 해주세요.',
-                            style: TextStyle(
-                              color: Colors.grey, // 회색 글씨
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Icon(
-                            Icons.sentiment_satisfied_alt, // 스마일 아이콘
-                            color: Colors.grey,
-                            size: 40,
-                          ),
-                        ],
+              child: SingleChildScrollView(
+                child: StreamBuilder(
+                  stream: _firestore
+                      .collection('user')
+                      .where('nickName', isEqualTo: _userNickName)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return SpinKitWave(
+                        color: Color(0xff464D40),
+                        size: 20.0,
+                        duration: Duration(seconds: 3),
                       );
-                    }
-                    return Column(
-                      children: userSnapshot.data!.docs.map((userDoc) {
-                        return StreamBuilder(
-                          stream: _firestore
-                              .collection('user')
-                              .doc(userDoc.id)
-                              .collection('artistLike')
-                              .snapshots(),
-                          builder: (context, AsyncSnapshot<QuerySnapshot> artistLikeSnapshot) {
-                            if (!artistLikeSnapshot.hasData) {
-                              return SpinKitWave(
-                                color: Color(0xff464D40),
-                                size: 20.0,
-                                duration: Duration(seconds: 3),
-                              );
-                            } else {
-                              if (artistLikeSnapshot.data!.docs.isEmpty) {
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 100,),
-                                    Text(
-                                      '아직 선호하는 작가가 없으시군요!',
-                                      style: TextStyle(
-                                        color: Colors.grey, // 회색 글씨
-                                        fontSize: 16,
+                    } else {
+                      if (userSnapshot.data!.docs.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '다시 로그인 해주세요.',
+                              style: TextStyle(
+                                color: Colors.grey, // 회색 글씨
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Icon(
+                              Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        children: userSnapshot.data!.docs.map((userDoc) {
+                          return StreamBuilder(
+                            stream: _firestore
+                                .collection('user')
+                                .doc(userDoc.id)
+                                .collection('artistLike')
+                                .snapshots(),
+                            builder: (context, AsyncSnapshot<QuerySnapshot> artistLikeSnapshot) {
+                              if (!artistLikeSnapshot.hasData) {
+                                return SpinKitWave(
+                                  color: Color(0xff464D40),
+                                  size: 20.0,
+                                  duration: Duration(seconds: 3),
+                                );
+                              } else {
+                                if (artistLikeSnapshot.data!.docs.isEmpty) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 100),
+                                      Text(
+                                        '아직 선호하는 작가가 없으시군요!',
+                                        style: TextStyle(
+                                          color: Colors.grey, // 회색 글씨
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Icon(
-                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
-                                      color: Colors.grey,
-                                      size: 40,
-                                    ),
-                                  ],
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                        color: Colors.grey,
+                                        size: 40,
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: artistLikeSnapshot.data!.docs.map((artistDoc) {
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => ArtistInfo(document: artistDoc['artistId'])),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                        child: Row(
+                                          children: [
+                                            artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
+                                            CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            )
+                                                : CircleAvatar(
+                                              backgroundImage: NetworkImage(artistDoc['imageURL']),
+                                              radius: 40,
+                                            ),
+                                            SizedBox(width: 30),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  artistDoc['artistName'],
+                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                ),
+                                                Text(
+                                                  artistDoc['expertise'],
+                                                  style: TextStyle(fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 );
                               }
-                              return Column(
-                                children: artistLikeSnapshot.data!.docs.map((artistDoc) {
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => ArtistInfo(document: artistDoc['artistId'])),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-                                      child: Row(
-                                        children: [
-                                          artistDoc['imageURL']==null || artistDoc['imageURL'] == "" ?
-                                          CircleAvatar(
-                                            backgroundImage: NetworkImage(artistDoc['imageURL']),
-                                            radius: 40,
-                                          )
-                                              : CircleAvatar(
-                                            backgroundImage: NetworkImage(artistDoc['imageURL']),
-                                            radius: 40,
-                                          ),
-                                          SizedBox(width: 30),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                artistDoc['artistName'],
-                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                              ),
-                                              Text(
-                                                artistDoc['expertise'],
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              );
-                            }
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }
-                },
+                            },
+                          );
+                        }).toList(),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(10),
-              child: StreamBuilder(
-                stream: _firestore
-                    .collection('user')
-                    .where('nickName', isEqualTo: _userNickName)
-                    .snapshots(),
-                builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
-                  if (!userSnapshot.hasData) {
-                    return SpinKitWave(
-                      color: Color(0xff464D40),
-                      size: 20.0,
-                      duration: Duration(seconds: 3),
-                    );
-                  } else {
-                    if (userSnapshot.data!.docs.isEmpty) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '다시 시도해 주세요.',
-                            style: TextStyle(
-                              color: Colors.grey, // 회색 글씨
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Icon(
-                            Icons.sentiment_satisfied_alt, // 스마일 아이콘
-                            color: Colors.grey,
-                            size: 40,
-                          ),
-                        ],
+              child: SingleChildScrollView(
+                child: StreamBuilder(
+                  stream: _firestore
+                      .collection('user')
+                      .where('nickName', isEqualTo: _userNickName)
+                      .snapshots(),
+                  builder: (context, AsyncSnapshot<QuerySnapshot> userSnapshot) {
+                    if (!userSnapshot.hasData) {
+                      return SpinKitWave(
+                        color: Color(0xff464D40),
+                        size: 20.0,
+                        duration: Duration(seconds: 3),
                       );
-                    }
-                    return Column(
-                      children: userSnapshot.data!.docs.map((userDoc) {
-                        return StreamBuilder(
-                          stream: _firestore
-                              .collection('user')
-                              .doc(userDoc.id)
-                              .collection('galleryLike')
-                              .snapshots(),
-                          builder: (context, AsyncSnapshot<QuerySnapshot> galleryLikeSnapshot) {
-                            if (!galleryLikeSnapshot.hasData) {
-                              return SpinKitWave(
-                                color: Color(0xff464D40),
-                                size: 20.0,
-                                duration: Duration(seconds: 3),
-                              );
-                            } else {
-                              if (galleryLikeSnapshot.data!.docs.isEmpty) {
-                                return Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(height: 100,),
-                                    Text(
-                                      '아직 선호하는 갤러리가 없으시군요!',
-                                      style: TextStyle(
-                                        color: Colors.grey, // 회색 글씨
-                                        fontSize: 16,
+                    } else {
+                      if (userSnapshot.data!.docs.isEmpty) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '다시 시도해 주세요.',
+                              style: TextStyle(
+                                color: Colors.grey, // 회색 글씨
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Icon(
+                              Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                              color: Colors.grey,
+                              size: 40,
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        children: userSnapshot.data!.docs.map((userDoc) {
+                          return StreamBuilder(
+                            stream: _firestore
+                                .collection('user')
+                                .doc(userDoc.id)
+                                .collection('galleryLike')
+                                .snapshots(),
+                            builder: (context, AsyncSnapshot<QuerySnapshot> galleryLikeSnapshot) {
+                              if (!galleryLikeSnapshot.hasData) {
+                                return SpinKitWave(
+                                  color: Color(0xff464D40),
+                                  size: 20.0,
+                                  duration: Duration(seconds: 3),
+                                );
+                              } else {
+                                if (galleryLikeSnapshot.data!.docs.isEmpty) {
+                                  return Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 100,),
+                                      Text(
+                                        '아직 선호하는 갤러리가 없으시군요!',
+                                        style: TextStyle(
+                                          color: Colors.grey, // 회색 글씨
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    ),
-                                    SizedBox(height: 10),
-                                    Icon(
-                                      Icons.sentiment_satisfied_alt, // 스마일 아이콘
-                                      color: Colors.grey,
-                                      size: 40,
-                                    ),
-                                  ],
+                                      SizedBox(height: 10),
+                                      Icon(
+                                        Icons.sentiment_satisfied_alt, // 스마일 아이콘
+                                        color: Colors.grey,
+                                        size: 40,
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Column(
+                                  children: galleryLikeSnapshot.data!.docs.map((gallery) {
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery['galleryId'])),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
+                                        child: Row(
+                                          children: [
+                                            gallery['imageURL']==null || gallery['imageURL'] == "" ?
+                                            CircleAvatar(
+                                              backgroundImage: NetworkImage(gallery['imageURL']),
+                                              radius: 40,
+                                            )
+                                                : CircleAvatar(
+                                              backgroundImage: NetworkImage(gallery['imageURL']),
+                                              radius: 40,
+                                            ),
+                                            SizedBox(width: 30),
+                                            Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  gallery['galleryName'],
+                                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                                ),
+                                                Text(
+                                                  gallery['region'],
+                                                  style: TextStyle(fontSize: 14),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 );
                               }
-                              return Column(
-                                children: galleryLikeSnapshot.data!.docs.map((gallery) {
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => GalleryInfo(document: gallery['galleryId'])),
-                                      );
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
-                                      child: Row(
-                                        children: [
-                                          gallery['imageURL']==null || gallery['imageURL'] == "" ?
-                                          CircleAvatar(
-                                            backgroundImage: NetworkImage(gallery['imageURL']),
-                                            radius: 40,
-                                          )
-                                              : CircleAvatar(
-                                            backgroundImage: NetworkImage(gallery['imageURL']),
-                                            radius: 40,
-                                          ),
-                                          SizedBox(width: 30),
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                gallery['galleryName'],
-                                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                              ),
-                                              Text(
-                                                gallery['region'],
-                                                style: TextStyle(fontSize: 14),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              );
-                            }
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }
-                },
+                            },
+                          );
+                        }).toList(),
+                      );
+                    }
+                  },
+                ),
               ),
             ),
           ],
