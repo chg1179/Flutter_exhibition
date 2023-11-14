@@ -10,6 +10,7 @@ import 'package:exhibition_project/widget/web_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -520,7 +521,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
         ),
         body:
         _galleryLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: SpinKitWave( // FadingCube 모양 사용
+          color: Color(0xff464D40), // 색상 설정
+          size: 20.0, // 크기 설정
+          duration: Duration(seconds: 3), //속도 설정
+           ))
           :CustomScrollView(
             slivers: <Widget>[
               SliverList(
@@ -740,7 +745,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       //openURL(_exDetailData!['exPage'].toString());
                                     }
                                     if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return Center(child: CircularProgressIndicator());
+                                      return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                        color: Color(0xff464D40), // 색상 설정
+                                        size: 20.0, // 크기 설정
+                                        duration: Duration(seconds: 3), //속도 설정
+                                      ));
                                     }
                                     if (snapshot.hasError) {
                                       return Text('불러오는 중 오류가 발생했습니다: ${snapshot.error}');
@@ -868,7 +877,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                 stream: getExpactationReviews(),
                                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                   if (!snapshot.hasData) {
-                                    return CircularProgressIndicator(); // 데이터를 기다리는 동안 로딩 표시
+                                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                      color: Color(0xff464D40), // 색상 설정
+                                      size: 20.0, // 크기 설정
+                                      duration: Duration(seconds: 3), //속도 설정
+                                    )); // 데이터를 기다리는 동안 로딩 표시
                                   }
 
                                   List<Widget> ExpactationReviewWidgets = [];
@@ -1020,7 +1033,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                 stream: getReviewsAndTags(),
                                 builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                   if (!snapshot.hasData) {
-                                    return CircularProgressIndicator(); // 데이터를 기다리는 동안 로딩 표시
+                                    return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                      color: Color(0xff464D40), // 색상 설정
+                                      size: 20.0, // 크기 설정
+                                      duration: Duration(seconds: 3), //속도 설정
+                                    )); // 데이터를 기다리는 동안 로딩 표시
                                   }
 
                                   List<Widget> reviewWidgets = [];
@@ -1030,6 +1047,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     Map<String, dynamic> reviewData = review.data() as Map<String, dynamic>;
                                     String reviewText = reviewData['content'];
                                     String userNick = reviewData['userNick'];
+                                    String userImage = reviewData['userImage'];
                                     DateTime cDateTime = reviewData['cDateTime'].toDate();
                                     DateTime uDateTime = reviewData['uDateTime'].toDate();
                                     String docent = reviewData['docent'];
@@ -1059,7 +1077,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                                       children: [
                                                         CircleAvatar(
                                                           radius: 18,
-                                                          backgroundImage: AssetImage("assets/ex/ex1.png"),
+                                                          backgroundImage: NetworkImage(userImage)
                                                         ),
                                                         SizedBox(width: 10,),
                                                         Column(
@@ -1151,7 +1169,11 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                               stream: tagsStream,
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> tagSnapshot) {
                                                 if (!tagSnapshot.hasData) {
-                                                  return CircularProgressIndicator(); // 태그 데이터 로딩 중 로딩 표시
+                                                  return Center(child: SpinKitWave( // FadingCube 모양 사용
+                                                    color: Color(0xff464D40), // 색상 설정
+                                                    size: 20.0, // 크기 설정
+                                                    duration: Duration(seconds: 3), //속도 설정
+                                                  )); // 태그 데이터 로딩 중 로딩 표시
                                                 }
 
                                                 List<Widget> tagWidgets = [];

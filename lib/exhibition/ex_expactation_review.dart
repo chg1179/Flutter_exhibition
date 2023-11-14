@@ -32,6 +32,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
         print('닉네임: $_userNickName');
+        _getUserData();
       });
     }
   }
@@ -60,7 +61,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
   void _getUserData() async {
     try {
       final QuerySnapshot querySnapshot = await _firestore
-          .collection('exhibition')
+          .collection('user')
           .where('nickName', isEqualTo: _userNickName)
           .limit(1)
           .get();
@@ -70,7 +71,7 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
         setState(() {
           _userData = documentSnapshot.data() as Map<String, dynamic>;
         });
-        print(_userData);
+        print('유저 정보 : ${_userData}');
       } else {
         print('유저 정보를 찾을 수 없습니다.');
       }
@@ -115,7 +116,6 @@ class _ExExpactationReviewState extends State<ExExpactationReview> {
     _init();
     _getExDetailData();
     _getReviewData();
-    _getUserData();
   }
 
   Future<void> addExpactationReview() async {

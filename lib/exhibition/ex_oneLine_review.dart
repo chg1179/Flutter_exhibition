@@ -87,7 +87,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
   void _getUserData() async {
     try {
       final QuerySnapshot querySnapshot = await _firestore
-          .collection('exhibition')
+          .collection('user')
           .where('nickName', isEqualTo: _userNickName)
           .limit(1)
           .get();
@@ -97,6 +97,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
         setState(() {
           _userData = documentSnapshot.data() as Map<String, dynamic>;
         });
+        print('유저 정보 : ${_userData}');
       } else {
         print('유저 정보를 찾을 수 없습니다.');
       }
@@ -169,6 +170,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
         _userDocument = document;
         _userNickName = _userDocument.get('nickName') ?? 'No Nickname'; // 닉네임이 없을 경우 기본값 설정
         print('닉네임: $_userNickName');
+        _getUserData();
       });
     }
   }
@@ -247,6 +249,7 @@ class _ExOneLineReviewState extends State<ExOneLineReview> {
         'observationTime': _observationTime,
         'docent': _docentOr,
         'imageURL': imageURL,
+        'userImage' : _userData?['profileImage']
       };
 
       // Add review data
