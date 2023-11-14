@@ -104,7 +104,7 @@ class _MyPageAddView2State extends State<MyPageAddView2>
                           String imageURL = reviews[index].get('imageURL');
                           return InkWell(
                               onTap: (){
-                                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviews[index].id)));
+                                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewDetail(document: reviews[index].id, userNickName: _userNickName,)));
                               },
                               child: Image.network(imageURL, fit: BoxFit.cover)
                           );
