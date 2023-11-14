@@ -752,7 +752,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                       ));
                                     }
                                     if (snapshot.hasError) {
-                                      return Text('불러오는 중 오류가 발생했습니다: ${snapshot.error}');
+                                      return Text('${snapshot.error}');
                                     }
                                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                       return Text('무료');
