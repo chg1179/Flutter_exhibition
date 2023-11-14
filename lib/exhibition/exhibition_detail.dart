@@ -693,7 +693,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   child: Text("관람시간", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
 
-                              Text("${_galleryData?['startTime']} ~ ${_galleryData?['endTime']}", style: TextStyle())
+                              Container(
+                                  width: MediaQuery.of(context).size.width - 130,
+                                  child: Text("${_galleryData?['startTime']} ~ ${_galleryData?['endTime']}", style: TextStyle())
+                              )
                             ],
                           ),
                         ),
@@ -706,7 +709,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   child: Text("휴관일", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
                               Container(
-                                  width: 250,
+                                  width: MediaQuery.of(context).size.width - 130,
                                   child: Text(_galleryData?['galleryClose'] == null ? "-" : "${_galleryData?['galleryClose']}")
                               )
                             ],
@@ -720,7 +723,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   width: 100,
                                   child: Text("전화번호", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
-                              Text(_exDetailData?['phone'] == null ? "-" : _exDetailData?['phone'], style: TextStyle())
+                              Container(
+                                  width: MediaQuery.of(context).size.width - 130,
+                                  child: Text(_exDetailData?['phone'] == null ? "-" : _exDetailData?['phone'], style: TextStyle())
+                              )
                             ],
                           ),
                         ),
@@ -733,7 +739,7 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   child: Text("입장료", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
                               Container(
-                                width: 250,
+                                width: MediaQuery.of(context).size.width - 130,
                                 child: StreamBuilder<QuerySnapshot>(
                                   stream: FirebaseFirestore.instance
                                       .collection('exhibition')
@@ -757,7 +763,6 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                     if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                                       return Text('무료');
                                     }
-
                                     return Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: snapshot.data!.docs.map((exFeeData) {
@@ -781,7 +786,10 @@ class _ExhibitionDetailState extends State<ExhibitionDetail> {
                                   width: 100,
                                   child: Text("주소", style: TextStyle(fontWeight: FontWeight.bold),)
                               ),
-                              Text("${_galleryData?['addr']}", style: TextStyle())
+                              Container(
+                                  width: MediaQuery.of(context).size.width - 130,
+                                  child: Text("${_galleryData?['addr']}", style: TextStyle())
+                              )
                             ],
                           ),
                         ),
