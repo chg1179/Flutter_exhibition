@@ -37,12 +37,12 @@ class _AddViewDetailState extends State<AddViewDetail> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    int spaceIndex = widget.title.indexOf(' ');
-    if (spaceIndex != -1) {
-      firstWord = widget.title.substring(0, spaceIndex);
-    } else {
-      firstWord = widget.title; // 띄어쓰기가 없을 경우 전체 문자열 저장
-    }
+
+    print('Received title============>: ${widget.title}');
+
+    firstWord = widget.title.split(' ')[0];
+
+    print('Received firstWord ========> : ${firstWord}');
   }
 
   @override
