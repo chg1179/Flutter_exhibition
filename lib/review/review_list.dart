@@ -63,6 +63,7 @@ class _ReviewListState extends State<ReviewList> {
     _selectedList = _filterList[0]['title'] as String?;
     if (!isDataLoaded) {
       _loadReviewData('', _selectedList!);
+      isDataLoaded = true;  // 초기 로드 후 플래그 설정을 위한 이 줄을 추가하세요
     }
   }
 
