@@ -1280,8 +1280,10 @@ class _CommDetailState extends State<CommDetail> {
         automaticallyImplyLeading: false,
         actions: [
           GestureDetector(
-            onTap: () {},
-            child: Icon(Icons.share, color: Color(0xff464D40), size: 20),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
+            },
+            child: Icon(Icons.home, color: Color(0xff464D40), size: 20),
           ),
           SizedBox(width: 15),
           if (_userNickName == _postData?['userNickName']) // 닉네임 비교
