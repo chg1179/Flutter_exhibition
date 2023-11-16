@@ -224,7 +224,7 @@ class _CommMainState extends State<CommMain> {
 
     print(_tagSelectList);
     await _likeCheck(selectedPosts);
-    await loadCommentCnt(selectedPosts);
+    await commentCnt(selectedPosts.map((post) => post['id'] as String).toList());
     setState(() {
       _commList(selectedPosts, 'write_date');
     });
