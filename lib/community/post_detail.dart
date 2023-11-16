@@ -620,15 +620,15 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
             ),
             TextButton(
               onPressed: () {
                 _deletePost(documentId);
-                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CommMain()));
                 _showDeleteDialog();
               },
-              child: Text('삭제'),
+              child: Text('삭제', style: TextStyle(color: Color(0xff464D40))),
             ),
           ],
         );
@@ -653,7 +653,7 @@ class _CommDetailState extends State<CommDetail> {
                   ),
                 );
               },
-              child: Text('확인'),
+              child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
             ),
           ],
         );
@@ -876,13 +876,19 @@ class _CommDetailState extends State<CommDetail> {
           title: Text('댓글 수정'),
           content: TextField(
             controller: editCommentController,
+            decoration: InputDecoration(
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Color(0xff464D40)), // 포커스가 있을 때의 테두리 색상
+              ),
+            ),
+
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
             ),
             TextButton(
               onPressed: () {
@@ -890,7 +896,7 @@ class _CommDetailState extends State<CommDetail> {
                 _editComment(commentId, updatedComment);
                 Navigator.pop(context);
               },
-              child: Text('저장'),
+              child: Text('저장', style: TextStyle(color: Color(0xff464D40))),
             ),
           ],
         );
@@ -1090,14 +1096,14 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('취소'),
+              child: Text('취소', style: TextStyle(color: Color(0xff464D40))),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 _deleteReply(documentId, commentId, replyId);
               },
-              child: Text('삭제'),
+              child: Text('삭제', style: TextStyle(color: Color(0xff464D40))),
             ),
           ],
         );
@@ -1130,7 +1136,7 @@ class _CommDetailState extends State<CommDetail> {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text('확인'),
+              child: Text('확인', style: TextStyle(color: Color(0xff464D40))),
             ),
           ],
         );

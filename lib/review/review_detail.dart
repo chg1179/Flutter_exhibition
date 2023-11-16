@@ -460,7 +460,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
           icon: Icon(Icons.arrow_back),
           color: Colors.black,
           onPressed: (){
-            Navigator.of(context).pop();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewList()));
           }
         ),
       ),
