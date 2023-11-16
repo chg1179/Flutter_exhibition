@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:exhibition_project/artist/artist_info.dart';
+import 'package:exhibition_project/artwork/ex_artwork_detail.dart';
 import 'package:exhibition_project/exhibition/exhibition_detail.dart';
 import 'package:exhibition_project/gallery/gallery_info.dart';
 import 'package:flutter/material.dart';
@@ -188,6 +189,7 @@ class _SearchState extends State<Search> {
 
             tempArtworkList.addAll(artworkQuerySnapshot.docs.map((artworkDoc) {
               Map<String, dynamic> artworkData = artworkDoc.data() as Map<String, dynamic>;
+              artworkData['artistId'] = artistDoc.id;
               artworkData['id'] = artworkDoc.id; // Adding document ID
               artworkData['artistName'] = artistName; // Adding artistName
               return artworkData;
@@ -504,7 +506,7 @@ class _SearchState extends State<Search> {
                   final artwork = _artworkList[index];
                   return InkWell(
                     onTap: () {
-                      Navigator.push(context,MaterialPageRoute(builder: (context) => ExhibitionDetail(document: artwork['id'])));
+                      Navigator.push(context,MaterialPageRoute(builder: (context) => ExArtworkDetail(doc: artwork['artistId'], artDoc: artwork['id'])));
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left: 20, bottom: 10, top: 10, right: 20),
