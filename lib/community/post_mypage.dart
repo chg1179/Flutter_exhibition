@@ -192,9 +192,12 @@ class _CommMyPageState extends State<CommMyPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: TextStyle(fontSize: 15),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.57,
+                      child: Text(
+                        title,
+                        style: TextStyle(fontSize: 15),
+                      ),
                     ),
                     Row(
                       children: [
