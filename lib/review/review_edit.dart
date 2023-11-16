@@ -719,12 +719,8 @@ class _ReviewEditState extends State<ReviewEdit> {
             TextButton(
               onPressed: () {
                 if (widget.documentId != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ReviewDetail(document: widget.documentId),
-                    ),
-                  );
+                   Navigator.of(context).pop();
+                   Navigator.of(context).pop();
                 } else {
                   // 등록 버튼일 경우 ReviewList 페이지로 이동
                   Navigator.push(
