@@ -576,6 +576,15 @@ class _CommMainState extends State<CommMain> {
                         },
                         child: Row(
                           children: [
+
+                            // 임시 프로필 사진
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage: _profileImage != null
+                                  ? NetworkImage(_profileImage!)
+                                  : AssetImage('assets/logo/green_logo.png') as ImageProvider,
+                            ),
+
                             //userProfileImageWidget(nickName),
                             SizedBox(width: 10),
                             Text(nickName, style: TextStyle(fontSize: 15)),
