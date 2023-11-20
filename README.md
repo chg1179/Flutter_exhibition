@@ -50,8 +50,7 @@ MZ 사이에 불어온 전시 열풍<br>
 * 프로세서 : Intel(R) Core(TM) i5-9400F CPU @ 2.90GHz
 * 기타 도구 및 라이브러리: <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
   <br>
-  <br>
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=anuraghazra&layout=compact)
+
 
 ## ⚙ 주요 기능
 📌 로그인 <br>
