@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=Slice&&height=200&section=header&text=Hello~!!&fontSize=90&fontColor=D3D3D3" />
+
 
 # ✨ 내 손안의 전시회
 
