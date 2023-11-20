@@ -52,10 +52,6 @@ MZ 사이에 불어온 전시 열풍<br>
 <br>
 <br>
 
-## ⚙ 주요 기능
-📌 로그인 <br>
-<img src='https://github.com/yeodae/VeryPeri/assets/137017214/e0ba216c-a3ac-4f33-90da-59418c2a8d43'><br>
-
 <br>
 
 ## [📺 시연 영상](https://youtu.be/lJFf9Tf7LG4?si=I5I8ZbXtTd1a1AXl)
