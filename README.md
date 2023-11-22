@@ -3,7 +3,7 @@
 # 내 손안의 전시회
 
 <p align="center">
-  ![logo_white](https://github.com/yeodae/VeryPeri/assets/130977379/7d36cff3-1532-46a6-a080-598682222f25)
+  <img src="https://github.com/yeodae/VeryPeri/assets/130977379/7d36cff3-1532-46a6-a080-598682222f25" alt="logo_white">
 </p>
 
 ## 🔎프로젝트 개요
