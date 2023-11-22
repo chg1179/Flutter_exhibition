@@ -2,6 +2,9 @@
 
 # 내 손안의 전시회
 
+<p align="center">
+  ![logo_white](https://github.com/yeodae/VeryPeri/assets/130977379/7d36cff3-1532-46a6-a080-598682222f25)
+</p>
 
 ## 🔎프로젝트 개요
 
@@ -57,7 +60,7 @@ MZ 사이에 불어온 전시 열풍<br>
 ## [📺 시연 영상](https://youtu.be/lJFf9Tf7LG4?si=I5I8ZbXtTd1a1AXl)
 <br>
 
-## [💾 PPT](https://drive.google.com/file/d/1oPeefRHCe4cefaOIIe9P_74_1BLdQ2F2/view?usp=drive_link)
+## [💾 PPT](https://drive.google.com/file/d/1mwjVugoNRZiqdOrCukre6GXGINJdk8s2/view?usp=drive_link)
 <br>
 
 
